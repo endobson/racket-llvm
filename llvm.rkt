@@ -582,7 +582,7 @@ LLVM_FOR_EACH_VALUE_SUBCLASS(LLVM_DECLARE_VALUE_CAST)
  (_fun LLVMValueRef _uint -> LLVMValueRef))
 
 ;/* Operations on scalar constants */
-(define-llvm LLVMConstInt (_fun LLVMTypeRef _ulong LLVMBool -> LLVMValueRef))
+(define-llvm LLVMConstInt (_fun LLVMTypeRef _long LLVMBool -> LLVMValueRef))
 (define-llvm LLVMConstIntOfString
  (_fun LLVMTypeRef _string _uint8 -> LLVMValueRef))
 (define-llvm LLVMConstIntOfStringAndSize
@@ -948,9 +948,8 @@ LLVMValueRef LLVMBuildNot(LLVMBuilderRef, LLVMValueRef V, const char *Name);
 /* Memory */
 |#
 (define-llvm LLVMBuildMalloc (_fun LLVMBuilderRef LLVMTypeRef _string -> LLVMValueRef))
+(define-llvm LLVMBuildArrayMalloc (_fun LLVMBuilderRef LLVMTypeRef LLVMValueRef _string -> LLVMValueRef))
 #|
-LLVMValueRef LLVMBuildArrayMalloc(LLVMBuilderRef, LLVMTypeRef Ty,
-                                  LLVMValueRef Val, const char *Name);
 LLVMValueRef LLVMBuildAlloca(LLVMBuilderRef, LLVMTypeRef Ty, const char *Name);
 LLVMValueRef LLVMBuildArrayAlloca(LLVMBuilderRef, LLVMTypeRef Ty,
                                   LLVMValueRef Val, const char *Name);
@@ -1250,7 +1249,7 @@ LLVMBool LLVMFinalizeFunctionPassManager(LLVMPassManagerRef FPM);
  (_fun LLVMGenericValueRef -> _uint))
 
 (define-llvm LLVMGenericValueToInt
- (_fun LLVMGenericValueRef LLVMBool -> _ulong))
+ (_fun LLVMGenericValueRef LLVMBool -> _long))
 
 (define-llvm LLVMGenericValueToPointer
  (_fun LLVMGenericValueRef -> _pointer))
