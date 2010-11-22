@@ -49,6 +49,7 @@
 (struct llvm-memory-buffer-ref (pointer))
 (struct llvm-pass-manager-ref (pointer))
 (struct llvm-use-ref (pointer))
+(struct llvm-target-data-ref (pointer))
 
 (define LLVMContextRef
  (make-ctype _pointer llvm-context-ref-pointer llvm-context-ref))
@@ -72,6 +73,8 @@
  (make-ctype _pointer llvm-pass-manager-ref-pointer llvm-pass-manager-ref))
 (define LLVMUseRef
  (make-ctype _pointer llvm-use-ref-pointer llvm-use-ref))
+(define LLVMTargetDataRef
+ (make-ctype _pointer llvm-target-data-ref-pointer llvm-target-data-ref))
 
 (define (make-byte-string ptr)
  (let loop ((i 0))
@@ -719,170 +722,246 @@ LLVM_FOR_EACH_VALUE_SUBCLASS(LLVM_DECLARE_VALUE_CAST)
   LLVMConstPointerCast)
  (_fun LLVMValueRef LLVMTypeRef -> LLVMValueRef))
 
-#|
-LLVMValueRef LLVMConstIntCast(LLVMValueRef ConstantVal, LLVMTypeRef ToType,
-                              LLVMBool isSigned);
-LLVMValueRef LLVMConstFPCast(LLVMValueRef ConstantVal, LLVMTypeRef ToType);
-LLVMValueRef LLVMConstSelect(LLVMValueRef ConstantCondition,
-                             LLVMValueRef ConstantIfTrue,
-                             LLVMValueRef ConstantIfFalse);
-LLVMValueRef LLVMConstExtractElement(LLVMValueRef VectorConstant,
-                                     LLVMValueRef IndexConstant);
-LLVMValueRef LLVMConstInsertElement(LLVMValueRef VectorConstant,
-                                    LLVMValueRef ElementValueConstant,
-                                    LLVMValueRef IndexConstant);
-LLVMValueRef LLVMConstShuffleVector(LLVMValueRef VectorAConstant,
-                                    LLVMValueRef VectorBConstant,
-                                    LLVMValueRef MaskConstant);
-LLVMValueRef LLVMConstExtractValue(LLVMValueRef AggConstant, unsigned *IdxList,
-                                   unsigned NumIdx);
-LLVMValueRef LLVMConstInsertValue(LLVMValueRef AggConstant,
-                                  LLVMValueRef ElementValueConstant,
-                                  unsigned *IdxList, unsigned NumIdx);
-LLVMValueRef LLVMConstInlineAsm(LLVMTypeRef Ty,
-                                const char *AsmString, const char *Constraints,
-                                LLVMBool HasSideEffects, LLVMBool IsAlignStack);
-LLVMValueRef LLVMBlockAddress(LLVMValueRef F, LLVMBasicBlockRef BB);
 
-|#
+(define-llvm LLVMConstIntCast
+ (_fun LLVMValueRef LLVMTypeRef LLVMBool -> LLVMValueRef))
+
+(define-llvm LLVMConstFPCast
+ (_fun LLVMValueRef LLVMTypeRef -> LLVMValueRef))
+
+(define-llvm-multiple
+ (LLVMConstSelect
+  LLVMConstInsertElement
+  LLVMConstShuffleVector)
+ (_fun LLVMValueRef LLVMValueRef LLVMValueRef -> LLVMValueRef))
+
+(define-llvm LLVMConstExtractElement
+ (_fun LLVMValueRef LLVMValueRef -> LLVMValueRef))
+
+(define-llvm LLVMConstExtractValue
+ (_fun (agg indices) ::
+       (agg : LLVMValueRef)
+       (indices : (_list i _uint))
+       (_uint = (length indices))
+       ->
+       LLVMValueRef))
+
+
+(define-llvm LLVMConstInsertValue
+ (_fun (agg elem indices) ::
+       (agg : LLVMValueRef)
+       (elem : LLVMValueRef)
+       (indices : (_list i _uint))
+       (_uint = (length indices))
+       ->
+       LLVMValueRef))
+
+(define-llvm LLVMConstInlineAsm (_fun LLVMTypeRef _string _string LLVMBool LLVMBool -> LLVMValueRef))
+
+(define-llvm LLVMBlockAddress (_fun LLVMValueRef LLVMBasicBlockRef -> LLVMValueRef))
+
 
 ;/* Operations on global variables, functions, and aliases (globals) */
 (define-llvm LLVMGetGlobalParent (_fun LLVMValueRef -> LLVMModuleRef))
-#|
-LLVMBool LLVMIsDeclaration(LLVMValueRef Global);
-|#
+
+(define-llvm LLVMIsDeclaration (_fun LLVMValueRef -> LLVMBool))
 
 (define-llvm LLVMGetLinkage (_fun LLVMValueRef -> LLVMLinkage))
 (define-llvm LLVMSetLinkage (_fun LLVMValueRef LLVMLinkage -> _void))
-#|
-const char *LLVMGetSection(LLVMValueRef Global);
-void LLVMSetSection(LLVMValueRef Global, const char *Section);
-LLVMVisibility LLVMGetVisibility(LLVMValueRef Global);
-void LLVMSetVisibility(LLVMValueRef Global, LLVMVisibility Viz);
-|#
+
+(define-llvm LLVMGetSection (_fun LLVMValueRef -> _string))
+(define-llvm LLVMSetSection (_fun LLVMValueRef _string -> _void))
+
+(define-llvm LLVMGetVisibility (_fun LLVMValueRef -> LLVMVisibility))
+(define-llvm LLVMSetVisibility (_fun LLVMValueRef LLVMVisibility -> _void))
+
 (define-llvm LLVMGetAlignment (_fun LLVMValueRef -> _uint))
 (define-llvm LLVMSetAlignment (_fun LLVMValueRef _uint -> _void))
 
 ;/* Operations on global variables */
 (define-llvm LLVMAddGlobal
  (_fun LLVMModuleRef LLVMTypeRef _string -> LLVMValueRef))
-#|
-LLVMValueRef LLVMAddGlobalInAddressSpace(LLVMModuleRef M, LLVMTypeRef Ty,
-                                         const char *Name,
-                                         unsigned AddressSpace);
-|#
+
+(define-llvm LLVMAddGlobalInAddressSpace
+ (_fun LLVMModuleRef LLVMTypeRef _string _uint -> LLVMValueRef))
+
 (define-llvm LLVMGetNamedGlobal (_fun LLVMModuleRef _string -> LLVMValueRef))
 
-#|
-LLVMValueRef LLVMGetFirstGlobal(LLVMModuleRef M);
-LLVMValueRef LLVMGetLastGlobal(LLVMModuleRef M);
-LLVMValueRef LLVMGetNextGlobal(LLVMValueRef GlobalVar);
-LLVMValueRef LLVMGetPreviousGlobal(LLVMValueRef GlobalVar);
-void LLVMDeleteGlobal(LLVMValueRef GlobalVar);
-LLVMValueRef LLVMGetInitializer(LLVMValueRef GlobalVar);
-|#
+(define-llvm-multiple
+ (LLVMGetFirstGlobal LLVMGetLastGlobal)
+ (_fun LLVMModuleRef -> LLVMValueRef))
+
+(define-llvm-multiple
+ (LLVMGetNextGlobal
+  LLVMGetPreviousGlobal
+  LLVMDeleteGlobal
+  LLVMGetInitializer)
+ (_fun LLVMValueRef -> LLVMValueRef))
+
 (define-llvm LLVMSetInitializer (_fun LLVMValueRef LLVMValueRef -> _void))
-#|
-LLVMBool LLVMIsThreadLocal(LLVMValueRef GlobalVar);
-void LLVMSetThreadLocal(LLVMValueRef GlobalVar, LLVMBool IsThreadLocal);
-LLVMBool LLVMIsGlobalConstant(LLVMValueRef GlobalVar);
-void LLVMSetGlobalConstant(LLVMValueRef GlobalVar, LLVMBool IsConstant);
 
-/* Operations on aliases */
-LLVMValueRef LLVMAddAlias(LLVMModuleRef M, LLVMTypeRef Ty, LLVMValueRef Aliasee,
-                          const char *Name);
+(define-llvm-multiple
+ (LLVMIsThreadLocal LLVMIsGlobalConstant)
+ (_fun LLVMValueRef -> LLVMBool))
+(define-llvm-multiple
+ (LLVMSetThreadLocal LLVMSetGlobalConstant)
+ (_fun LLVMValueRef LLVMBool -> _void))
 
-/* Operations on functions */
-|#
+
+
+;/* Operations on aliases */
+
+(define-llvm LLVMAddAlias
+ (_fun LLVMModuleRef LLVMTypeRef LLVMValueRef _string -> LLVMValueRef))
+
+;/* Operations on functions */
 (define-llvm LLVMAddFunction (_fun LLVMModuleRef _string LLVMTypeRef -> LLVMValueRef))
 
 (define-llvm LLVMGetNamedFunction (_fun LLVMModuleRef _string -> LLVMValueRef))
 
-#|
-LLVMValueRef LLVMGetFirstFunction(LLVMModuleRef M);
-LLVMValueRef LLVMGetLastFunction(LLVMModuleRef M);
-LLVMValueRef LLVMGetNextFunction(LLVMValueRef Fn);
-LLVMValueRef LLVMGetPreviousFunction(LLVMValueRef Fn);
-void LLVMDeleteFunction(LLVMValueRef Fn);
-unsigned LLVMGetIntrinsicID(LLVMValueRef Fn);
-unsigned LLVMGetFunctionCallConv(LLVMValueRef Fn);
-void LLVMSetFunctionCallConv(LLVMValueRef Fn, unsigned CC);
-const char *LLVMGetGC(LLVMValueRef Fn);
-|#
+(define-llvm-multiple
+ (LLVMGetFirstFunction
+  LLVMGetLastFunction)
+ (_fun LLVMModuleRef -> LLVMValueRef))
+
+(define-llvm-multiple
+ (LLVMGetNextFunction
+  LLVMGetPreviousFunction)
+ (_fun LLVMValueRef -> LLVMValueRef))
+
+(define-llvm LLVMDeleteFunction
+ (_fun LLVMValueRef -> _void))
+
+(define-llvm-multiple
+ (LLVMGetIntrinsicID
+  LLVMGetFunctionCallConv)
+ (_fun LLVMValueRef -> _uint))
+
+(define-llvm LLVMSetFunctionCallConv
+ (_fun LLVMValueRef _uint -> _void))
+
+(define-llvm LLVMGetGC
+ (_fun LLVMValueRef -> _string))
 (define-llvm LLVMSetGC (_fun LLVMValueRef _string -> _void))
-#|
-void LLVMAddFunctionAttr(LLVMValueRef Fn, LLVMAttribute PA);
-LLVMAttribute LLVMGetFunctionAttr(LLVMValueRef Fn);
-void LLVMRemoveFunctionAttr(LLVMValueRef Fn, LLVMAttribute PA);
 
-/* Operations on parameters */
-unsigned LLVMCountParams(LLVMValueRef Fn);
-void LLVMGetParams(LLVMValueRef Fn, LLVMValueRef *Params);
-|#
+
+(define-llvm-multiple
+ (LLVMAddFunctionAttr
+  LLVMRemoveFunctionAttr)
+ (_fun LLVMValueRef LLVMAttribute -> _void))
+
+(define-llvm LLVMGetFunctionAttr
+ (_fun LLVMValueRef -> LLVMAttribute))
+ 
+
+;/* Operations on parameters */
+
+(define-llvm LLVMCountParams (_fun LLVMValueRef -> _uint))
+(define-llvm LLVMGetParams
+ (_fun (fun) ::
+       (fun : LLVMValueRef)
+       (params : (_list o LLVMValueRef (LLVMCountParams fun)))
+       -> _void
+       -> params))
+
 (define-llvm LLVMGetParam (_fun LLVMValueRef _uint -> LLVMValueRef))
-#|
-LLVMValueRef LLVMGetParamParent(LLVMValueRef Inst);
-LLVMValueRef LLVMGetFirstParam(LLVMValueRef Fn);
-LLVMValueRef LLVMGetLastParam(LLVMValueRef Fn);
-LLVMValueRef LLVMGetNextParam(LLVMValueRef Arg);
-LLVMValueRef LLVMGetPreviousParam(LLVMValueRef Arg);
-void LLVMAddAttribute(LLVMValueRef Arg, LLVMAttribute PA);
-void LLVMRemoveAttribute(LLVMValueRef Arg, LLVMAttribute PA);
-LLVMAttribute LLVMGetAttribute(LLVMValueRef Arg);
-void LLVMSetParamAlignment(LLVMValueRef Arg, unsigned align);
 
-/* Operations on basic blocks */
-LLVMValueRef LLVMBasicBlockAsValue(LLVMBasicBlockRef BB);
-LLVMBool LLVMValueIsBasicBlock(LLVMValueRef Val);
-LLVMBasicBlockRef LLVMValueAsBasicBlock(LLVMValueRef Val);
-|#
+(define-llvm LLVMGetParamParent (_fun LLVMValueRef -> LLVMValueRef))
+
+(define-llvm-multiple
+ (LLVMGetFirstParam
+  LLVMGetLastParam)
+ (_fun LLVMValueRef -> LLVMValueRef))
+
+(define-llvm-multiple
+ (LLVMGetNextParam
+  LLVMGetPreviousParam)
+ (_fun LLVMValueRef -> LLVMValueRef))
+
+(define-llvm-multiple
+ (LLVMAddAttribute
+  LLVMRemoveAttribute)
+ (_fun LLVMValueRef LLVMAttribute -> _void))
+
+(define-llvm LLVMGetAttribute (_fun LLVMValueRef -> LLVMAttribute))
+(define-llvm LLVMSetParamAlignment (_fun LLVMValueRef _uint -> _void))
+
+
+;/* Operations on basic blocks */
+
+(define-llvm LLVMBasicBlockAsValue (_fun LLVMBasicBlockRef -> LLVMValueRef))
+(define-llvm LLVMValueIsBasicBlock (_fun LLVMValueRef -> LLVMBool))
+(define-llvm LLVMValueAsBasicBlock (_fun LLVMValueRef -> LLVMBasicBlockRef))
 (define-llvm LLVMGetBasicBlockParent (_fun LLVMBasicBlockRef -> LLVMValueRef))
-#|
-unsigned LLVMCountBasicBlocks(LLVMValueRef Fn);
-void LLVMGetBasicBlocks(LLVMValueRef Fn, LLVMBasicBlockRef *BasicBlocks);
-LLVMBasicBlockRef LLVMGetFirstBasicBlock(LLVMValueRef Fn);
-LLVMBasicBlockRef LLVMGetLastBasicBlock(LLVMValueRef Fn);
-LLVMBasicBlockRef LLVMGetNextBasicBlock(LLVMBasicBlockRef BB);
-LLVMBasicBlockRef LLVMGetPreviousBasicBlock(LLVMBasicBlockRef BB);
-LLVMBasicBlockRef LLVMGetEntryBasicBlock(LLVMValueRef Fn);
 
-|#
+(define-llvm LLVMCountBasicBlocks (_fun LLVMValueRef -> _uint))
+(define-llvm LLVMGetBasicBlocks
+ (_fun (fun) ::
+       (fun : LLVMValueRef)
+       (blocks : (_list o LLVMBasicBlockRef (LLVMCountBasicBlocks fun)))
+       -> _void
+       -> blocks))
+
+(define-llvm-multiple
+ (LLVMGetEntryBasicBlock
+  LLVMGetFirstBasicBlock
+  LLVMGetLastBasicBlock)
+ (_fun LLVMValueRef -> LLVMBasicBlockRef))
+
+(define-llvm-multiple
+ (LLVMGetNextBasicBlock
+  LLVMGetPreviousBasicBlock)
+ (_fun LLVMBasicBlockRef -> LLVMBasicBlockRef))
+
 (define-llvm LLVMAppendBasicBlockInContext (_fun LLVMContextRef LLVMValueRef _string -> LLVMBasicBlockRef))
 (define-llvm LLVMInsertBasicBlockInContext (_fun LLVMContextRef LLVMBasicBlockRef _string -> LLVMBasicBlockRef))
-#|
 
-LLVMBasicBlockRef LLVMAppendBasicBlock(LLVMValueRef Fn, const char *Name);
-LLVMBasicBlockRef LLVMInsertBasicBlock(LLVMBasicBlockRef InsertBeforeBB,
-                                       const char *Name);
-void LLVMDeleteBasicBlock(LLVMBasicBlockRef BB);
 
-void LLVMMoveBasicBlockBefore(LLVMBasicBlockRef BB, LLVMBasicBlockRef MovePos);
-void LLVMMoveBasicBlockAfter(LLVMBasicBlockRef BB, LLVMBasicBlockRef MovePos);
+(define-llvm LLVMAppendBasicBlock
+ (_fun LLVMValueRef _string -> LLVMBasicBlockRef))
+(define-llvm LLVMInsertBasicBlock
+ (_fun LLVMBasicBlockRef _string -> LLVMBasicBlockRef))
+(define-llvm LLVMDeleteBasicBlock
+ (_fun LLVMBasicBlockRef -> _void))
 
-/* Operations on instructions */
-|#
+(define-llvm-multiple
+ (LLVMMoveBasicBlockBefore
+  LLVMMoveBasicBlockAfter)
+ (_fun LLVMBasicBlockRef LLVMBasicBlockRef -> _void))
+
+
+;/* Operations on instructions */
+;
 (define-llvm LLVMGetInstructionParent (_fun LLVMValueRef -> LLVMBasicBlockRef))
-#|
-LLVMValueRef LLVMGetFirstInstruction(LLVMBasicBlockRef BB);
-LLVMValueRef LLVMGetLastInstruction(LLVMBasicBlockRef BB);
-LLVMValueRef LLVMGetNextInstruction(LLVMValueRef Inst);
-LLVMValueRef LLVMGetPreviousInstruction(LLVMValueRef Inst);
 
-/* Operations on call sites */
-void LLVMSetInstructionCallConv(LLVMValueRef Instr, unsigned CC);
-unsigned LLVMGetInstructionCallConv(LLVMValueRef Instr);
-void LLVMAddInstrAttribute(LLVMValueRef Instr, unsigned index, LLVMAttribute);
-void LLVMRemoveInstrAttribute(LLVMValueRef Instr, unsigned index, 
-                              LLVMAttribute);
-void LLVMSetInstrParamAlignment(LLVMValueRef Instr, unsigned index, 
-                                unsigned align);
+(define-llvm-multiple
+ (LLVMGetFirstInstruction
+  LLVMGetLastInstruction)
+ (_fun LLVMBasicBlockRef -> LLVMValueRef))
 
-/* Operations on call instructions (only) */
-LLVMBool LLVMIsTailCall(LLVMValueRef CallInst);
-void LLVMSetTailCall(LLVMValueRef CallInst, LLVMBool IsTailCall);
+(define-llvm-multiple
+ (LLVMGetNextInstruction
+  LLVMGetPreviousInstruction)
+ (_fun LLVMValueRef -> LLVMValueRef))
 
-/* Operations on phi nodes */
-|#
+;/* Operations on call sites */
+
+(define-llvm LLVMGetInstructionCallConv (_fun LLVMValueRef -> _uint))
+(define-llvm LLVMSetInstructionCallConv (_fun LLVMValueRef _uint -> _void))
+
+(define-llvm LLVMAddInstrAttribute (_fun LLVMValueRef _uint LLVMAttribute -> _void))
+(define-llvm LLVMRemoveInstrAttribute (_fun LLVMValueRef _uint LLVMAttribute -> _void))
+
+(define-llvm LLVMSetInstrParamAlignment (_fun LLVMValueRef _uint _uint -> _void))
+
+
+;/* Operations on call instructions (only) */
+
+(define-llvm LLVMIsTailCall (_fun LLVMValueRef -> LLVMBool))
+(define-llvm LLVMSetTailCall (_fun LLVMValueRef LLVMBool -> _void))
+
+
+;/* Operations on phi nodes */
 (define-llvm LLVMAddIncoming
  (_fun (phi values) ::
        (phi : LLVMValueRef)
@@ -892,51 +971,57 @@ void LLVMSetTailCall(LLVMValueRef CallInst, LLVMBool IsTailCall);
        -> _void))
    
 
-#|
-unsigned LLVMCountIncoming(LLVMValueRef PhiNode);
-LLVMValueRef LLVMGetIncomingValue(LLVMValueRef PhiNode, unsigned Index);
-LLVMBasicBlockRef LLVMGetIncomingBlock(LLVMValueRef PhiNode, unsigned Index);
+(define-llvm LLVMCountIncoming (_fun LLVMValueRef -> _uint))
+(define-llvm LLVMGetIncomingValue (_fun LLVMValueRef _uint -> LLVMValueRef))
+(define-llvm LLVMGetIncomingBlock (_fun LLVMValueRef _uint -> LLVMBasicBlockRef))
 
-/*===-- Instruction builders ----------------------------------------------===*/
+;/*===-- Instruction builders ----------------------------------------------===*/
 
-/* An instruction builder represents a point within a basic block, and is the
- * exclusive means of building instructions using the C interface.
- */
+;/* An instruction builder represents a point within a basic block, and is the
+; * exclusive means of building instructions using the C interface.
+; */
 
-|#
 (define-llvm LLVMCreateBuilderInContext (_fun LLVMContextRef -> LLVMBuilderRef))
 (define-llvm LLVMCreateBuilder (_fun -> LLVMBuilderRef))
-#|
-void LLVMPositionBuilder(LLVMBuilderRef Builder, LLVMBasicBlockRef Block,
-                         LLVMValueRef Instr);
-void LLVMPositionBuilderBefore(LLVMBuilderRef Builder, LLVMValueRef Instr);
-|#
+
+(define-llvm LLVMPositionBuilder (_fun LLVMBuilderRef LLVMBasicBlockRef LLVMValueRef -> _void))
+(define-llvm LLVMPositionBuilderBefore
+  (_fun LLVMBuilderRef LLVMValueRef -> _void))
+
 (define-llvm LLVMPositionBuilderAtEnd (_fun LLVMBuilderRef LLVMBasicBlockRef -> _void))
 
 (define-llvm LLVMGetInsertBlock (_fun LLVMBuilderRef -> LLVMBasicBlockRef))
-#|
-void LLVMClearInsertionPosition(LLVMBuilderRef Builder);
-void LLVMInsertIntoBuilder(LLVMBuilderRef Builder, LLVMValueRef Instr);
-void LLVMInsertIntoBuilderWithName(LLVMBuilderRef Builder, LLVMValueRef Instr,
-                                   const char *Name);
-|#
+
+(define-llvm LLVMClearInsertionPosition
+ (_fun LLVMBuilderRef -> _void))
+
+(define-llvm LLVMInsertIntoBuilder
+ (_fun LLVMBuilderRef LLVMValueRef -> _void))
+(define-llvm LLVMInsertIntoBuilderWithName
+ (_fun LLVMBuilderRef LLVMValueRef _string -> _void))
+
 (define-llvm LLVMDisposeBuilder (_fun LLVMBuilderRef -> _void))
-#|
 
-/* Metadata */
-void LLVMSetCurrentDebugLocation(LLVMBuilderRef Builder, LLVMValueRef L);
-LLVMValueRef LLVMGetCurrentDebugLocation(LLVMBuilderRef Builder);
-void LLVMSetInstDebugLocation(LLVMBuilderRef Builder, LLVMValueRef Inst);
 
-/* Terminators */
-|#
+
+
+;/* Metadata */
+(define-llvm LLVMGetCurrentDebugLocation (_fun LLVMBuilderRef -> LLVMValueRef))
+(define-llvm LLVMSetCurrentDebugLocation (_fun LLVMBuilderRef LLVMValueRef -> _void))
+(define-llvm LLVMSetInstDebugLocation (_fun LLVMBuilderRef LLVMValueRef -> _void))
+
+
+;/* Terminators */
 (define-llvm LLVMBuildRetVoid (_fun LLVMBuilderRef -> LLVMValueRef))
 (define-llvm LLVMBuildRet (_fun LLVMBuilderRef LLVMValueRef -> LLVMValueRef))
-#|
-LLVMValueRef LLVMBuildAggregateRet(LLVMBuilderRef, LLVMValueRef *RetVals,
-                                   unsigned N);
+(define-llvm LLVMBuildAggregateRet
+  (_fun (builder vals) ::
+        (builder : LLVMBuilderRef)
+        (vals : (_list i LLVMValueRef))
+        (_uint = (length vals))
+        -> LLVMValueRef))
 
-|#
+
 (define-llvm LLVMBuildBr (_fun LLVMBuilderRef LLVMBasicBlockRef -> LLVMValueRef))
 
 
@@ -950,21 +1035,30 @@ LLVMValueRef LLVMBuildAggregateRet(LLVMBuilderRef, LLVMValueRef *RetVals,
  (_fun LLVMBuilderRef LLVMValueRef LLVMBasicBlockRef _uint -> LLVMValueRef))
 
 (define-llvm LLVMAddCase (_fun LLVMValueRef LLVMValueRef LLVMBasicBlockRef -> _void))
-#|
-LLVMValueRef LLVMBuildIndirectBr(LLVMBuilderRef B, LLVMValueRef Addr,
-                                 unsigned NumDests);
-LLVMValueRef LLVMBuildInvoke(LLVMBuilderRef, LLVMValueRef Fn,
-                             LLVMValueRef *Args, unsigned NumArgs,
-                             LLVMBasicBlockRef Then, LLVMBasicBlockRef Catch,
-                             const char *Name);
-LLVMValueRef LLVMBuildUnwind(LLVMBuilderRef);
-LLVMValueRef LLVMBuildUnreachable(LLVMBuilderRef);
 
-/* Add a destination to the indirectbr instruction */
-void LLVMAddDestination(LLVMValueRef IndirectBr, LLVMBasicBlockRef Dest);
+(define-llvm LLVMBuildIndirectBr (_fun LLVMBuilderRef LLVMValueRef _uint -> LLVMValueRef))
+(define-llvm LLVMBuildInvoke
+ (_fun (builder fun args then catch name) ::
+       (builder : LLVMBuilderRef)
+       (fun : LLVMValueRef)
+       (args : (_list i LLVMValueRef))
+       (_uint = (length args))
+       (then : LLVMBasicBlockRef)
+       (catch : LLVMBasicBlockRef)
+       (name : _string)
+       ->
+       LLVMValueRef))
 
-/* Arithmetic */
-|#
+
+(define-llvm-multiple 
+ (LLVMBuildUnwind
+  LLVMBuildUnreachable)
+ (_fun LLVMBuilderRef LLVMValueRef -> LLVMValueRef))
+
+;/* Add a destination to the indirectbr instruction */
+(define-llvm LLVMAddDestination (_fun LLVMValueRef LLVMBasicBlockRef -> _void))
+
+;/* Arithmetic */
 (define-llvm-multiple
   (LLVMBuildAdd
    LLVMBuildNSWAdd
@@ -992,36 +1086,38 @@ void LLVMAddDestination(LLVMValueRef IndirectBr, LLVMBasicBlockRef Dest);
    LLVMBuildOr
    LLVMBuildXor)
   (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
-#|
-LLVMValueRef LLVMBuildBinOp(LLVMBuilderRef B, LLVMOpcode Op,
-                            LLVMValueRef LHS, LLVMValueRef RHS,
-                            const char *Name);
-LLVMValueRef LLVMBuildNeg(LLVMBuilderRef, LLVMValueRef V, const char *Name);
-LLVMValueRef LLVMBuildNSWNeg(LLVMBuilderRef B, LLVMValueRef V,
-                             const char *Name);
-LLVMValueRef LLVMBuildNUWNeg(LLVMBuilderRef B, LLVMValueRef V,
-                             const char *Name);
-LLVMValueRef LLVMBuildFNeg(LLVMBuilderRef, LLVMValueRef V, const char *Name);
-LLVMValueRef LLVMBuildNot(LLVMBuilderRef, LLVMValueRef V, const char *Name);
 
-/* Memory */
-|#
-(define-llvm-multiple (LLVMBuildMalloc LLVMBuildAlloca)
+(define-llvm LLVMBuildBinOp
+ (_fun LLVMBuilderRef LLVMOpcode LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
+
+(define-llvm-multiple
+ (LLVMBuildNeg
+  LLVMBuildNSWNeg
+  LLVMBuildNUWNeg
+  LLVMBuildFNeg
+  LLVMBuildNot)
+ (_fun LLVMBuilderRef LLVMValueRef _string -> LLVMValueRef))
+
+;/* Memory */
+(define-llvm-multiple
+ (LLVMBuildMalloc
+  LLVMBuildAlloca)
  (_fun LLVMBuilderRef LLVMTypeRef _string -> LLVMValueRef))
-(define-llvm LLVMBuildArrayMalloc (_fun LLVMBuilderRef LLVMTypeRef LLVMValueRef _string -> LLVMValueRef))
+(define-llvm-multiple
+ (LLVMBuildArrayMalloc
+  LLVMBuildArrayAlloca)
+ (_fun LLVMBuilderRef LLVMTypeRef LLVMValueRef _string -> LLVMValueRef))
 
-#|
-LLVMValueRef LLVMBuildAlloca(LLVMBuilderRef, LLVMTypeRef Ty, const char *Name);
-LLVMValueRef LLVMBuildArrayAlloca(LLVMBuilderRef, LLVMTypeRef Ty,
-                                  LLVMValueRef Val, const char *Name);
-LLVMValueRef LLVMBuildFree(LLVMBuilderRef, LLVMValueRef PointerVal);
-|#
+(define-llvm LLVMBuildFree (_fun LLVMBuilderRef LLVMValueRef -> LLVMValueRef))
+
 (define-llvm LLVMBuildLoad
  (_fun LLVMBuilderRef LLVMValueRef _string -> LLVMValueRef))
 (define-llvm LLVMBuildStore
  (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef -> LLVMValueRef))
 
-(define-llvm LLVMBuildGEP
+(define-llvm-multiple
+ (LLVMBuildGEP
+  LLVMBuildInBoundsGEP)
  (_fun (builder ptr indices name) ::
        (builder : LLVMBuilderRef)
        (ptr : LLVMValueRef)
@@ -1030,13 +1126,9 @@ LLVMValueRef LLVMBuildFree(LLVMBuilderRef, LLVMValueRef PointerVal);
        (name : _string)
        -> LLVMValueRef))
 
-#|
-LLVMValueRef LLVMBuildInBoundsGEP(LLVMBuilderRef B, LLVMValueRef Pointer,
-                                  LLVMValueRef *Indices, unsigned NumIndices,
-                                  const char *Name);
-LLVMValueRef LLVMBuildStructGEP(LLVMBuilderRef B, LLVMValueRef Pointer,
-                                unsigned Idx, const char *Name);
-|#
+
+(define-llvm LLVMBuildStructGEP
+ (_fun LLVMBuilderRef LLVMValueRef _uint _string -> LLVMValueRef))
 
 (define-llvm-multiple
  (LLVMBuildGlobalString LLVMBuildGlobalStringPtr)
@@ -1056,24 +1148,19 @@ LLVMValueRef LLVMBuildStructGEP(LLVMBuilderRef B, LLVMValueRef Pointer,
  (_fun LLVMBuilderRef LLVMValueRef LLVMTypeRef _string -> LLVMValueRef))
 
 (define-llvm-multiple
- (LLVMBuildPtrToInt LLVMBuildIntToPtr LLVMBuildBitCast)
+ (LLVMBuildPtrToInt
+  LLVMBuildIntToPtr
+  LLVMBuildBitCast
+  LLVMBuildZExtOrBitCast
+  LLVMBuildSExtOrBitCast
+  LLVMBuildTruncOrBitCast
+  LLVMBuildPointerCast
+  LLVMBuildIntCast
+  LLVMBuildFPCast)
  (_fun LLVMBuilderRef LLVMValueRef LLVMTypeRef _string -> LLVMValueRef))
-#|
-LLVMValueRef LLVMBuildZExtOrBitCast(LLVMBuilderRef, LLVMValueRef Val,
-                                    LLVMTypeRef DestTy, const char *Name);
-LLVMValueRef LLVMBuildSExtOrBitCast(LLVMBuilderRef, LLVMValueRef Val,
-                                    LLVMTypeRef DestTy, const char *Name);
-LLVMValueRef LLVMBuildTruncOrBitCast(LLVMBuilderRef, LLVMValueRef Val,
-                                     LLVMTypeRef DestTy, const char *Name);
-LLVMValueRef LLVMBuildCast(LLVMBuilderRef B, LLVMOpcode Op, LLVMValueRef Val,
-                           LLVMTypeRef DestTy, const char *Name);
-LLVMValueRef LLVMBuildPointerCast(LLVMBuilderRef, LLVMValueRef Val,
-                                  LLVMTypeRef DestTy, const char *Name);
-LLVMValueRef LLVMBuildIntCast(LLVMBuilderRef, LLVMValueRef Val, /*Signed cast!*/
-                              LLVMTypeRef DestTy, const char *Name);
-LLVMValueRef LLVMBuildFPCast(LLVMBuilderRef, LLVMValueRef Val,
-                             LLVMTypeRef DestTy, const char *Name);
-|#
+
+(define-llvm LLVMBuildCast
+ (_fun LLVMBuilderRef LLVMOpcode LLVMValueRef LLVMTypeRef _string -> LLVMValueRef))
 
 ;/* Comparisons */
 (define-llvm LLVMBuildICmp
@@ -1083,13 +1170,15 @@ LLVMValueRef LLVMBuildFPCast(LLVMBuilderRef, LLVMValueRef Val,
         LLVMValueRef
         _string -> LLVMValueRef))
 
-#|
-LLVMValueRef LLVMBuildFCmp(LLVMBuilderRef, LLVMRealPredicate Op,
-                           LLVMValueRef LHS, LLVMValueRef RHS,
-                           const char *Name);
+(define-llvm LLVMBuildFCmp
+  (_fun LLVMBuilderRef
+        LLVMRealPredicate
+        LLVMValueRef
+        LLVMValueRef
+        _string -> LLVMValueRef))
 
-/* Miscellaneous instructions */
-|#
+
+;/* Miscellaneous instructions */
 
 (define-llvm LLVMBuildPhi (_fun LLVMBuilderRef LLVMTypeRef _string -> LLVMValueRef))
 
@@ -1101,50 +1190,50 @@ LLVMValueRef LLVMBuildFCmp(LLVMBuilderRef, LLVMRealPredicate Op,
        (_uint = (length args))
        (name : _string)
        -> LLVMValueRef))
-#|
-LLVMValueRef LLVMBuildSelect(LLVMBuilderRef, LLVMValueRef If,
-                             LLVMValueRef Then, LLVMValueRef Else,
-                             const char *Name);
-LLVMValueRef LLVMBuildVAArg(LLVMBuilderRef, LLVMValueRef List, LLVMTypeRef Ty,
-                            const char *Name);
-LLVMValueRef LLVMBuildExtractElement(LLVMBuilderRef, LLVMValueRef VecVal,
-                                     LLVMValueRef Index, const char *Name);
-LLVMValueRef LLVMBuildInsertElement(LLVMBuilderRef, LLVMValueRef VecVal,
-                                    LLVMValueRef EltVal, LLVMValueRef Index,
-                                    const char *Name);
-LLVMValueRef LLVMBuildShuffleVector(LLVMBuilderRef, LLVMValueRef V1,
-                                    LLVMValueRef V2, LLVMValueRef Mask,
-                                    const char *Name);
-LLVMValueRef LLVMBuildExtractValue(LLVMBuilderRef, LLVMValueRef AggVal,
-                                   unsigned Index, const char *Name);
-LLVMValueRef LLVMBuildInsertValue(LLVMBuilderRef, LLVMValueRef AggVal,
-                                  LLVMValueRef EltVal, unsigned Index,
-                                  const char *Name);
 
-LLVMValueRef LLVMBuildIsNull(LLVMBuilderRef, LLVMValueRef Val,
-                             const char *Name);
-LLVMValueRef LLVMBuildIsNotNull(LLVMBuilderRef, LLVMValueRef Val,
-                                const char *Name);
-LLVMValueRef LLVMBuildPtrDiff(LLVMBuilderRef, LLVMValueRef LHS,
-                              LLVMValueRef RHS, const char *Name);
+(define-llvm LLVMBuildSelect
+ (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
+
+(define-llvm LLVMBuildVAArg
+ (_fun LLVMBuilderRef LLVMValueRef LLVMTypeRef _string -> LLVMValueRef))
+
+(define-llvm LLVMBuildExtractElement
+ (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
+(define-llvm LLVMBuildInsertElement
+ (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
+
+(define-llvm LLVMBuildShuffleVector
+ (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
 
 
-/*===-- Module providers --------------------------------------------------===*/
+(define-llvm LLVMBuildExtractValue
+ (_fun LLVMBuilderRef LLVMValueRef _uint  _string -> LLVMValueRef))
+(define-llvm LLVMBuildInsertValue
+ (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _uint  _string -> LLVMValueRef))
+(define-llvm-multiple
+ (LLVMBuildIsNull
+  LLVMBuildIsNotNull)
+ (_fun LLVMBuilderRef LLVMValueRef _string -> LLVMValueRef))
 
-/* Changes the type of M so it can be passed to FunctionPassManagers and the
- * JIT.  They take ModuleProviders for historical reasons.
- */
-LLVMModuleProviderRef
-LLVMCreateModuleProviderForExistingModule(LLVMModuleRef M);
-
-/* Destroys the module M.
- */
-void LLVMDisposeModuleProvider(LLVMModuleProviderRef M);
+(define-llvm LLVMBuildPtrDiff (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
 
 
-/*===-- Memory buffers ----------------------------------------------------===*/
+;/*===-- Module providers --------------------------------------------------===*/
+; DEPRECATED SO NOT ADDING, MAY CHANGE MIND
 
-|#
+;/* Changes the type of M so it can be passed to FunctionPassManagers and the
+; * JIT.  They take ModuleProviders for historical reasons.
+; */
+;
+;LLVMModuleProviderRef LLVMCreateModuleProviderForExistingModule(LLVMModuleRef M);
+
+;/* Destroys the module M.
+; */
+;void LLVMDisposeModuleProvider(LLVMModuleProviderRef M);
+
+
+;/*===-- Memory buffers ----------------------------------------------------===*/
+
 (define-llvm LLVMCreateMemoryBufferWithContentsOfFile
    (_fun (path) ::
           (path : _string)
@@ -1155,18 +1244,21 @@ void LLVMDisposeModuleProvider(LLVMModuleProviderRef M);
           ->
           (if ans message buffer)))
 
-#|
+
+(define-llvm LLVMCreateMemoryBufferWithSTDIN
+   (_fun () ::
+          (buffer : (_ptr o LLVMMemoryBufferRef))
+          (message : (_ptr io LLVMMessage) = #f)
+          ->
+          (ans : LLVMBool)
+          ->
+          (if ans message buffer)))
+
+(define-llvm LLVMDisposeMemoryBuffer
+ (_fun LLVMMemoryBufferRef -> _void))
 
 
-LLVMBool LLVMCreateMemoryBufferWithContentsOfFile(const char *Path,
-                                                  LLVMMemoryBufferRef *OutMemBuf,
-                                                  char **OutMessage);
-LLVMBool LLVMCreateMemoryBufferWithSTDIN(LLVMMemoryBufferRef *OutMemBuf,
-                                         char **OutMessage);
-void LLVMDisposeMemoryBuffer(LLVMMemoryBufferRef MemBuf);
 
-
-|#
 ;/*===-- Pass Managers -----------------------------------------------------===*/
 
 ;/** Constructs a new whole-module pass pipeline. This type of pipeline is
@@ -1186,24 +1278,21 @@ void LLVMDisposeMemoryBuffer(LLVMMemoryBufferRef MemBuf);
 ;    modified the module, 0 otherwise. See llvm::PassManager::run(Module&). */
 (define-llvm LLVMRunPassManager (_fun LLVMPassManagerRef LLVMModuleRef -> LLVMBool))
 
-#|
-/** Initializes all of the function passes scheduled in the function pass
-    manager. Returns 1 if any of the passes modified the module, 0 otherwise.
-    See llvm::FunctionPassManager::doInitialization. */
-LLVMBool LLVMInitializeFunctionPassManager(LLVMPassManagerRef FPM);
+;/** Initializes all of the function passes scheduled in the function pass
+;    manager. Returns 1 if any of the passes modified the module, 0 otherwise.
+;    See llvm::FunctionPassManager::doInitialization. */
+(define-llvm LLVMInitializeFunctionPassManager (_fun LLVMPassManagerRef -> LLVMBool))
 
-/** Executes all of the function passes scheduled in the function pass manager
-    on the provided function. Returns 1 if any of the passes modified the
-    function, false otherwise.
-    See llvm::FunctionPassManager::run(Function&). */
-LLVMBool LLVMRunFunctionPassManager(LLVMPassManagerRef FPM, LLVMValueRef F);
+;/** Executes all of the function passes scheduled in the function pass manager
+;    on the provided function. Returns 1 if any of the passes modified the
+;    function, false otherwise.
+;    See llvm::FunctionPassManager::run(Function&). */
+(define-llvm LLVMRunFunctionPassManager (_fun LLVMPassManagerRef LLVMValueRef -> LLVMBool))
 
-/** Finalizes all of the function passes scheduled in in the function pass
-    manager. Returns 1 if any of the passes modified the module, 0 otherwise.
-    See llvm::FunctionPassManager::doFinalization. */
-LLVMBool LLVMFinalizeFunctionPassManager(LLVMPassManagerRef FPM);
-
-|#
+;/** Finalizes all of the function passes scheduled in in the function pass
+;    manager. Returns 1 if any of the passes modified the module, 0 otherwise.
+;    See llvm::FunctionPassManager::doFinalization. */
+(define-llvm LLVMFinalizeFunctionPassManager (_fun LLVMPassManagerRef -> LLVMBool))
 
 ;/** Frees the memory of a pass pipeline. For function pipelines, does not free
 ;    the module provider.
@@ -1373,11 +1462,18 @@ LLVMBool LLVMFinalizeFunctionPassManager(LLVMPassManagerRef FPM);
   LLVMRunStaticDestructors)
  (_fun LLVMExecutionEngineRef -> _void))
 
-#|
-int LLVMRunFunctionAsMain(LLVMExecutionEngineRef EE, LLVMValueRef F,
-                          unsigned ArgC, const char * const *ArgV,
-                          const char * const *EnvP);
-|#
+
+;TODO support env
+(define-llvm LLVMRunFunctionAsMain
+ (_fun (ee fun args) ::
+       (ee : LLVMExecutionEngineRef)
+       (fun : LLVMValueRef)
+       (_uint = (length args))
+       (args : (_list i _string))
+       (env : (_list i _string) = (list #f))
+       ->
+       _sint))
+
 
 (define-llvm LLVMRunFunction
  (_fun (engine function args) ::
@@ -1390,24 +1486,36 @@ int LLVMRunFunctionAsMain(LLVMExecutionEngineRef EE, LLVMValueRef F,
 
 
 (define-llvm LLVMAddModule (_fun LLVMExecutionEngineRef LLVMModuleRef -> _void))
-#|
-void LLVMFreeMachineCodeForFunction(LLVMExecutionEngineRef EE, LLVMValueRef F);
+
+(define-llvm LLVMFreeMachineCodeForFunction
+ (_fun LLVMExecutionEngineRef LLVMValueRef -> _void))
+
+(define-llvm LLVMRemoveModule
+ (_fun (ee module) ::
+       (ee : LLVMExecutionEngineRef)
+       (module : LLVMModuleRef)
+       (outmod : (_ptr o LLVMModuleRef))
+       (message : (_ptr io LLVMMessage) = #f)
+       ->
+       (err : LLVMBool)
+       ->
+       (if err message outmod)))
+
+(define-llvm LLVMFindFunction
+ (_fun (ee name) ::
+       (ee : LLVMExecutionEngineRef)
+       (name : _string)
+       (outfun : (_ptr o LLVMValueRef))
+       -> (err : LLVMBool)
+       -> (if err #f outfun)))
 
 
+(define-llvm LLVMRecompileAndRelinkFunction
+ (_fun LLVMExecutionEngineRef LLVMValueRef -> _pointer))
 
-LLVMBool LLVMRemoveModule(LLVMExecutionEngineRef EE, LLVMModuleRef M,
-                          LLVMModuleRef *OutMod, char **OutError);
+(define-llvm LLVMGetExecutionEngineTargetData
+ (_fun LLVMExecutionEngineRef -> LLVMTargetDataRef))
 
-
-LLVMBool LLVMFindFunction(LLVMExecutionEngineRef EE, const char *Name,
-                          LLVMValueRef *OutFn);
-
-void *LLVMRecompileAndRelinkFunction(LLVMExecutionEngineRef EE, LLVMValueRef Fn);
-
-LLVMTargetDataRef LLVMGetExecutionEngineTargetData(LLVMExecutionEngineRef EE);
-
-
-|#
 (define-llvm LLVMAddGlobalMapping
  (_fun LLVMExecutionEngineRef LLVMValueRef _pointer -> _void))
 
