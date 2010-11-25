@@ -1,0 +1,58 @@
+
+#include "llvm-c/Core.h"
+#include "llvm/Bitcode/ReaderWriter.h"
+#include "llvm/Constants.h"
+#include "llvm/DerivedTypes.h"
+#include "llvm/GlobalVariable.h"
+#include "llvm/GlobalAlias.h"
+#include "llvm/LLVMContext.h"
+#include "llvm/TypeSymbolTable.h"
+#include "llvm/InlineAsm.h"
+#include "llvm/IntrinsicInst.h"
+#include "llvm/Support/CallSite.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/raw_ostream.h"
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+
+
+#ifdef __cplusplus
+
+/* Need these includes to support the LLVM 'cast' template for the C++ 'wrap' 
+   and 'unwrap' conversion functions. */
+#include "llvm/Module.h"
+#include "llvm/PassRegistry.h"
+#include "llvm/Support/IRBuilder.h"
+
+extern "C" {
+#endif
+
+using namespace llvm;
+
+
+/*===-- Error handling ----------------------------------------------------===*/
+
+const char* LLVMGetTypeDescription(LLVMTypeRef Ty) {
+ 
+    return unwrap(Ty)->getDescription().c_str();
+}
+
+char* LLVMGetValueDescription(LLVMValueRef V) {
+    std::string DescStr;
+    raw_string_ostream DescOS(DescStr);
+    unwrap(V)->print(DescOS);
+    std::string str = DescOS.str();
+    char* cstr = (char*) malloc(str.length()+1);
+    strcpy(cstr,str.c_str());
+
+    return cstr;
+}
+
+
+#ifdef __cplusplus
+}
+
+#endif /* !defined(__cplusplus) */

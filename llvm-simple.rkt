@@ -11,7 +11,7 @@
 
 
 
-(provide llvm-value-ref? llvm-value/c enter-module/32)
+(provide llvm-value-ref? llvm-value/c enter-module/32 llvm-type-of llvm-get-type-kind)
 (provide (all-from-out
   "llvm-simple-binop.rkt"
   "llvm-simple-comparison.rkt"

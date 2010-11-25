@@ -20,6 +20,7 @@
 
 
  (llvm-type-of (-> llvm-value-ref? llvm-type-ref?))
+ (llvm-get-type-kind (-> llvm-type-ref? symbol?))
  (llvm-get-element-type (-> llvm-type-ref? llvm-type-ref?))
 
  )
@@ -123,7 +124,7 @@
 
 
 (define llvm-current-integer/c
- (flat-named-contract 'llvm-current-integer
+ (flat-named-contract 'llvm-current-integer/c
   (lambda (n) (or (integer? n)
     (and (llvm-value-ref? n)
          (llvm-type-equal?
@@ -132,7 +133,7 @@
 
 
 (define llvm-integer/c
- (flat-named-contract 'llvm-integer
+ (flat-named-contract 'llvm-integer/c
   (lambda (n) (or (integer? n)
     (and (llvm-value-ref? n)
          (equal?
@@ -154,7 +155,7 @@
 
 
 (define llvm-boolean/c
- (flat-named-contract 'llvm-boolean
+ (flat-named-contract 'llvm-boolean/c
   (lambda (n) (or (boolean? n) (llvm-value-ref? n)))))
 
 

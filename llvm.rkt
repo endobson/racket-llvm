@@ -2,6 +2,7 @@
 (require srfi/13)
 (require ffi/unsafe)
 (require ffi/unsafe/define)
+(require racket/runtime-path)
 
 (provide (all-defined-out))
 
@@ -27,9 +28,21 @@
 
 
 
+(define-runtime-path llvm-racket-lib-path "llvm-racket.dylib")
+
 (define llvm-lib (ffi-lib (build-path llvm-lib-path (string-append "libLLVM-" llvm-version-string))))
+(define llvm-racket-lib (ffi-lib llvm-racket-lib-path)) ;TODO make portable
 
 (define-ffi-definer define-llvm llvm-lib)
+(define-ffi-definer define-llvm-racket llvm-racket-lib)
+
+
+
+
+
+
+
+
 
 (define-syntax (define-llvm-multiple stx)
  (syntax-case stx ()
@@ -40,9 +53,51 @@
 
 (struct llvm-context-ref (pointer))
 (struct llvm-module-ref (pointer))
-(struct llvm-type-ref (pointer))
+(struct llvm-type-ref (pointer)
+ #:property prop:custom-print-quotable 'never
+ #:property prop:custom-write
+  (lambda (val port mode)
+   (if (equal? 0 mode)
+       (write-string "(llvm-type-ref " port)
+       (write-string "#<lvm-type-ref: " port))
+   (write-string (LLVMGetTypeDescription val) port)
+   (if (equal? 0 mode)
+       (write-string ")" port)
+       (write-string ">" port)))
+ #:property prop:equal+hash
+ (list
+  (lambda (left right =?)
+   (ptr-equal? (llvm-type-ref-pointer left)
+               (llvm-type-ref-pointer right)))
+  (lambda (val recur)
+   (recur (cast val LLVMTypeRef _intptr)))
+  (lambda (val recur)
+   (recur (cast val LLVMTypeRef _intptr)))))
+
 (struct llvm-type-handle-ref (pointer))
-(struct llvm-value-ref (pointer))
+
+(struct llvm-value-ref (pointer)
+ #:property prop:custom-print-quotable 'never
+ #:property prop:custom-write
+  (lambda (val port mode)
+   (if (equal? 0 mode)
+       (write-string "(llvm-value-ref " port)
+       (write-string "#<lvm-value-ref: " port))
+   (write-string (LLVMGetValueDescription val) port)
+   (if (equal? 0 mode)
+       (write-string ")" port)
+       (write-string ">" port)))
+ #:property prop:equal+hash
+ (list
+  (lambda (left right =?)
+   (ptr-equal? (llvm-value-ref-pointer left)
+               (llvm-value-ref-pointer right)))
+  (lambda (val recur)
+   (recur (cast val LLVMValueRef _intptr)))
+  (lambda (val recur)
+   (recur (cast val LLVMValueRef _intptr)))))
+
+
 (struct llvm-basic-block-ref (pointer))
 (struct llvm-builder-ref (pointer))
 (struct llvm-module-provider-ref (pointer))
@@ -96,8 +151,27 @@
      (bytes->string/utf-8 (make-byte-string cptr))
      (LLVMDisposeMessage cptr))))))
 
+(define _malloc-string
+ (make-ctype
+  _pointer
+  (lambda (scheme)
+   (when scheme
+    (error 'LLVMMessage "Cannot Convert non null pointers to C"))
+   #f)
+  (lambda (cptr)
+   (and cptr
+    (begin0
+     (bytes->string/utf-8 (make-byte-string cptr))
+     (free cptr))))))
 
 
+
+
+
+;Racket added functions
+
+(define-llvm-racket LLVMGetTypeDescription (_fun LLVMTypeRef -> _string))
+(define-llvm-racket LLVMGetValueDescription (_fun LLVMValueRef -> _malloc-string))
 
 
 (define << arithmetic-shift)
