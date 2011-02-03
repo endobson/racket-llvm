@@ -28,10 +28,10 @@
 
 
 
-(define-runtime-path llvm-racket-lib-path "llvm-racket.dylib")
+(define-runtime-path llvm-racket-lib-path (string-append "llvm-racket" (bytes->string/utf-8 (system-type 'so-suffix))))
 
 (define llvm-lib (ffi-lib (build-path llvm-lib-path (string-append "libLLVM-" llvm-version-string))))
-(define llvm-racket-lib (ffi-lib llvm-racket-lib-path)) ;TODO make portable
+(define llvm-racket-lib (ffi-lib (path-replace-suffix llvm-racket-lib-path "")))
 
 (define-ffi-definer define-llvm llvm-lib)
 (define-ffi-definer define-llvm-racket llvm-racket-lib)
