@@ -2,35 +2,10 @@
 
 (require
   racket/contract
+  racket/list
   (except-in ffi/unsafe ->) "llvm.rkt")
 
-(provide/contract
- (current-builder         (parameter/c llvm-builder-ref?))
- (current-context         (parameter/c llvm-context-ref?))
- (current-module          (parameter/c llvm-module-ref?))
- (current-integer-type    (parameter/c llvm-type-ref?))
 
- (llvm-value/c contract?)
- (llvm-any-pointer/c contract?)
- (llvm-current-integer/c contract?)
- (llvm-integer/c contract?)
- (llvm-boolean/c contract?)
- 
-  
-
-
- (llvm-type-of (-> llvm-value-ref? llvm-type-ref?))
- (llvm-get-type-kind (-> llvm-type-ref? symbol?))
- (llvm-get-element-type (-> llvm-type-ref? llvm-type-ref?))
-
- )
-
-(provide
-  llvm-type-equal?
-  integer->llvm
-  boolean->llvm
-  value->llvm
-  value->llvm-type)
 
 
 ;Parameters
@@ -73,6 +48,32 @@
 
 ;Helpers
 
+(define (llvm-get-type-at-index type idx)
+ (LLVMGetTypeAtIndex type idx))
+
+(define (llvm-is-valid-type-index type idx)
+ (LLVMIsValidTypeIndex type idx))
+
+
+(define (llvm-valid-gep-indices? type indices)
+ (let ((type (llvm-gep-type type indices)))
+  (if type #t #f)))
+      
+
+(define (llvm-gep-type type indices)
+ (and (equal? (llvm-get-type-kind type)
+              'LLVMPointerTypeKind)
+  (let loop ((type (llvm-get-element-type type)) (indices (rest indices)))
+   (or (and (empty? indices) type)
+    (let ((kind (llvm-get-type-kind type)))
+     (and (memq kind '(LLVMStructTypeKind LLVMArrayTypeKind LLVMVectorTypeKind))
+          (llvm-is-valid-type-index type (first indices))
+          (loop (llvm-get-type-at-index type (first indices)) (rest indices))))))))
+  
+
+(define (llvm-get-return-type type)
+ (LLVMGetReturnType type))
+
 (define (llvm-get-element-type type)
  (LLVMGetElementType type))
 
@@ -89,6 +90,33 @@
  (ptr-equal?
   (llvm-type-ref-pointer t1)
   (llvm-type-ref-pointer t2)))
+
+
+(define (llvm-function-type-ref? type)
+ (eq? (llvm-get-type-kind type)
+      'LLVMFunctionTypeKind))
+
+(define (llvm-composite-type-ref? type)
+ (memq (llvm-get-type-kind type)
+  '(LLVMStructTypeKind
+    LLVMArrayTypeKind
+    LLVMPointerTypeKind
+    LLVMVectorTypeKind)))
+
+(define (llvm-sequential-type-ref? type)
+ (memq (llvm-get-type-kind type)
+  '(LLVMArrayTypeKind
+    LLVMPointerTypeKind
+    LLVMVectorTypeKind)))
+
+(define (llvm-terminator-instruction? value)
+ (LLVMIsTerminatorInstruction value))
+
+
+(define (llvm-get-undef type)
+ (LLVMGetUndef type))
+
+
 
 ;Coercions
 
@@ -151,6 +179,17 @@
       (and (eq? (llvm-get-type-kind t)
                 'LLVMPointerTypeKind)))))))
 
+(define llvm-function-pointer/c
+ (flat-named-contract 'llvm-function-pointer/c
+  (lambda (v) 
+    (and (llvm-value-ref? v)
+     (let ((t (llvm-type-of v)))
+      (and (eq? (llvm-get-type-kind t)
+                'LLVMPointerTypeKind)
+           (llvm-function-type-ref? (llvm-get-element-type t))))))))
+
+
+
 
 
 
@@ -162,4 +201,52 @@
 (define llvm-value/c
  (flat-named-contract 'llvm-value
   (lambda (v) (or (integer? v) (llvm-value-ref? v)))))
+
+
+(provide/contract
+ (current-builder         (parameter/c llvm-builder-ref?))
+ (current-context         (parameter/c llvm-context-ref?))
+ (current-module          (parameter/c llvm-module-ref?))
+ (current-integer-type    (parameter/c llvm-type-ref?))
+
+ (llvm-value/c contract?)
+ (llvm-any-pointer/c contract?)
+ (llvm-current-integer/c contract?)
+ (llvm-integer/c contract?)
+ (llvm-boolean/c contract?)
+ 
+  
+
+ (llvm-valid-gep-indices? (-> llvm-type-ref? (listof llvm-integer/c) boolean?))
+ (llvm-gep-type
+   (->i ((type llvm-type-ref?)
+         (indices (listof llvm-integer/c)))
+        #:pre (type indices)
+         (llvm-valid-gep-indices? type indices)
+        (_ llvm-type-ref?)))
+
+ (llvm-type-of (-> llvm-value-ref? llvm-type-ref?))
+ (llvm-get-type-kind (-> llvm-type-ref? symbol?))
+ (llvm-get-element-type (-> llvm-sequential-type-ref? llvm-type-ref?))
+ (llvm-get-return-type (-> llvm-function-type-ref? llvm-type-ref?))
+ (llvm-terminator-instruction? (-> llvm-value-ref? boolean?))
+ (llvm-get-undef (-> llvm-type-ref? llvm-value-ref?))
+
+ (llvm-get-type-at-index
+  (->i ((type llvm-composite-type-ref?)
+        (index llvm-value/c))
+       #:pre (type index)
+        (llvm-is-valid-type-index type index)
+       (_ llvm-value-ref?)))
+
+ )
+
+(provide
+  llvm-type-equal?
+  integer->llvm
+  boolean->llvm
+  value->llvm
+  value->llvm-type)
+
+
 

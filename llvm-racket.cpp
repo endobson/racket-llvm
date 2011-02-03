@@ -51,6 +51,23 @@ char* LLVMGetValueDescription(LLVMValueRef V) {
     return cstr;
 }
 
+bool LLVMIsValidTypeIndex(LLVMTypeRef Ty, LLVMValueRef Idx) {
+    CompositeType* Comp = cast<CompositeType>(unwrap(Ty));
+    const Value* V = unwrap(Idx);
+    return Comp->indexValid(V);
+}
+
+LLVMTypeRef LLVMGetTypeAtIndex(LLVMTypeRef Ty, LLVMValueRef Idx) {
+    CompositeType* Comp = cast<CompositeType>(unwrap(Ty));
+    const Value* V = unwrap(Idx);
+    return wrap(Comp->getTypeAtIndex(V));
+}
+
+bool LLVMIsTerminatorInstruction(LLVMValueRef V) {
+     return cast<Instruction>(unwrap(V))->isTerminator();
+}
+
+
 
 #ifdef __cplusplus
 }

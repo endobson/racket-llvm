@@ -22,11 +22,13 @@
       (_ llvm-value-ref?)))
 
 (define gep/c
- (->* (llvm-value-ref?)
-      (#:builder llvm-builder-ref?
-       #:name string?)
-      #:rest (listof llvm-integer/c)
-      llvm-value-ref?))
+ (->i ((pointer llvm-value-ref?))
+      (#:builder (builder llvm-builder-ref?)
+       #:name (name string?))
+      #:rest (args (listof llvm-integer/c))
+      #:pre (pointer args)
+       (llvm-valid-gep-indices? (llvm-type-of pointer) (map integer->llvm args))
+      (_ llvm-value-ref?)))
  
 (define alloc/c
   (->* (llvm-type-ref?)

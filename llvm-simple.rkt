@@ -11,7 +11,17 @@
 
 
 
-(provide llvm-value-ref? llvm-value/c enter-module/32 llvm-type-of llvm-get-type-kind)
+(provide
+  llvm-value-ref?
+  llvm-value/c
+  enter-module/32
+  define-basic-block
+  llvm-type-of
+  llvm-get-type-kind
+  llvm-get-return-type
+  llvm-gep-type
+  llvm-get-element-type)
+
 (provide (all-from-out
   "llvm-simple-binop.rkt"
   "llvm-simple-comparison.rkt"
@@ -43,6 +53,21 @@
  (llvm-cond-br (->* (llvm-boolean/c llvm-basic-block-ref? llvm-basic-block-ref?)
                     (#:builder llvm-builder-ref?)
                     llvm-value-ref?))
+ (llvm-br (->* (llvm-basic-block-ref?)
+                    (#:builder llvm-builder-ref?)
+                    llvm-value-ref?))
+
+ (llvm-phi (->* (llvm-type-ref?)
+                  (#:builder llvm-builder-ref?
+                   #:name string?)
+                  llvm-value-ref?))
+
+ (llvm-add-incoming
+   (->* (llvm-value-ref)
+        ()
+        #:rest (listof llvm-value-ref?)
+        void?))
+
 
  (llvm-get-param (->*  (integer?) (#:function llvm-value-ref?) llvm-value-ref?))
  (llvm-call (->* (llvm-value-ref?)  (#:builder llvm-builder-ref? #:name string?) #:rest (listof llvm-value/c) llvm-value-ref?))
@@ -83,6 +108,15 @@
                      (current-builder (llvm-create-builder #:context context))
                      (current-integer-type (llvm-int32-type #:context context)))
        body bodies ...)))))
+
+(define-syntax (define-basic-block stx)
+ (syntax-case stx ()
+  ((_ id ...)
+   (with-syntax ((((id name) ...)
+    (for/list ((id (syntax->list #'(id ...))))
+     (list id (symbol->string (syntax-e id))))))
+    #`(begin
+       (define id (llvm-add-block #:name name)) ...)))))
 
 
 ;Coercions
@@ -141,6 +175,17 @@
 
 (define (llvm-cond-br cond true-block false-block #:builder (builder (current-builder)))
  (LLVMBuildCondBr builder (boolean->llvm cond) true-block false-block))
+
+(define (llvm-br block #:builder (builder (current-builder)))
+ (LLVMBuildBr builder block))
+
+
+(define (llvm-phi type #:builder (builder (current-builder)) #:name (name ""))
+ (LLVMBuildPhi builder type name))
+
+(define (llvm-add-incoming phi . values)
+ (LLVMAddIncoming phi values))
+ 
 
 
 (define (llvm-set-value-name value name)
