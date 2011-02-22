@@ -65,7 +65,7 @@
  (llvm-add-incoming
    (->* (llvm-value-ref)
         ()
-        #:rest (listof llvm-value-ref?)
+        #:rest (listof (or/c (cons/c llvm-value/c llvm-basic-block-ref?) llvm-value-ref?))
         void?))
 
 
@@ -183,8 +183,16 @@
 (define (llvm-phi type #:builder (builder (current-builder)) #:name (name ""))
  (LLVMBuildPhi builder type name))
 
-(define (llvm-add-incoming phi . values)
- (LLVMAddIncoming phi values))
+(define (llvm-add-incoming phi . input-values)
+ (define (extract-value v)
+  (if (cons? v) (value->llvm (car v)) v))
+ (define (extract-block v)
+  (if (cons? v) (cdr v)  (LLVMGetInstructionParent v)))
+
+ (define values (map extract-value input-values))
+ (define blocks (map extract-block input-values))
+  
+ (LLVMAddIncoming phi values blocks))
  
 
 

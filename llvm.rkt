@@ -1040,12 +1040,13 @@ LLVM_FOR_EACH_VALUE_SUBCLASS(LLVM_DECLARE_VALUE_CAST)
 
 ;/* Operations on phi nodes */
 (define-llvm LLVMAddIncoming
- (_fun (phi values) ::
+ (_fun (phi values blocks) ::
        (phi : LLVMValueRef)
        (values : (_list i LLVMValueRef))
-       (blocks : (_list i LLVMBasicBlockRef) = (map LLVMGetInstructionParent values))
-       (list : _uint = (length values))
+       (blocks : (_list i LLVMBasicBlockRef))
+       (list : _uint = (min (length values) (length blocks)))
        -> _void))
+
    
 
 (define-llvm LLVMCountIncoming (_fun LLVMValueRef -> _uint))
