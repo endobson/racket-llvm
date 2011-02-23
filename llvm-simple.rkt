@@ -7,7 +7,10 @@
          "llvm-simple-memory.rkt")
 
 
-
+(define (list*/c ctc)
+ (flat-rec-contract rec
+  (cons/c ctc rec)
+  (list/c (listof ctc))))
 
 
 
@@ -71,6 +74,7 @@
 
  (llvm-get-param (->*  (integer?) (#:function llvm-value-ref?) llvm-value-ref?))
  (llvm-call (->* (llvm-value-ref?)  (#:builder llvm-builder-ref? #:name string?) #:rest (listof llvm-value/c) llvm-value-ref?))
+ (llvm-call* (->* (llvm-value-ref?)  (#:builder llvm-builder-ref? #:name string?) #:rest (list*/c llvm-value/c) llvm-value-ref?))
 
 
 
@@ -86,10 +90,14 @@
  (llvm-int32-type (->* () (#:context llvm-context-ref?) llvm-type-ref?))
  (llvm-int64-type (->* () (#:context llvm-context-ref?) llvm-type-ref?))
 
- (llvm-ptr-type (->* (llvm-type-ref?) (#:address-space integer?) llvm-type-ref?))
- (llvm-fun-type (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (listof llvm-type-ref?) llvm-type-ref?))
-
+ (llvm-array-type (->* (llvm-type-ref) (integer?) llvm-type-ref?))
+ (llvm-struct-type (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (listof llvm-type-ref?) llvm-type-ref?))
+ (llvm-struct-type* (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (list*/c llvm-type-ref?) llvm-type-ref?))
+ (llvm-pointer-type (->* (llvm-type-ref?) (#:address-space integer?) llvm-type-ref?))
+ (llvm-function-type (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (listof llvm-type-ref?) llvm-type-ref?))
+ (llvm-function-type* (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (list*/c llvm-type-ref?) llvm-type-ref?))
  (llvm-void-type  (->* () (#:context llvm-context-ref?) llvm-type-ref?))
+ (llvm-opaque-type  (->* () (#:context llvm-context-ref?) llvm-type-ref?))
  
 
 
@@ -213,6 +221,9 @@
 (define (llvm-call function #:builder (builder (current-builder)) #:name (name "") . arguments)
  (LLVMBuildCall builder function (map value->llvm arguments) name))
 
+(define (llvm-call* function #:builder (builder (current-builder)) #:name (name "") . arguments)
+ (LLVMBuildCall builder function (map value->llvm (apply list* arguments)) name))
+
 ;Casts
 
 
@@ -224,14 +235,32 @@
  (LLVMConstNull type))
 
 
-(define (llvm-ptr-type type  #:address-space (space 0))
+(define (llvm-array-type type (size 0))
+ (LLVMArrayType type size))
+
+(define (llvm-struct-type #:context (context (current-context)) #:packed (packed #f) . types)
+ (LLVMStructTypeInContext context types packed))
+
+(define (llvm-struct-type* #:context (context (current-context)) #:packed (packed #f) . types)
+ (LLVMStructTypeInContext context (apply list* types) packed))
+
+
+(define (llvm-pointer-type type  #:address-space (space 0))
  (LLVMPointerType type space))
 
-(define (llvm-fun-type return-type #:varargs? (varargs #f) . args)
+(define (llvm-function-type return-type #:varargs? (varargs #f) . args)
  (LLVMFunctionType return-type args varargs))
+
+(define (llvm-function-type* return-type #:varargs? (varargs #f) . args)
+ (LLVMFunctionType return-type (apply list* args) varargs))
+
 
 (define (llvm-void-type #:context (context (current-context)))
  (LLVMVoidTypeInContext context))
+
+(define (llvm-opaque-type #:context (context (current-context)))
+ (LLVMOpaqueTypeInContext context))
+
 
 (define (llvm-int-type)
  (current-integer-type))
