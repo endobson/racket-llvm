@@ -172,6 +172,7 @@
 
 (define-llvm-racket LLVMGetTypeDescription (_fun LLVMTypeRef -> _string))
 (define-llvm-racket LLVMGetValueDescription (_fun LLVMValueRef -> _malloc-string))
+(define-llvm-racket LLVMGetModuleDescription (_fun LLVMModuleRef -> _malloc-string))
 (define-llvm-racket LLVMIsValidTypeIndex (_fun LLVMTypeRef LLVMValueRef -> LLVMBool))
 (define-llvm-racket LLVMGetTypeAtIndex (_fun LLVMTypeRef LLVMValueRef -> LLVMTypeRef))
 (define-llvm-racket LLVMIsTerminatorInstruction (_fun LLVMValueRef -> LLVMBool))

@@ -51,6 +51,19 @@ char* LLVMGetValueDescription(LLVMValueRef V) {
     return cstr;
 }
 
+
+char* LLVMGetModuleDescription(LLVMModuleRef M) {
+    std::string DescStr;
+    raw_string_ostream DescOS(DescStr);
+    unwrap(M)->print(DescOS,NULL);
+    std::string str = DescOS.str();
+    char* cstr = (char*) malloc(str.length()+1);
+    strcpy(cstr,str.c_str());
+
+    return cstr;
+}
+
+
 bool LLVMIsValidTypeIndex(LLVMTypeRef Ty, LLVMValueRef Idx) {
     CompositeType* Comp = cast<CompositeType>(unwrap(Ty));
     const Value* V = unwrap(Idx);

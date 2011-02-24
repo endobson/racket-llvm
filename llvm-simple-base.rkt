@@ -133,10 +133,17 @@
   ((llvm-value-ref? n) n)
   (else (error 'boolean->llvm "Unknown input value ~a" n))))
 
+(define (string->llvm v #:null-terminate (null-terminate #f))
+ (cond
+  ((string? v) (LLVMConstStringInContext (current-context) v (not null-terminate)))
+  ((llvm-value-ref? v) v)
+  (else (error 'string->llvm "Unknown input value ~a" v))))
+
 
 (define (value->llvm n)
  (cond
   ((integer? n) (LLVMConstInt (current-integer-type) n #t))
+  ((string? n) (LLVMConstStringInContext (current-context) n #t))
   ((llvm-value-ref? n) n)
   (else (error 'value->llvm "Unknown input value ~a" n))))
 
@@ -200,7 +207,7 @@
 
 (define llvm-value/c
  (flat-named-contract 'llvm-value
-  (lambda (v) (or (integer? v) (llvm-value-ref? v)))))
+  (lambda (v) (or (string? v) (integer? v) (llvm-value-ref? v)))))
 
 
 (provide/contract
@@ -245,6 +252,7 @@
   llvm-type-equal?
   integer->llvm
   boolean->llvm
+  string->llvm
   value->llvm
   value->llvm-type)
 

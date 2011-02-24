@@ -37,6 +37,9 @@
  (llvm-add-block-to-function (->* (llvm-value-ref?) (#:context llvm-context-ref? #:name string?) llvm-basic-block-ref?))
  (llvm-add-function (->* (llvm-type-ref? string?) (#:module llvm-module-ref?) llvm-value-ref))
  (llvm-set-position (->* (llvm-basic-block-ref?) (#:builder llvm-builder-ref?) void?))
+ (llvm-get-insert-block (->* () (#:builder llvm-builder-ref?) llvm-basic-block-ref?))
+
+
  (llvm-get-named-function (->* (string?) (#:module llvm-module-ref?) llvm-value-ref?))
  (llvm-get-named-global (->* (string?) (#:module llvm-module-ref?) llvm-value-ref?))
  (llvm-add-global
@@ -47,8 +50,14 @@
 
  (llvm-global-string-ptr (->* (string?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
 
+ (llvm-verify-module (->* () (llvm-module-ref?) (or/c #f string?)))
+ (llvm-module-description (->* () (llvm-module-ref?) string?))
 
- (llvm-ret (->* (llvm-value/c) (#:builder llvm-builder-ref?) llvm-value-ref?))
+ (llvm-write-bitcode-to-file (case-> (-> path-string? void?) (-> llvm-module-ref? path-string? void?)))
+
+
+ (llvm-ret      (->* (llvm-value/c) (#:builder llvm-builder-ref?) llvm-value-ref?))
+ (llvm-ret-void (->* () (#:builder llvm-builder-ref?) llvm-value-ref?))
  (llvm-add-block (->* ()
                       (#:context llvm-context-ref?
                        #:builder llvm-builder-ref?
@@ -80,6 +89,9 @@
 
  (llvm-int (->* (integer?) (llvm-type-ref? #:signed? boolean?) llvm-value-ref?))
  (llvm-null (-> llvm-type-ref? llvm-value-ref?))
+ (llvm-struct (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (listof llvm-value/c) llvm-value-ref?)) 
+ (llvm-array (->* (llvm-type-ref?) () #:rest (listof llvm-value/c) llvm-value-ref?)) 
+ (llvm-array* (->* (llvm-type-ref?) () #:rest (list*/c llvm-value/c) llvm-value-ref?)) 
 
 
 
@@ -143,6 +155,10 @@
 (define (llvm-create-module (name "") #:context (context (current-context)))
  (LLVMModuleCreateWithNameInContext name context))
 
+(define (llvm-create-context (name "") #:context (context (current-context)))
+ (LLVMModuleCreateWithNameInContext name context))
+
+
 (define (llvm-create-builder #:context (context (current-context)))
  (LLVMCreateBuilderInContext context))
 
@@ -157,8 +173,13 @@
 (define (llvm-get-param index #:function (function (builder->function (current-builder))))
  (LLVMGetParam function index))
 
+(define (llvm-get-insert-block #:builder (builder (current-builder)))
+ (LLVMGetInsertBlock builder))
+
+
 (define (llvm-set-position block #:builder (builder (current-builder)))
  (LLVMPositionBuilderAtEnd builder block))
+
 
 (define (llvm-get-named-function name #:module (module (current-module)))
  (LLVMGetNamedFunction module name))
@@ -173,6 +194,23 @@
 (define (llvm-set-initializer global value)
  (LLVMSetInitializer global value))
 
+
+(define (llvm-module-description (module (current-module)))
+ (LLVMGetModuleDescription module))
+
+(define llvm-write-bitcode-to-file 
+ (case-lambda
+  ((module path)
+   (let ((err (LLVMWriteBitcodeToFile module path)))
+    (unless (zero? err)
+     (error 'llvm-write-bitcode-to-file "Error ~a" err))))
+  ((path)
+   (llvm-write-bitcode-to-file (current-module) path))))
+
+(define (llvm-verify-module (module (current-module)))
+ (LLVMVerifyModule module 'LLVMReturnStatusAction))
+
+
 (define (llvm-global-string-ptr string #:builder (builder (current-builder)) #:name (name ""))
  (LLVMBuildGlobalStringPtr builder string name))
 
@@ -180,6 +218,10 @@
 
 (define (llvm-ret val #:builder (builder (current-builder)))
  (LLVMBuildRet builder (value->llvm val)))
+
+(define (llvm-ret-void #:builder (builder (current-builder)))
+ (LLVMBuildRetVoid builder))
+
 
 (define (llvm-cond-br cond true-block false-block #:builder (builder (current-builder)))
  (LLVMBuildCondBr builder (boolean->llvm cond) true-block false-block))
@@ -226,6 +268,15 @@
 
 ;Casts
 
+
+(define (llvm-struct #:context (context (current-context)) #:packed (packed #f) . args)
+ (LLVMConstStructInContext context (map value->llvm args) packed))
+
+(define (llvm-array type . args)
+ (LLVMConstArray type (map value->llvm args)))
+
+(define (llvm-array* type . args)
+ (LLVMConstArray type (map value->llvm (apply list* args))))
 
 
 ;Integer Creation
@@ -279,6 +330,8 @@
 
 (define (llvm-int64-type #:context (context (current-context)))
  (LLVMInt64TypeInContext context))
+
+;Output
 
 
 
