@@ -910,13 +910,14 @@ LLVM_FOR_EACH_VALUE_SUBCLASS(LLVM_DECLARE_VALUE_CAST)
 (define-llvm LLVMDeleteFunction
  (_fun LLVMValueRef -> _void))
 
-(define-llvm-multiple
- (LLVMGetIntrinsicID
-  LLVMGetFunctionCallConv)
+(define-llvm LLVMGetIntrinsicID
  (_fun LLVMValueRef -> _uint))
 
+(define-llvm LLVMGetFunctionCallConv
+ (_fun LLVMValueRef -> LLVMCallConv))
+
 (define-llvm LLVMSetFunctionCallConv
- (_fun LLVMValueRef _uint -> _void))
+ (_fun LLVMValueRef LLVMCallConv -> _void))
 
 (define-llvm LLVMGetGC
  (_fun LLVMValueRef -> _string))
@@ -1024,8 +1025,8 @@ LLVM_FOR_EACH_VALUE_SUBCLASS(LLVM_DECLARE_VALUE_CAST)
 
 ;/* Operations on call sites */
 
-(define-llvm LLVMGetInstructionCallConv (_fun LLVMValueRef -> _uint))
-(define-llvm LLVMSetInstructionCallConv (_fun LLVMValueRef _uint -> _void))
+(define-llvm LLVMGetInstructionCallConv (_fun LLVMValueRef -> LLVMCallConv))
+(define-llvm LLVMSetInstructionCallConv (_fun LLVMValueRef LLVMCallConv -> _void))
 
 (define-llvm LLVMAddInstrAttribute (_fun LLVMValueRef _uint LLVMAttribute -> _void))
 (define-llvm LLVMRemoveInstrAttribute (_fun LLVMValueRef _uint LLVMAttribute -> _void))

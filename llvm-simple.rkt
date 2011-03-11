@@ -23,7 +23,14 @@
   llvm-get-type-kind
   llvm-get-return-type
   llvm-gep-type
-  llvm-get-element-type)
+  llvm-get-element-type
+
+  llvm-get-undef)
+  
+
+
+
+
 
 (provide (all-from-out
   "llvm-simple-binop.rkt"
