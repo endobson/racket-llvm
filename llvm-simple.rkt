@@ -97,6 +97,7 @@
  (llvm-int (->* (integer?) (llvm-type-ref? #:signed? boolean?) llvm-value-ref?))
  (llvm-null (-> llvm-type-ref? llvm-value-ref?))
  (llvm-struct (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (listof llvm-value/c) llvm-value-ref?)) 
+ (llvm-named-struct (->* (llvm-type-ref?) #:rest (listof llvm-value/c) llvm-value-ref?)) 
  (llvm-array (->* (llvm-type-ref?) () #:rest (listof llvm-value/c) llvm-value-ref?)) 
  (llvm-array* (->* (llvm-type-ref?) () #:rest (list*/c llvm-value/c) llvm-value-ref?)) 
 
@@ -112,11 +113,14 @@
  (llvm-array-type (->* (llvm-type-ref) (integer?) llvm-type-ref?))
  (llvm-struct-type (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (listof llvm-type-ref?) llvm-type-ref?))
  (llvm-struct-type* (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (list*/c llvm-type-ref?) llvm-type-ref?))
+ (llvm-named-struct-type (->* () (string? #:context llvm-context-ref?) llvm-type-ref?))
+ (llvm-struct-set-body! (->* (llvm-type-ref?) (#:packed boolean?) #:rest (listof llvm-type-ref?) void?))
+ (llvm-struct-set-body*! (->* (llvm-type-ref?) (#:packed boolean?) #:rest (list*/c llvm-type-ref?) void?))
+
  (llvm-pointer-type (->* (llvm-type-ref?) (#:address-space integer?) llvm-type-ref?))
  (llvm-function-type (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (listof llvm-type-ref?) llvm-type-ref?))
  (llvm-function-type* (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (list*/c llvm-type-ref?) llvm-type-ref?))
  (llvm-void-type  (->* () (#:context llvm-context-ref?) llvm-type-ref?))
- (llvm-opaque-type  (->* () (#:context llvm-context-ref?) llvm-type-ref?))
  
 
 
@@ -279,6 +283,10 @@
 (define (llvm-struct #:context (context (current-context)) #:packed (packed #f) . args)
  (LLVMConstStructInContext context (map value->llvm args) packed))
 
+(define (llvm-named-struct ty . args)
+ (LLVMConstNamedStruct ty (map value->llvm args)))
+
+
 (define (llvm-array type . args)
  (LLVMConstArray type (map value->llvm args)))
 
@@ -302,6 +310,19 @@
 (define (llvm-struct-type* #:context (context (current-context)) #:packed (packed #f) . types)
  (LLVMStructTypeInContext context (apply list* types) packed))
 
+(define (llvm-named-struct-type (name "") #:context (context (current-context)))
+ (LLVMStructCreateNamed context name))
+
+(define (llvm-struct-set-body! #:packed (packed #f)
+                              type . types)
+ (LLVMStructSetBody type types packed))
+
+(define (llvm-struct-set-body*! #:packed (packed #f)
+                              type . types)
+ (LLVMStructSetBody type (apply list* types) packed))
+
+
+
 
 (define (llvm-pointer-type type  #:address-space (space 0))
  (LLVMPointerType type space))
@@ -316,8 +337,6 @@
 (define (llvm-void-type #:context (context (current-context)))
  (LLVMVoidTypeInContext context))
 
-(define (llvm-opaque-type #:context (context (current-context)))
- (LLVMOpaqueTypeInContext context))
 
 
 (define (llvm-int-type)

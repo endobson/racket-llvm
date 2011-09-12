@@ -12,7 +12,7 @@
   (let ((os (system-type 'os))) 
    (case os
     ((unix) (list "-shared" "-m32" "-o" "llvm-racket.so"))
-    ((macosx) (list "-dynamiclib" "-m32" "-o" "llvm-racket.dylib")))))
+    ((macosx) (list "-dynamiclib" "-o" "llvm-racket.dylib")))))
  (define flags2 
   (remove-blanks
    (regexp-split " "

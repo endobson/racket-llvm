@@ -1,12 +1,13 @@
 
 #include "llvm-c/Core.h"
 #include "llvm/Bitcode/ReaderWriter.h"
+#include "llvm/Type.h"
 #include "llvm/Constants.h"
 #include "llvm/DerivedTypes.h"
 #include "llvm/GlobalVariable.h"
 #include "llvm/GlobalAlias.h"
 #include "llvm/LLVMContext.h"
-#include "llvm/TypeSymbolTable.h"
+//#include "llvm/TypeSymbolTable.h"
 #include "llvm/InlineAsm.h"
 #include "llvm/IntrinsicInst.h"
 #include "llvm/Support/CallSite.h"
@@ -36,8 +37,13 @@ using namespace llvm;
 /*===-- Error handling ----------------------------------------------------===*/
 
 const char* LLVMGetTypeDescription(LLVMTypeRef Ty) {
- 
-    return unwrap(Ty)->getDescription().c_str();
+  std::string DescStr;
+  raw_string_ostream DescOS(DescStr);
+  unwrap(Ty)->print(DescOS);
+  std::string str = DescOS.str();
+  char* cstr = (char*) malloc(str.length()+1);
+  strcpy(cstr,str.c_str());
+  return cstr;
 }
 
 char* LLVMGetValueDescription(LLVMValueRef V) {
