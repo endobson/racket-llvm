@@ -1,394 +1,63 @@
 #lang racket
-(require srfi/13)
 (require (for-syntax syntax/parse))
 (require ffi/unsafe)
-(require ffi/unsafe/define)
-(require racket/runtime-path)
+
+(require
+  "llvm-enums.rkt"
+  "llvm-types.rkt"
+  "llvm-ctypes.rkt"
+  "llvm-define.rkt")
+(provide (all-from-out "llvm-enums.rkt"
+                       "llvm-types.rkt"))
 
 (provide (all-defined-out))
 
-(define llvm-version-string
- (let-values (((process out in err) (subprocess #f #f #f "/usr/bin/env" "llvm-config" "--version")))
-  (begin0
-   (string-trim-both (port->string out))
-   (close-output-port in)
-   (close-input-port err)
-   (close-input-port out)
-   (subprocess-wait process)
-   (unless (= (subprocess-status process) 0) (error 'llvm-config "Returned non zero exit code")))))
-
-(define llvm-lib-path
- (let-values (((process out in err) (subprocess #f #f #f "/usr/bin/env" "llvm-config" "--libdir")))
-  (begin0
-   (string-trim-both (port->string out))
-   (close-output-port in)
-   (close-input-port err)
-   (close-input-port out)
-   (subprocess-wait process)
-   (unless (= (subprocess-status process) 0) (error 'llvm-config "Returned non zero exit code")))))
-
-
-
-(define-runtime-path llvm-racket-lib-path (string-append "llvm-racket" (bytes->string/utf-8 (system-type 'so-suffix))))
-
-(define llvm-lib (ffi-lib (build-path llvm-lib-path (string-append "libLLVM-" llvm-version-string))))
-(define llvm-racket-lib (ffi-lib (path-replace-suffix llvm-racket-lib-path "")))
-
-(define-ffi-definer define-llvm llvm-lib)
-(define-ffi-definer define-llvm-racket llvm-racket-lib)
+(provide
+  llvm-value-ref?
+  llvm-type-ref?
+  llvm-module-ref?
+  llvm-context-ref?
+  llvm-basic-block-ref?
+  llvm-builder-ref?)
 
 
 
 
 
 
-
-
-
-(define-syntax (define-llvm-multiple stx)
- (syntax-case stx ()
-  ((_ (name ...) type) 
-    #'(begin (define-llvm name type) ...))))
-
-
-
-(define LLVMBool _bool)
-
-
-(define-syntax-rule (write-llvm-type-ref get-desc)
- (lambda (val port mode)
-  (if (equal? 0 mode)
-      (write-string "(llvm-type-ref " port)
-      (write-string "#<llvm-type-ref: " port))
-  (write-string (get-desc val) port)
-  (if (equal? 0 mode)
-      (write-string ")" port)
-      (write-string ">" port))))
-
-(define-syntax-rule (llvm-ref-equal+hash acc type)
- (list
-  (lambda (left right =?)
-   (ptr-equal? (acc left)
-               (acc right)))
-  (lambda (val recur)
-   (recur (cast val type _intptr)))
-  (lambda (val recur)
-   (recur (cast val type _intptr)))))
-
-(struct llvm-context-ref (pointer))
-(struct llvm-module-ref (pointer))
-(struct llvm-type-ref (pointer)
- #:property prop:custom-print-quotable 'never
- #:property prop:custom-write
- (write-llvm-type-ref LLVMGetTypeDescription)
- #:property prop:equal+hash
-  (llvm-ref-equal+hash llvm-type-ref-pointer LLVMTypeRef))
-
-(struct llvm-type-handle-ref (pointer))
-
-(define-syntax-rule (write-llvm-value-ref desc)
-  (lambda (val port mode)
-   (if (equal? 0 mode)
-       (write-string "(llvm-value-ref " port)
-       (write-string "#<llvm-value-ref: " port))
-   (write-string (desc val) port)
-   (if (equal? 0 mode)
-       (write-string ")" port)
-       (write-string ">" port))))
-
-
-
-
-(struct llvm-value-ref (pointer)
- #:property prop:custom-print-quotable 'never
- #:property prop:custom-write
- (write-llvm-value-ref LLVMGetValueDescription)
- #:property prop:equal+hash
- (llvm-ref-equal+hash llvm-value-ref-pointer LLVMValueRef))
-
-(struct llvm-basic-block-ref (pointer))
-(struct llvm-builder-ref (pointer))
-(struct llvm-module-provider-ref (pointer))
-(struct llvm-memory-buffer-ref (pointer))
-(struct llvm-pass-manager-ref (pointer))
-(struct llvm-pass-registry-ref (pointer))
-(struct llvm-use-ref (pointer))
-(struct llvm-target-data-ref (pointer))
-
-
-
-(define-syntax (make-llvm-types stx)
-  (define-syntax-class id-pair
-   (pattern (type-name:id cons:id acc:id)))
-  (syntax-parse stx
-   ((_ p:id-pair ...)
-    #'(begin
-        (define p.type-name
-          (make-ctype _pointer p.acc p.cons))
-        ...))))
-
-(make-llvm-types
-  (LLVMContextRef        llvm-context-ref         llvm-context-ref-pointer)
-  (LLVMModuleRef         llvm-module-ref          llvm-module-ref-pointer)
-  (LLVMTypeRef           llvm-type-ref            llvm-type-ref-pointer)
-  (LLVMValueRef          llvm-value-ref           llvm-value-ref-pointer)
-  (LLVMBasicBlockRef     llvm-basic-block-ref     llvm-basic-block-ref-pointer)
-  (LLVMBuilderRef        llvm-builder-ref         llvm-builder-ref-pointer)
-  (LLVMModuleProviderRef llvm-module-provider-ref llvm-module-provider-ref-pointer)
-  (LLVMMemoryBufferRef   llvm-memory-buffer-ref   llvm-memory-buffer-ref-pointer)
-  (LLVMPassManagerRef    llvm-pass-manager-ref    llvm-pass-manager-ref-pointer)
-  (LLVMPassRegistryRef   llvm-pass-registry-ref   llvm-pass-registry-ref-pointer)
-  (LLVMUseRef            llvm-use-ref             llvm-use-ref-pointer)
-  (LLVMTargetDataRef     llvm-target-data-ref     llvm-target-data-ref-pointer))
-
-
-(define (make-byte-string ptr)
- (let loop ((i 0))
-  (cond
-   ((zero? (ptr-ref ptr _byte i))
-    (make-sized-byte-string ptr i))
-   (else (loop (add1 i))))))
-
-
-(define LLVMMessage 
- (make-ctype
-  _pointer
-  (lambda (scheme)
-   (when scheme
-    (error 'LLVMMessage "Cannot Convert non null pointers to C"))
-   #f)
-  (lambda (cptr)
-   (and cptr
-    (begin0
-     (bytes->string/utf-8 (make-byte-string cptr))
-     (LLVMDisposeMessage cptr))))))
-
-(define _malloc-string
- (make-ctype
-  _pointer
-  (lambda (scheme)
-   (when scheme
-    (error 'LLVMMessage "Cannot Convert non null pointers to C"))
-   #f)
-  (lambda (cptr)
-   (and cptr
-    (begin0
-     (bytes->string/utf-8 (make-byte-string cptr))
-     (free cptr))))))
 
 
 
 
 
 ;Racket added functions
+;
 
-(define-llvm-racket LLVMGetTypeDescription (_fun LLVMTypeRef -> _malloc-string))
-(define-llvm-racket LLVMGetValueDescription (_fun LLVMValueRef -> _malloc-string))
-(define-llvm-racket LLVMGetModuleDescription (_fun LLVMModuleRef -> _malloc-string))
+(define-llvm-racket LLVMGetModuleDescription unsafe:LLVMModuleDescriptionMaker)
 (define-llvm-racket LLVMIsValidTypeIndex (_fun LLVMTypeRef LLVMValueRef -> LLVMBool))
 (define-llvm-racket LLVMGetTypeAtIndex (_fun LLVMTypeRef LLVMValueRef -> LLVMTypeRef))
 (define-llvm-racket LLVMIsTerminatorInstruction (_fun LLVMValueRef -> LLVMBool))
 
 
-(define << arithmetic-shift)
-(define LLVMAttribute (_enum `(
-    LLVMZExtAttribute            = ,(<< 1 0)
-    LLVMSExtAttribute            = ,(<< 1 1)
-    LLVMNoReturnAttribute        = ,(<< 1 2)
-    LLVMInRegAttribute           = ,(<< 1 3)
-    LLVMStructRetAttribute       = ,(<< 1 4)
-    LLVMNoUnwindAttribute        = ,(<< 1 5)
-    LLVMNoAliasAttribute         = ,(<< 1 6)
-    LLVMByValAttribute           = ,(<< 1 7)
-    LLVMNestAttribute            = ,(<< 1 8)
-    LLVMReadNoneAttribute        = ,(<< 1 9)
-    LLVMReadOnlyAttribute        = ,(<< 1 10)
-    LLVMNoInlineAttribute        = ,(<< 1 11)
-    LLVMAlwaysInlineAttribute    = ,(<< 1 12)
-    LLVMOptimizeForSizeAttribute = ,(<< 1 13)
-    LLVMStackProtectAttribute    = ,(<< 1 14)
-    LLVMStackProtectReqAttribute = ,(<< 1 15)
-    LLVMAlignment                = ,(<< 31 16)
-    LLVMNoCaptureAttribute       = ,(<< 1 21)
-    LLVMNoRedZoneAttribute       = ,(<< 1 22)
-    LLVMNoImplicitFloatAttribute = ,(<< 1 23)
-    LLVMNakedAttribute           = ,(<< 1 24)
-    LLVMInlineHintAttribute      = ,(<< 1 25)
-    LLVMStackAlignment           = ,(<< 7 26))))
+(define-llvm-racket-safe LLVMGetModuleDescription safe:LLVMModuleDescriptionMaker)
+(define-llvm-racket-safe LLVMIsValidTypeIndex (_fun safe:LLVMTypeRef safe:LLVMValueRef -> LLVMBool))
+;(define-llvm-racket-safe LLVMGetTypeAtIndex (_fun LLVMTypeRef LLVMValueRef -> LLVMTypeRef))
+(define-llvm-racket-safe LLVMIsTerminatorInstruction (_fun safe:LLVMValueRef -> LLVMBool))
 
 
-(define LLVMOpcode (_enum '(
-  ;/* Terminator Instructions */
-  LLVMRet            = 1
-  LLVMBr             = 2
-  LLVMSwitch         = 3
-  LLVMIndirectBr     = 4
-  LLVMInvoke         = 5
-  ;LLVMUnwind         = 6
-  ;Removed in version 3.0
-  LLVMUnreachable    = 7
-
-  ;/* Standard Binary Operators */
-  LLVMAdd            = 8
-  LLVMFAdd           = 9
-  LLVMSub            = 10
-  LLVMFSub           = 11
-  LLVMMul            = 12
-  LLVMFMul           = 13
-  LLVMUDiv           = 14
-  LLVMSDiv           = 15
-  LLVMFDiv           = 16
-  LLVMURem           = 17
-  LLVMSRem           = 18
-  LLVMFRem           = 19
-
-  ;/* Logical Operators */
-  LLVMShl            = 20
-  LLVMLShr           = 21
-  LLVMAShr           = 22
-  LLVMAnd            = 23
-  LLVMOr             = 24
-  LLVMXor            = 25
-
-  ;/* Memory Operators */
-  LLVMAlloca         = 26
-  LLVMLoad           = 27
-  LLVMStore          = 28
-  LLVMGetElementPtr  = 29
-
-  ;/* Cast Operators */
-  LLVMTrunc          = 30
-  LLVMZExt           = 31
-  LLVMSExt           = 32
-  LLVMFPToUI         = 33
-  LLVMFPToSI         = 34
-  LLVMUIToFP         = 35
-  LLVMSIToFP         = 36
-  LLVMFPTrunc        = 37
-  LLVMFPExt          = 38
-  LLVMPtrToInt       = 39
-  LLVMIntToPtr       = 40
-  LLVMBitCast        = 41
-
-  ;/* Other Operators */
-  LLVMICmp           = 42
-  LLVMFCmp           = 43
-  LLVMPHI            = 44
-  LLVMCall           = 45
-  LLVMSelect         = 46
-  ;/* UserOp1 */
-  ;/* UserOp2 */
-  LLVMVAArg          = 49
-  LLVMExtractElement = 50
-  LLVMInsertElement  = 51
-  LLVMShuffleVector  = 52
-  LLVMExtractValue   = 53
-  LLVMInsertValue    = 54
-
-  ;/* Atomic operators */
-  LLVMFence          = 55
-  LLVMAtomicCmpXchg  = 56
-  LLVMAtomicRMW      = 57
-
-  ;/* Exception Handling Operators */
-  LLVMResume         = 58
-  LLVMLandingPad     = 59)))
-
-(define LLVMTypeKind (_enum '(
-  LLVMVoidTypeKind        ;/**< type with no size */
-  LLVMFloatTypeKind       ;/**< 32 bit floating point type */
-  LLVMDoubleTypeKind      ;/**< 64 bit floating point type */
-  LLVMX86_FP80TypeKind    ;/**< 80 bit floating point type (X87) */
-  LLVMFP128TypeKind       ;/**< 128 bit floating point type (112-bit mantissa)*/
-  LLVMPPC_FP128TypeKind   ;/**< 128 bit floating point type (two 64-bits) */
-  LLVMLabelTypeKind       ;/**< Labels */
-  LLVMIntegerTypeKind     ;/**< Arbitrary bit width integers */
-  LLVMFunctionTypeKind    ;/**< Functions */
-  LLVMStructTypeKind      ;/**< Structures */
-  LLVMArrayTypeKind       ;/**< Arrays */
-  LLVMPointerTypeKind     ;/**< Pointers */
-  LLVMVectorTypeKind      ;/**< SIMD 'packed' format, or other vector type */
-  LLVMMetadataTypeKind    ;/**< Metadata */
-  LLVMX86_MMXTypeKind)))  ;/**< X86 MMX */
-
-
-(define LLVMLinkage (_enum '(
-  LLVMExternalLinkage    ;/**< Externally visible function */
-  LLVMAvailableExternallyLinkage
-  LLVMLinkOnceAnyLinkage ;/**< Keep one copy of function when linking (inline)*/
-  LLVMLinkOnceODRLinkage ;/**< Same, but only replaced by something equivalent. */
-  LLVMWeakAnyLinkage     ;/**< Keep one copy of function when linking (weak) */
-  LLVMWeakODRLinkage     ;/**< Same, but only replaced by something equivalent. */
-  LLVMAppendingLinkage   ;/**< Special purpose, only applies to global arrays */
-  LLVMInternalLinkage    ;/**< Rename collisions when linking (static functions) */
-  LLVMPrivateLinkage     ;/**< Like Internal, but omit from symbol table */
-  LLVMDLLImportLinkage   ;/**< Function to be imported from DLL */
-  LLVMDLLExportLinkage   ;/**< Function to be accessible from DLL */
-  LLVMExternalWeakLinkage;/**< ExternalWeak linkage description */
-  LLVMGhostLinkage       ;/**< Obsolete */
-  LLVMCommonLinkage      ;/**< Tentative definitions */
-  LLVMLinkerPrivateLinkage ;/**< Like Private, but linker removes. */
-  LLVMLinkerPrivateWeakLinkage ;/**< Like LinkerPrivate, but is weak. */
-  LLVMLinkerPrivateWeakDefAutoLinkage))) ;/**< Like LinkerPrivateWeak, but possibly hidden. */
-
-(define LLVMVisibility (_enum '(
-  LLVMDefaultVisibility      ;/**< The GV is visible */
-  LLVMHiddenVisibility       ;/**< The GV is hidden */
-  LLVMProtectedVisibility))) ;/**< The GV is protected */
-
-(define LLVMCallConv (_enum '(
-  LLVMCCallConv           = 0
-  LLVMFastCallConv        = 8
-  LLVMColdCallConv        = 9
-  LLVMX86StdcallCallConv  = 64
-  LLVMX86FastcallCallConv = 65)))
-
-(define LLVMIntPredicate (_enum '(
-  LLVMIntEQ = 32  ;/**< equal */
-  LLVMIntNE        ;/**< not equal */
-  LLVMIntUGT       ;/**< unsigned greater than */
-  LLVMIntUGE       ;/**< unsigned greater or equal */
-  LLVMIntULT       ;/**< unsigned less than */
-  LLVMIntULE       ;/**< unsigned less or equal */
-  LLVMIntSGT       ;/**< signed greater than */
-  LLVMIntSGE       ;/**< signed greater or equal */
-  LLVMIntSLT       ;/**< signed less than */
-  LLVMIntSLE)))     ;/**< signed less or equal */
-
-(define LLVMRealPredicate (_enum '(
-  LLVMRealPredicateFalse ;/**< Always false (always folded) */
-  LLVMRealOEQ            ;/**< True if ordered and equal */
-  LLVMRealOGT            ;/**< True if ordered and greater than */
-  LLVMRealOGE            ;/**< True if ordered and greater than or equal */
-  LLVMRealOLT            ;/**< True if ordered and less than */
-  LLVMRealOLE            ;/**< True if ordered and less than or equal */
-  LLVMRealONE            ;/**< True if ordered and operands are unequal */
-  LLVMRealORD            ;/**< True if ordered (no nans) */
-  LLVMRealUNO            ;/**< True if unordered: isnan(X) | isnan(Y) */
-  LLVMRealUEQ            ;/**< True if unordered or equal */
-  LLVMRealUGT            ;/**< True if unordered or greater than */
-  LLVMRealUGE            ;/**< True if unordered, greater than, or equal */
-  LLVMRealULT            ;/**< True if unordered or less than */
-  LLVMRealULE            ;/**< True if unordered, less than, or equal */
-  LLVMRealUNE            ;/**< True if unordered or not equal */
-  LLVMRealPredicateTrue)))  ;/**< Always true (always folded) */
-
-(define LLVMLandingPadClauseTy (_enum '(
-  LLVMLandingPadCatch      ;/**< A catch clause   */
-  LLVMLandingPadFilter)))  ;/**< A filter clause  */
 
 (define-llvm LLVMInitializeCore (_fun LLVMPassRegistryRef -> _void))
 
 
-;/*===-- Error handling ----------------------------------------------------===*/
-
-(define-llvm LLVMDisposeMessage (_fun _pointer -> _void))
 
 ;/*===-- Contexts ----------------------------------------------------------===*/
 
 
 ;/* Create and destroy contexts. */
 (define-llvm LLVMContextCreate (_fun -> LLVMContextRef))
+(define-llvm-safe LLVMContextCreate safe:LLVMContextCreator)
+
+
 (define-llvm LLVMGetGlobalContext (_fun -> LLVMContextRef))
 (define-llvm LLVMContextDispose (_fun LLVMContextRef -> _void))
 
@@ -404,6 +73,9 @@
 ;/** See llvm::Module::Module. */
 (define-llvm LLVMModuleCreateWithName (_fun _string -> LLVMModuleRef))
 (define-llvm LLVMModuleCreateWithNameInContext (_fun _string LLVMContextRef -> LLVMModuleRef))
+
+(define-llvm-safe LLVMModuleCreateWithNameInContext safe:LLVMModuleCreator)
+
 
 ;/** See llvm::Module::~Module. */
 (define-llvm LLVMDisposeModule (_fun LLVMModuleRef -> _void))
@@ -428,147 +100,6 @@
 (define-llvm LLVMGetModuleContext (_fun LLVMModuleRef -> LLVMContextRef))
 
 
-;/*===-- Types -------------------------------------------------------------===*/
-
-;/* LLVM types conform to the following hierarchy:
-; * 
-; *   types:
-; *     integer type
-; *     real type
-; *     function type
-; *     sequence types:
-; *       array type
-; *       pointer type
-; *       vector type
-; *     void type
-; *     label type
-; *     opaque type
-; */
-
-;/** See llvm::LLVMTypeKind::getTypeID. */
-(define-llvm LLVMGetTypeKind (_fun LLVMTypeRef -> LLVMTypeKind))
-
-;/** See llvm::LLVMType::getContext. */
-(define-llvm LLVMGetTypeContext (_fun LLVMTypeRef -> LLVMContextRef))
-
-;/* Operations on integer types */
-
-(define-llvm-multiple
- (LLVMInt1TypeInContext
-  LLVMInt8TypeInContext
-  LLVMInt16TypeInContext
-  LLVMInt32TypeInContext
-  LLVMInt64TypeInContext) (_fun LLVMContextRef -> LLVMTypeRef))
-
-(define-llvm LLVMIntTypeInContext (_fun LLVMContextRef _uint -> LLVMTypeRef))
-
-(define-llvm-multiple
- (LLVMInt1Type
-  LLVMInt8Type
-  LLVMInt16Type
-  LLVMInt32Type
-  LLVMInt64Type) (_fun -> LLVMTypeRef))
-(define-llvm LLVMIntType (_fun _uint -> LLVMTypeRef))
-
-(define-llvm LLVMGetIntTypeWidth (_fun LLVMTypeRef -> _uint))
-
-;/* Operations on real types */
-(define-llvm-multiple
- (LLVMFloatTypeInContext
-  LLVMDoubleTypeInContext
-  LLVMX86FP80TypeInContext
-  LLVMFP128TypeInContext
-  LLVMPPCFP128TypeInContext) (_fun LLVMContextRef -> LLVMTypeRef))
-
-(define-llvm-multiple
- (LLVMFloatType
-  LLVMDoubleType
-  LLVMX86FP80Type
-  LLVMFP128Type
-  LLVMPPCFP128Type) (_fun -> LLVMTypeRef))
-
-;/* Operations on function types */
-(define-llvm LLVMFunctionType
-  (_fun (ret-type arg-types varargs) ::
-        (ret-type : LLVMTypeRef)
-        (arg-types : (_list i LLVMTypeRef))
-        (_uint = (length arg-types))
-        (varargs : LLVMBool)
-        -> LLVMTypeRef))
-
-
-(define-llvm LLVMIsFunctionVarArg (_fun LLVMTypeRef -> LLVMBool))
-(define-llvm LLVMGetReturnType (_fun LLVMTypeRef -> LLVMTypeRef))
-(define-llvm LLVMCountParamTypes (_fun LLVMTypeRef -> _uint))
-(define-llvm LLVMGetParamTypes (_fun LLVMTypeRef _pointer -> _void))
-
-;/* Operations on struct types */
-(define-llvm LLVMStructTypeInContext
-  (_fun (context types packed) ::
-        (context : LLVMContextRef)
-        (types : (_list i LLVMTypeRef))
-        (_uint = (length types))
-        (packed : LLVMBool)
-        -> LLVMTypeRef))
-
-(define-llvm LLVMStructType
-  (_fun (types packed) ::
-        (types : (_list i LLVMTypeRef))
-        (_uint = (length types))
-        (packed : LLVMBool)
-        -> LLVMTypeRef))
-
-
-(define-llvm LLVMStructCreateNamed (_fun LLVMContextRef _string -> LLVMTypeRef))
-
-(define-llvm LLVMStructSetBody
- (_fun (type types packed) ::
-       (type : LLVMTypeRef)
-       (types : (_list i LLVMTypeRef))
-       (_uint = (length types))
-       (packed : LLVMBool)
-       -> _void))
-
-
-(define-llvm LLVMCountStructElementTypes (_fun LLVMTypeRef -> _uint))
-
-(define-llvm LLVMGetStructElementTypes
-  (_fun (type) ::
-        (type : LLVMTypeRef)
-        (types : (_list o LLVMTypeRef (LLVMCountStructElementTypes type)))
-        -> _void
-        -> types))
-(define-llvm LLVMIsPackedStruct (_fun LLVMTypeRef -> LLVMBool))
-(define-llvm LLVMIsOpaqueStruct (_fun LLVMTypeRef -> LLVMBool))
-
-(define-llvm LLVMGetTypeByName (_fun LLVMModuleRef _string -> LLVMTypeRef))
-
-
-;/* Operations on array, pointer, and vector types (sequence types) */
-(define-llvm-multiple
- (LLVMArrayType
-  LLVMPointerType
-  LLVMVectorType) (_fun LLVMTypeRef _uint -> LLVMTypeRef))
-
-(define-llvm LLVMGetElementType (_fun LLVMTypeRef -> LLVMTypeRef))
-
-(define-llvm-multiple
- (LLVMGetArrayLength
-  LLVMGetPointerAddressSpace
-  LLVMGetVectorSize) (_fun LLVMTypeRef -> _uint))
-
-
-;/* Operations on other types */
-
-(define-llvm-multiple
- (LLVMVoidTypeInContext
-  LLVMLabelTypeInContext
-  LLVMX86MMXTypeInContext) (_fun LLVMContextRef -> LLVMTypeRef))
-
-(define-llvm-multiple
- (LLVMVoidType
-  LLVMLabelType
-  LLVMX86MMXType) (_fun -> LLVMTypeRef))
 
 
 
@@ -1681,9 +1212,10 @@ LLVM_FOR_EACH_VALUE_SUBCLASS(LLVM_DECLARE_VALUE_CAST)
 (define-llvm LLVMAddGlobalMapping
  (_fun LLVMExecutionEngineRef LLVMValueRef _pointer -> _void))
 
-(define (LLVMAddGlobalMappingForFunction fun-type)
- (get-ffi-obj 'LLVMAddGlobalMapping llvm-lib 
-  (_fun LLVMExecutionEngineRef LLVMValueRef fun-type -> LLVMGenericValueRef)))
+(llvm-unsafe-context
+ (define (LLVMAddGlobalMappingForFunction fun-type)
+  (get-ffi-obj 'LLVMAddGlobalMapping llvm-lib 
+   (_fun LLVMExecutionEngineRef LLVMValueRef fun-type -> LLVMGenericValueRef))))
 
 (define-llvm LLVMGetPointerToGlobal
  (_fun LLVMExecutionEngineRef LLVMValueRef -> _pointer))

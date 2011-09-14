@@ -16,7 +16,7 @@
        (pointer llvm-any-pointer/c))
       (#:builder (builder llvm-builder-ref?))
       #:pre (value pointer)
-       (llvm-type-equal?
+       (equal?
         (llvm-get-element-type (llvm-type-of pointer))
         (value->llvm-type value))
       (_ llvm-value-ref?)))

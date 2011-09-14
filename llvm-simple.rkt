@@ -42,7 +42,7 @@
  (llvm-create-module (->* () (string? #:context llvm-context-ref?) llvm-module-ref?))
  (llvm-create-builder (->* () (#:context llvm-context-ref?) llvm-builder-ref?))
  (llvm-add-block-to-function (->* (llvm-value-ref?) (#:context llvm-context-ref? #:name string?) llvm-basic-block-ref?))
- (llvm-add-function (->* (llvm-type-ref? string?) (#:module llvm-module-ref?) llvm-value-ref))
+ (llvm-add-function (->* (llvm-type-ref? string?) (#:module llvm-module-ref?) llvm-value-ref?))
  (llvm-set-position (->* (llvm-basic-block-ref?) (#:builder llvm-builder-ref?) void?))
  (llvm-get-insert-block (->* () (#:builder llvm-builder-ref?) llvm-basic-block-ref?))
 
@@ -82,7 +82,7 @@
                   llvm-value-ref?))
 
  (llvm-add-incoming
-   (->* (llvm-value-ref)
+   (->* (llvm-value-ref?)
         ()
         #:rest (listof (or/c (cons/c llvm-value/c llvm-basic-block-ref?) llvm-value-ref?))
         void?))
@@ -110,7 +110,7 @@
  (llvm-int32-type (->* () (#:context llvm-context-ref?) llvm-type-ref?))
  (llvm-int64-type (->* () (#:context llvm-context-ref?) llvm-type-ref?))
 
- (llvm-array-type (->* (llvm-type-ref) (integer?) llvm-type-ref?))
+ (llvm-array-type (->* (llvm-type-ref?) (integer?) llvm-type-ref?))
  (llvm-struct-type (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (listof llvm-type-ref?) llvm-type-ref?))
  (llvm-struct-type* (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (list*/c llvm-type-ref?) llvm-type-ref?))
  (llvm-named-struct-type (->* () (string? #:context llvm-context-ref?) llvm-type-ref?))

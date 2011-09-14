@@ -86,11 +86,6 @@
 (define (llvm-get-int-type-width type)
  (LLVMGetIntTypeWidth type))
 
-(define (llvm-type-equal? t1 t2)
- (ptr-equal?
-  (llvm-type-ref-pointer t1)
-  (llvm-type-ref-pointer t2)))
-
 
 (define (llvm-function-type-ref? type)
  (eq? (llvm-get-type-kind type)
@@ -152,7 +147,7 @@
  (cond
   ((integer? v) (current-integer-type))
   ((boolean? v) (current-boolean-type))
-  ((llvm-value-ref v) (llvm-type-of v))
+  ((llvm-value-ref? v) (llvm-type-of v))
   (else (error 'value->llvm-type "Unknown input value ~a" v))))
 
 ;Contracts
@@ -162,7 +157,7 @@
  (flat-named-contract 'llvm-current-integer/c
   (lambda (n) (or (integer? n)
     (and (llvm-value-ref? n)
-         (llvm-type-equal?
+         (equal?
            (current-integer-type)
            (llvm-type-of n)))))))
 
@@ -249,7 +244,6 @@
  )
 
 (provide
-  llvm-type-equal?
   integer->llvm
   boolean->llvm
   string->llvm

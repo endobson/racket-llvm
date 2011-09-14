@@ -14,7 +14,7 @@
       (#:builder (builder llvm-builder-ref?)
        #:name (name string?))
       #:pre (left right)
-       (llvm-type-equal? (value->llvm-type left) (value->llvm-type right))
+       (equal? (value->llvm-type left) (value->llvm-type right))
       (_ llvm-value-ref?)))
 
 

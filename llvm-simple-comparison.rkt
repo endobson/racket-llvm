@@ -18,7 +18,7 @@
        #:signed? (signed boolean?)
        #:name (name string?))
       #:pre (left right)
-       (llvm-type-equal?
+       (equal?
         (value->llvm-type left)
         (value->llvm-type left))
       (_ llvm-value-ref?)))
@@ -30,7 +30,7 @@
        #:signed? (signed boolean?)
        #:name (name string?))
       #:pre (left right)
-       (llvm-type-equal?
+       (equal?
         (value->llvm-type left)
         (value->llvm-type left))
       (_ llvm-value-ref?)))
