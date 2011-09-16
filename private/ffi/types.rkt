@@ -2,9 +2,9 @@
 
 
 (provide (all-defined-out))
-(require "llvm-define.rkt"
-         "llvm-ctypes.rkt"
-         "llvm-enums.rkt"
+(require "define.rkt"
+         "ctypes.rkt"
+         "enums.rkt"
          ffi/unsafe)
 
 ;/*===-- Types -------------------------------------------------------------===*/

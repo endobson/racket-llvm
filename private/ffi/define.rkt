@@ -2,9 +2,9 @@
 
 (require typed/racket
 
-  (for-syntax "llvm-util-exptime.rkt" syntax/parse)
+  (for-syntax "../llvm-util-exptime.rkt" syntax/parse)
   (only-in ffi/unsafe get-ffi-obj)
-  "llvm-lib.rkt"
+  "lib.rkt"
   racket/splicing
   racket/stxparam)
 

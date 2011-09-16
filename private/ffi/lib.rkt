@@ -6,10 +6,15 @@
 
 (require/typed ffi/unsafe
   (opaque FFI-Lib ffi-lib?)
+  ;very specific type for this use case
+  (get-ffi-obj (Symbol FFI-Lib Any -> (-> Any)))
+  (_cprocedure ((Listof Any) Any -> Any))
+  (_void Any)
   (ffi-lib (Path -> FFI-Lib)))
-               
 
-(require/typed "llvm-ffi-paths.rkt"
+(require (only-in ffi/unsafe _fun (-> ffi:->)))               
+
+(require/typed "paths.rkt"
  (llvm-racket-lib-path Path))
 (require/typed srfi/13
  (string-trim-both (String -> String)))
@@ -44,6 +49,14 @@
 
 (define llvm-lib (ffi-lib (build-path llvm-lib-path (string-append "libLLVM-" llvm-version-string))))
 (define llvm-racket-lib (ffi-lib (path-replace-suffix llvm-racket-lib-path "")))
+
+
+(define cthunk
+ (_cprocedure null _void))
+
+((get-ffi-obj 'LLVMInitializeX86TargetInfo llvm-lib cthunk))
+((get-ffi-obj 'LLVMInitializeX86Target llvm-lib cthunk))
+
 
 
 
