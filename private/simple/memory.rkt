@@ -2,7 +2,10 @@
 
 (require racket/contract)
 
-(require "llvm.rkt" "llvm-simple-base.rkt")
+(require
+  "../unsafe/structs.rkt"
+  "../ffi/all.rkt"
+  "base.rkt")
 
 (define load/c
  (->* (llvm-any-pointer/c)

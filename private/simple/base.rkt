@@ -3,7 +3,9 @@
 (require
   racket/contract
   racket/list
-  (except-in ffi/unsafe ->) "llvm.rkt")
+  (except-in ffi/unsafe ->)
+  "../unsafe/structs.rkt"
+  "../ffi/all.rkt")
 
 
 

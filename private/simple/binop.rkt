@@ -2,7 +2,10 @@
 
 
 
-(require "llvm.rkt" "llvm-simple-base.rkt")
+(require
+  "../unsafe/structs.rkt"
+  "../ffi/arithmetic.rkt"
+  "base.rkt")
 
 (require racket/contract)
 

@@ -1,10 +1,13 @@
 #lang racket
 
-(require "llvm.rkt" "llvm-simple-base.rkt")
-(require "llvm-simple-binop.rkt"
-         "llvm-simple-comparison.rkt"
-         "llvm-simple-cast.rkt"
-         "llvm-simple-memory.rkt")
+(require
+  "../ffi/all.rkt"
+  "../unsafe/structs.rkt"
+  "base.rkt"
+  "binop.rkt"
+  "comparison.rkt"
+  "cast.rkt"
+  "memory.rkt")
 
 
 (define (list*/c ctc)
@@ -33,10 +36,10 @@
 
 
 (provide (all-from-out
-  "llvm-simple-binop.rkt"
-  "llvm-simple-comparison.rkt"
-  "llvm-simple-cast.rkt"
-  "llvm-simple-memory.rkt"))
+  "binop.rkt"
+  "comparison.rkt"
+  "cast.rkt"
+  "memory.rkt"))
 
 (provide/contract
  (llvm-create-module (->* () (string? #:context llvm-context-ref?) llvm-module-ref?))

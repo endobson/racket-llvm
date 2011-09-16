@@ -1,7 +1,10 @@
 #lang racket/base
 
 (require racket/contract)
-(require "llvm.rkt" "llvm-simple-base.rkt")
+(require
+  "../unsafe/structs.rkt"
+  "../ffi/all.rkt"
+  "base.rkt")
 
 
 (define llvm-integer-or-pointer/c

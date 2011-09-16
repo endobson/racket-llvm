@@ -1,6 +1,10 @@
 #lang racket/base
 
-(require racket/contract "llvm.rkt" "llvm-simple-base.rkt")
+(require
+  racket/contract
+  "../unsafe/structs.rkt"
+  "../ffi/all.rkt"
+  "base.rkt")
 
 (provide/contract
  (llvm-bit-cast (->* (llvm-value-ref? llvm-type-ref?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
