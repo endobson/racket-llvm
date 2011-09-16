@@ -1,66 +1,47 @@
-#lang racket/base
+#lang racket
 
-(require
-  racket/port
-  racket/stxparam
+(require typed/racket
+
+  (for-syntax "llvm-util-exptime.rkt" syntax/parse)
+  (only-in ffi/unsafe get-ffi-obj)
+  "llvm-lib.rkt"
   racket/splicing
-  ffi/unsafe
-  ffi/unsafe/define
-  srfi/13
-  racket/runtime-path)
-(require (for-syntax racket/base syntax/parse))
+  racket/stxparam)
+
 
 (provide
-  llvm-lib
-  (for-syntax id-prefix)
-  llvm-safety
-  llvm-unsafe-context
-  define-llvm-racket-safe
-  define-llvm-safe
   define-llvm-multiple
+  define-llvm-safe
+  define-llvm-racket-safe
   define-llvm-both
   (rename-out
-    (define-llvm-racket-unsafe define-llvm-racket)
-    (define-llvm-unsafe define-llvm)))
+   (define-llvm-unsafe define-llvm)
+   (define-llvm-racket-unsafe define-llvm-racket))
+  llvm-safety
+  llvm-unsafe-context
+  define-ffi-definer)
 
-(define llvm-version-string
- (let-values (((process out in err) (subprocess #f #f #f "/usr/bin/env" "llvm-config" "--version")))
-  (begin0
-   (string-trim-both (port->string out))
-   (close-output-port in)
-   (close-input-port err)
-   (close-input-port out)
-   (subprocess-wait process)
-   (unless (= (subprocess-status process) 0) (error 'llvm-config "Returned non zero exit code")))))
-
-(define llvm-lib-path
- (let-values (((process out in err) (subprocess #f #f #f "/usr/bin/env" "llvm-config" "--libdir")))
-  (begin0
-   (string-trim-both (port->string out))
-   (close-output-port in)
-   (close-input-port err)
-   (close-input-port out)
-   (subprocess-wait process)
-   (unless (= (subprocess-status process) 0) (error 'llvm-config "Returned non zero exit code")))))
-
-
-
-(define-runtime-path llvm-racket-lib-path (string-append "llvm-racket" (bytes->string/utf-8 (system-type 'so-suffix))))
-
-(define llvm-lib (ffi-lib (build-path llvm-lib-path (string-append "libLLVM-" llvm-version-string))))
-(define llvm-racket-lib (ffi-lib (path-replace-suffix llvm-racket-lib-path "")))
 
 (define-syntax-parameter llvm-safety #f)
 
-(define-ffi-definer define-llvm llvm-lib)
-(define-ffi-definer define-llvm-racket llvm-racket-lib)
 
 (define-syntax (llvm-unsafe-context stx)
  (syntax-case stx ()
   ((_ . args)
    #'(splicing-syntax-parameterize ((llvm-safety 'unsafe))
       . args))))
-   
+
+
+(define-syntax (define-ffi-definer stx)
+ (syntax-case stx ()
+  ((_ name lib)
+   #'(define-syntax (name stx)
+       (syntax-case stx ()
+        ((_ id type #:c-id c-id)
+         #'(define id (get-ffi-obj 'c-id lib type)))
+        ((_ id type)
+         #'(define id (get-ffi-obj 'id lib type))))))))
+
 
 (define-syntax (define-llvm-both stx)
  (syntax-case stx ()
@@ -70,6 +51,13 @@
        (define-llvm . args))
     #'(splicing-syntax-parameterize ((llvm-safety 'safe))
        (define-llvm . args))))))
+
+
+(define-ffi-definer define-llvm llvm-lib)
+(define-ffi-definer define-llvm-racket llvm-racket-lib)
+
+   
+
 
 (define-syntax (define-llvm-unsafe stx)
  (syntax-case stx ()
@@ -85,12 +73,6 @@
 
 
 
-(define-for-syntax (id-prefix sym id)
- (let* ((id-sym (syntax-e id))
-        (new-id-sym (string->symbol
-                      (string-append (symbol->string sym)
-                                     (symbol->string id-sym)))))
-   (datum->syntax id new-id-sym id id)))
 
 
 (define-syntaxes (define-llvm-safe define-llvm-racket-safe)
@@ -118,4 +100,6 @@
  (syntax-case stx ()
   ((_ (name ...) type) 
     #'(begin (define-llvm-unsafe name type) ...))))
+
+
 

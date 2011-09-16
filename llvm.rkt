@@ -5,6 +5,7 @@
 (require
   "llvm-enums.rkt"
   "llvm-types.rkt"
+  "llvm-lib.rkt"
   "llvm-ctypes.rkt"
   "llvm-define.rkt")
 (provide (all-from-out "llvm-enums.rkt"

@@ -1,6 +1,6 @@
 #lang racket/base
 
-(require (for-syntax racket/base syntax/parse))
+(require (for-syntax "llvm-util-exptime.rkt" racket/base syntax/parse))
 (require racket/stxparam)
 (require ffi/unsafe)
 
