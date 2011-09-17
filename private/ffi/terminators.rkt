@@ -11,6 +11,19 @@
 ;/* Terminators */
 (define-llvm-unsafe LLVMBuildRetVoid (_fun LLVMBuilderRef -> LLVMValueRef))
 (define-llvm-unsafe LLVMBuildRet (_fun LLVMBuilderRef LLVMValueRef -> LLVMValueRef))
+
+(define-llvm-safe LLVMBuildRetVoid
+  (_fun (builder : safe:LLVMBuilderRef) ->
+        (ptr : _pointer) ->
+        (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
+        
+(define-llvm-safe LLVMBuildRet
+  (_fun (builder : safe:LLVMBuilderRef)
+        safe:LLVMValueRef ->
+        (ptr : _pointer) ->
+        (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
+
+
 (define-llvm-unsafe LLVMBuildAggregateRet
   (_fun (builder vals) ::
         (builder : LLVMBuilderRef)
@@ -21,12 +34,29 @@
 
 (define-llvm-unsafe LLVMBuildBr (_fun LLVMBuilderRef LLVMBasicBlockRef -> LLVMValueRef))
 
+(define-llvm-safe LLVMBuildBr 
+  (_fun (builder : safe:LLVMBuilderRef)
+        safe:LLVMBasicBlockRef ->
+        (ptr : _pointer) ->
+        (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
 
 (define-llvm-unsafe LLVMBuildCondBr
  (_fun LLVMBuilderRef
        LLVMValueRef
        LLVMBasicBlockRef
        LLVMBasicBlockRef -> LLVMValueRef))
+
+
+(define-llvm-safe LLVMBuildCondBr
+  (_fun (builder : safe:LLVMBuilderRef)
+        safe:LLVMValueRef
+        safe:LLVMBasicBlockRef
+        safe:LLVMBasicBlockRef ->
+        (ptr : _pointer) ->
+        (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
+
+
+
 
 (define-llvm-unsafe LLVMBuildSwitch
  (_fun LLVMBuilderRef LLVMValueRef LLVMBasicBlockRef _uint -> LLVMValueRef))

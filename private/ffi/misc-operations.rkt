@@ -85,9 +85,22 @@
 |#
 ;/* Operations on all values */
 (define-llvm-unsafe LLVMTypeOf (_fun LLVMValueRef -> LLVMTypeRef))
+
+
+(define-llvm-safe LLVMTypeOf
+ (_fun (v : safe:LLVMValueRef) ->
+       (ptr : _pointer) ->
+       (safe:llvm-type-ref ptr
+        (let ((o (safe:llvm-value-ref-owner v)))
+          (if (safe:llvm-context-ref? o)
+              o
+              (safe:llvm-module-ref-context o))))))
+
+
 (define-llvm-unsafe LLVMGetValueName (_fun LLVMValueRef -> _string))
 
 (define-llvm-unsafe LLVMSetValueName (_fun LLVMValueRef _string -> _void))
+(define-llvm-safe LLVMSetValueName (_fun safe:LLVMValueRef _non-null-string -> _void))
 
 (define-llvm-unsafe LLVMDumpValue (_fun LLVMValueRef -> _void))
 (define-llvm-unsafe LLVMReplaceAllUsesWith (_fun LLVMValueRef LLVMValueRef -> _void))

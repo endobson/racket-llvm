@@ -2,8 +2,8 @@
 
 (require
   racket/contract
-  "../unsafe/structs.rkt"
-  "../ffi/unsafe.rkt"
+  "../safe/structs.rkt"
+  "../ffi/safe.rkt"
   "base.rkt")
 
 (provide/contract

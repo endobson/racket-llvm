@@ -6,7 +6,20 @@
 
 (require ffi/unsafe)
 
-(provide (all-defined-out))
+(provide (except-out (all-defined-out)
+                     safe:position-builder-at-end))
+
+
+
+(define safe:position-builder-at-end
+  (_fun (builder bb) ::
+        (builder : safe:LLVMBuilderRef)
+        (bb : safe:LLVMBasicBlockRef) ->
+        _void ->
+        (begin
+          (set-safe:llvm-builder-ref-module! builder
+            (safe:llvm-basic-block-ref-module bb))
+          (void))))
 
 ;/*===-- Instruction builders ----------------------------------------------===*/
 
@@ -17,13 +30,20 @@
 (define-llvm-unsafe LLVMCreateBuilderInContext (_fun LLVMContextRef -> LLVMBuilderRef))
 (define-llvm-unsafe LLVMCreateBuilder (_fun -> LLVMBuilderRef))
 
+(define-llvm-safe LLVMCreateBuilderInContext safe:LLVMBuilderCreator)
+
 (define-llvm-unsafe LLVMPositionBuilder (_fun LLVMBuilderRef LLVMBasicBlockRef LLVMValueRef -> _void))
 (define-llvm-unsafe LLVMPositionBuilderBefore
   (_fun LLVMBuilderRef LLVMValueRef -> _void))
 
 (define-llvm-unsafe LLVMPositionBuilderAtEnd (_fun LLVMBuilderRef LLVMBasicBlockRef -> _void))
+(define-llvm-safe LLVMPositionBuilderAtEnd safe:position-builder-at-end)
 
 (define-llvm-unsafe LLVMGetInsertBlock (_fun LLVMBuilderRef -> LLVMBasicBlockRef))
+(define-llvm-safe LLVMGetInsertBlock
+  (_fun (builder : safe:LLVMBuilderRef) ->
+        (ptr : _pointer) ->
+        (safe:llvm-basic-block-ref ptr (safe:llvm-builder-ref-module builder))))
 
 (define-llvm-unsafe LLVMClearInsertionPosition
  (_fun LLVMBuilderRef -> _void))
@@ -34,6 +54,7 @@
  (_fun LLVMBuilderRef LLVMValueRef _string -> _void))
 
 (define-llvm-unsafe LLVMDisposeBuilder (_fun LLVMBuilderRef -> _void))
+(define (safe:LLVMDisposeBuilder builder) (void))
 
 
 

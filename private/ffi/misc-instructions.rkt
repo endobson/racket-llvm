@@ -12,6 +12,15 @@
 
 (define-llvm-unsafe LLVMBuildPhi (_fun LLVMBuilderRef LLVMTypeRef _string -> LLVMValueRef))
 
+
+(define-llvm-safe LLVMBuildPhi
+  (_fun (builder : safe:LLVMBuilderRef)
+        safe:LLVMTypeRef
+        _non-null-string ->
+        (ptr : _pointer) ->
+        (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
+
+
 (define-llvm-unsafe LLVMBuildCall
  (_fun (builder fun args name) ::
        (builder : LLVMBuilderRef)
@@ -20,6 +29,20 @@
        (_uint = (length args))
        (name : _string)
        -> LLVMValueRef))
+
+
+(define-llvm-safe LLVMBuildCall
+  (_fun (builder fun args name) ::
+        (builder : safe:LLVMBuilderRef)
+        (fun : safe:LLVMValueRef)
+        (args : (_list i safe:LLVMValueRef))
+        (_uint = (length args))
+        (name : _non-null-string) ->
+        (ptr : _pointer) ->
+        (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
+
+
+
 
 (define-llvm-unsafe LLVMBuildSelect
  (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))

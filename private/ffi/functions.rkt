@@ -13,7 +13,22 @@
 ;/* Operations on functions */
 (define-llvm-unsafe LLVMAddFunction (_fun LLVMModuleRef _string LLVMTypeRef -> LLVMValueRef))
 
+(define-llvm-safe LLVMAddFunction
+  (_fun (mod : safe:LLVMModuleRef)
+        _non-null-string
+        safe:LLVMTypeRef ->
+        (ptr : _pointer) -> 
+        (safe:llvm-value-ref ptr mod)))
+
 (define-llvm-unsafe LLVMGetNamedFunction (_fun LLVMModuleRef _string -> LLVMValueRef))
+
+(define-llvm-safe LLVMGetNamedFunction
+  (_fun (mod : safe:LLVMModuleRef)
+        _non-null-string ->
+        (ptr : _pointer) -> 
+        (and ptr
+          (safe:llvm-value-ref ptr mod))))
+
 
 (define-llvm-multiple-unsafe
  (LLVMGetFirstFunction
@@ -36,6 +51,10 @@
 
 (define-llvm-unsafe LLVMSetFunctionCallConv
  (_fun LLVMValueRef LLVMCallConv -> _void))
+
+(define-llvm-safe LLVMSetFunctionCallConv
+ (_fun safe:LLVMValueRef LLVMCallConv -> _void))
+
 
 (define-llvm-unsafe LLVMGetGC
  (_fun LLVMValueRef -> _string))
@@ -62,6 +81,11 @@
        -> params))
 
 (define-llvm-unsafe LLVMGetParam (_fun LLVMValueRef _uint -> LLVMValueRef))
+(define-llvm-safe LLVMGetParam
+  (_fun (f : safe:LLVMValueRef)
+        _uint ->
+        (ptr : _pointer) ->
+        (safe:llvm-value-ref ptr (safe:llvm-value-ref-owner f))))
 
 (define-llvm-unsafe LLVMGetParamParent (_fun LLVMValueRef -> LLVMValueRef))
 

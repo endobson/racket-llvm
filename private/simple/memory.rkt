@@ -3,8 +3,8 @@
 (require racket/contract)
 
 (require
-  "../unsafe/structs.rkt"
-  "../ffi/unsafe.rkt"
+  "../safe/structs.rkt"
+  "../ffi/safe.rkt"
   "base.rkt")
 
 (define load/c

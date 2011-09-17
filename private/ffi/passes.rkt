@@ -80,6 +80,19 @@
           ->
           (and ans message)))
 
+
+(define-llvm-safe LLVMVerifyModule
+   (_fun (module action) ::
+          (module : safe:LLVMModuleRef)
+          (action : LLVMVerifierFailureAction)
+          (message : (_ptr io LLVMMessage) = #f)
+          ->
+          (ans : LLVMBool)
+          ->
+          (and ans message)))
+
+
+
 ;/* Verifies that a single function is valid, taking the specified action. Useful
 ;   for debugging. */
 (define-llvm-unsafe LLVMVerifyFunction (_fun LLVMValueRef LLVMVerifierFailureAction -> LLVMBool))

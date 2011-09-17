@@ -8,6 +8,7 @@
 (provide
   LLVMBool
   LLVMContextRef
+  unsafe:LLVMContextRef
   LLVMModuleRef
   LLVMTypeRef
   LLVMValueRef
@@ -26,18 +27,37 @@
   safe:LLVMBasicBlockRef
   safe:LLVMBuilderRef
   LLVMMessage
+  set-safe:llvm-builder-ref-module!
+  safe:llvm-builder-ref-module
+  safe:llvm-basic-block-ref-module
+  safe:llvm-basic-block-ref
+  safe:llvm-value-ref
+  safe:llvm-value-ref-owner
+  safe:llvm-type-ref
+  safe:llvm-type-ref-context
+  safe:llvm-module-ref-context
+  safe:llvm-module-ref-pointer
 
   safe:LLVMContextCreator
   safe:LLVMModuleCreator
+  safe:LLVMBuilderCreator
   safe:LLVMModuleDescriptionMaker
   unsafe:LLVMModuleDescriptionMaker
-  (rename-out
-   (unsafe:llvm-value-ref? llvm-value-ref?)
-   (unsafe:llvm-type-ref? llvm-type-ref?)
-   (unsafe:llvm-module-ref? llvm-module-ref?)
-   (unsafe:llvm-context-ref? llvm-context-ref?)
-   (unsafe:llvm-basic-block-ref? llvm-basic-block-ref?)
-   (unsafe:llvm-builder-ref? llvm-builder-ref?)))
+
+  _non-null-string
+  unsafe:llvm-value-ref?
+  unsafe:llvm-type-ref?
+  unsafe:llvm-module-ref?
+  unsafe:llvm-context-ref?
+  unsafe:llvm-basic-block-ref?
+  unsafe:llvm-builder-ref?
+
+  safe:llvm-value-ref?
+  safe:llvm-type-ref?
+  safe:llvm-module-ref?
+  safe:llvm-context-ref?
+  safe:llvm-basic-block-ref?
+  safe:llvm-builder-ref?)
 
 
 
@@ -88,6 +108,7 @@
 
 (struct unsafe:llvm-context-ref (pointer))
 (struct unsafe:llvm-module-ref (pointer))
+
 (struct safe:llvm-context-ref (pointer))
 (struct safe:llvm-module-ref (pointer context))
 
@@ -114,7 +135,7 @@
  #:property prop:equal+hash
   (llvm-ref-equal+hash safe:llvm-type-ref-pointer safe:LLVMTypeRef))
 
-(struct safe:llvm-value-ref (pointer module)
+(struct safe:llvm-value-ref (pointer owner)
  #:property prop:custom-print-quotable 'never
  #:property prop:custom-write
  (write-llvm-value-ref safe:LLVMGetValueDescription)
@@ -132,8 +153,8 @@
 (struct unsafe:llvm-target-data-ref (pointer))
 
 
-(struct safe:llvm-basic-block-ref (pointer))
-(struct safe:llvm-builder-ref (pointer))
+(struct safe:llvm-basic-block-ref (pointer module))
+(struct safe:llvm-builder-ref (pointer context (module #:mutable)))
 ;(struct safe:llvm-module-provider-ref (pointer))
 ;(struct safe:llvm-memory-buffer-ref (pointer))
 ;(struct safe:llvm-pass-manager-ref (pointer))
@@ -239,6 +260,17 @@
       (bytes->string/utf-8 (make-byte-string cptr))
       (unsafe:LLVMDisposeMessage cptr)))))))
 
+(define _non-null-string
+ (make-ctype
+  _string
+  (lambda (scheme)
+    (or scheme
+      (error '_non-null-string "Cannot convert #f")))
+  (lambda (c)
+    (or c
+      (error '_non-null-string "Cannot convert #f")))))
+
+
 (define _malloc-string
  (make-ctype
   _pointer
@@ -268,6 +300,17 @@
          -> (begin
              (will-register llvm-will-executor v safe:LLVMContextDispose)
              v))))
+
+(define safe:LLVMBuilderCreator
+ (let ()
+   (define-llvm-safe LLVMDisposeBuilder (_fun safe:LLVMBuilderRef -> _void))
+   (_fun (context : safe:LLVMContextRef)
+     -> (ptr : _pointer)
+     -> (let ((build (safe:llvm-builder-ref ptr context #f)))
+          (will-register llvm-will-executor build safe:LLVMDisposeBuilder)
+          build))))
+
+
 
 (define unsafe:LLVMModuleDescriptionMaker (_fun unsafe:LLVMModuleRef -> _malloc-string))
 (define safe:LLVMModuleDescriptionMaker (_fun safe:LLVMModuleRef -> _malloc-string))

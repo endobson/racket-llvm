@@ -4,8 +4,8 @@
   racket/contract
   racket/list
   (except-in ffi/unsafe ->)
-  "../unsafe/structs.rkt"
-  "../ffi/unsafe.rkt")
+  "../safe/structs.rkt"
+  "../ffi/safe.rkt")
 
 
 

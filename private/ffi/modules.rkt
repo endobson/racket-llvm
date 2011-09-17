@@ -8,19 +8,23 @@
 
 (provide (all-defined-out))
 
+(define unsafe:LLVMContextCreator (_fun -> unsafe:LLVMContextRef))
+
 
 ;/*===-- Contexts ----------------------------------------------------------===*/
 
 
 ;/* Create and destroy contexts. */
-(define-llvm-unsafe LLVMContextCreate (_fun -> LLVMContextRef))
+(define-llvm-unsafe LLVMContextCreate unsafe:LLVMContextCreator)
 (define-llvm-safe LLVMContextCreate safe:LLVMContextCreator)
 
 
-(define-llvm-unsafe LLVMGetGlobalContext (_fun -> LLVMContextRef))
-(define-llvm-unsafe LLVMContextDispose (_fun LLVMContextRef -> _void))
+(define-llvm-unsafe LLVMGetGlobalContext (_fun -> unsafe:LLVMContextRef))
+(define-llvm-unsafe LLVMContextDispose (_fun unsafe:LLVMContextRef -> _void))
+(define (safe:LLVMContextDispose ctx) (void))
 
-(define-llvm-unsafe LLVMGetMDKindIDInContext (_fun LLVMContextRef _string _uint -> _uint))
+(define-llvm-unsafe LLVMGetMDKindIDInContext (_fun unsafe:LLVMContextRef _string _uint -> _uint))
+(define-llvm-safe LLVMGetMDKindIDInContext (_fun safe:LLVMContextRef _string _uint -> _uint))
 
 (define-llvm-unsafe LLVMGetMDKindID (_fun _string _uint -> _uint))
 
@@ -37,6 +41,7 @@
 
 ;/** See llvm::Module::~Module. */
 (define-llvm-unsafe LLVMDisposeModule (_fun LLVMModuleRef -> _void))
+(define (safe:LLVMDisposeModule module) (void))
 
 
 ;/** Data layout. See Module::getDataLayout. */

@@ -19,6 +19,11 @@
        -> LLVMTypeRef))
 
 
+(define-llvm-safe LLVMConstInt
+ (_fun (ty : safe:LLVMTypeRef) _long LLVMBool ->
+       (ptr : _pointer) ->
+       (safe:llvm-value-ref ptr (safe:llvm-type-ref-context ty))))
+
 ;/* Operations on constants of any type */
 (define-llvm-multiple-unsafe
  (LLVMConstNull      ; /* all zeroes */
@@ -26,6 +31,17 @@
   LLVMGetUndef
   LLVMConstPointerNull)
  (_fun LLVMTypeRef -> LLVMValueRef))
+
+
+(define-llvm-multiple-safe
+ (LLVMConstNull      ; /* all zeroes */
+  LLVMConstAllOnes   ; /* only for int/vector */
+  LLVMGetUndef
+  LLVMConstPointerNull)
+ (_fun (ty : safe:LLVMTypeRef) ->
+       (ptr : _pointer) ->
+       (safe:llvm-value-ref ptr (safe:llvm-type-ref-context ty))))
+
 
 
 (define-llvm-unsafe LLVMConstIntOfString
@@ -50,6 +66,17 @@
        (_uint = (string-length str))
        (dnt : LLVMBool)
        -> LLVMValueRef))
+
+
+(define-llvm-safe LLVMConstStringInContext
+ (_fun (context str dnt) ::
+       (context : safe:LLVMContextRef)
+       (str : _string)
+       (_uint = (string-length str))
+       (dnt : LLVMBool) ->
+       (ptr : _pointer) ->
+       (safe:llvm-value-ref ptr context)))
+
        
 
 (define-llvm-unsafe LLVMConstStructInContext
@@ -59,6 +86,17 @@
        (_uint = (length fields))
        (packed : LLVMBool)
        -> LLVMValueRef))
+
+
+(define-llvm-safe LLVMConstStructInContext
+ (_fun (context fields packed) ::
+       (context : safe:LLVMContextRef)
+       (fields : (_list i safe:LLVMValueRef))
+       (_uint = (length fields))
+       (packed : LLVMBool) ->
+       (ptr : _pointer) ->
+       (safe:llvm-value-ref ptr context)))
+
      
 
 (define-llvm-unsafe LLVMConstString
@@ -85,12 +123,33 @@
        -> LLVMValueRef))
 
 
+(define-llvm-safe LLVMConstNamedStruct
+ (_fun (type fields) ::
+       (type : safe:LLVMTypeRef)
+       (fields : (_list i safe:LLVMValueRef))
+       (_uint = (length fields)) ->
+       (ptr : _pointer) ->
+       (safe:llvm-value-ref ptr (safe:llvm-type-ref-context type))))
+
+
+
 (define-llvm-unsafe LLVMConstArray
  (_fun (type elements) ::
        (type : LLVMTypeRef)
        (elements : (_list i LLVMValueRef))
        (_uint = (length elements))
        -> LLVMValueRef))
+
+(define-llvm-safe LLVMConstArray
+ (_fun (type elements) ::
+       (type : safe:LLVMTypeRef)
+       (elements : (_list i safe:LLVMValueRef))
+       (_uint = (length elements)) ->
+       (ptr : _pointer) ->
+       (safe:llvm-value-ref ptr (safe:llvm-type-ref-context type))))
+
+
+
 
 
 (define-llvm-unsafe LLVMConstVector

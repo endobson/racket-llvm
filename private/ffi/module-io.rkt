@@ -13,6 +13,11 @@
 ;/** Writes a module to the specified path. Returns 0 on success. */ 
 (define-llvm-unsafe LLVMWriteBitcodeToFile (_fun LLVMModuleRef _string -> _int))
 
+
+;/** Writes a module to the specified path. Returns 0 on success. */ 
+(define-llvm-safe LLVMWriteBitcodeToFile (_fun safe:LLVMModuleRef _string -> _int))
+
+
 ;/** Writes a module to an open file descriptor. Returns 0 on success. */
 (define-llvm-unsafe LLVMWriteBitcodeToFD (_fun LLVMModuleRef _int _bool _bool -> _int))
 

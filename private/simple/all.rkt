@@ -1,8 +1,8 @@
 #lang racket
 
 (require
-  "../ffi/unsafe.rkt"
-  "../unsafe/structs.rkt"
+  "../ffi/safe.rkt"
+  "../safe/structs.rkt"
   "base.rkt"
   "binop.rkt"
   "comparison.rkt"
