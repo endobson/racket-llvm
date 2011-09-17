@@ -4,32 +4,17 @@
 
   (for-syntax "../llvm-util-exptime.rkt" syntax/parse)
   (only-in ffi/unsafe get-ffi-obj)
-  "lib.rkt"
-  racket/splicing
-  racket/stxparam)
+  "lib.rkt")
 
 
 (provide
-  define-llvm-multiple
   define-llvm-safe
   define-llvm-racket-safe
-  define-llvm-both
-  (rename-out
-   (define-llvm-unsafe define-llvm)
-   (define-llvm-racket-unsafe define-llvm-racket))
-  llvm-safety
-  llvm-unsafe-context
-  define-ffi-definer)
+  define-llvm-multiple-safe
+  define-llvm-unsafe
+  define-llvm-racket-unsafe
+  define-llvm-multiple-unsafe)
 
-
-(define-syntax-parameter llvm-safety #f)
-
-
-(define-syntax (llvm-unsafe-context stx)
- (syntax-case stx ()
-  ((_ . args)
-   #'(splicing-syntax-parameterize ((llvm-safety 'unsafe))
-      . args))))
 
 
 (define-syntax (define-ffi-definer stx)
@@ -43,37 +28,11 @@
          #'(define id (get-ffi-obj 'id lib type))))))))
 
 
-(define-syntax (define-llvm-both stx)
- (syntax-case stx ()
-  ((_ . args)
-   (begin
-    #'(splicing-syntax-parameterize ((llvm-safety 'unsafe))
-       (define-llvm . args))
-    #'(splicing-syntax-parameterize ((llvm-safety 'safe))
-       (define-llvm . args))))))
 
-
-(define-ffi-definer define-llvm llvm-lib)
-(define-ffi-definer define-llvm-racket llvm-racket-lib)
+(define-ffi-definer define-llvm-raw llvm-lib)
+(define-ffi-definer define-llvm-racket-raw llvm-racket-lib)
 
    
-
-
-(define-syntax (define-llvm-unsafe stx)
- (syntax-case stx ()
-  ((_ . args)
-  #'(splicing-syntax-parameterize ((llvm-safety 'unsafe))
-     (define-llvm . args)))))
-
-(define-syntax (define-llvm-racket-unsafe stx)
- (syntax-case stx ()
-  ((_ . args)
- #'(splicing-syntax-parameterize ((llvm-safety 'unsafe))
-    (define-llvm-racket . args)))))
-
-
-
-
 
 (define-syntaxes (define-llvm-safe define-llvm-racket-safe)
  (let ((definer
@@ -85,21 +44,36 @@
                type
                #:c-id name))))))
    (values
-     (definer #'define-llvm)
-     (definer #'define-llvm-racket))))
+     (definer #'define-llvm-raw)
+     (definer #'define-llvm-racket-raw))))
+
+
+(define-syntaxes (define-llvm-unsafe define-llvm-racket-unsafe)
+ (let ((definer
+        (lambda (define-llvm)
+         (syntax-parser 
+           ((_ name:id type:expr)
+            #`(#,define-llvm
+               #,(id-prefix 'unsafe: #'name)
+               type
+               #:c-id name))))))
+   (values
+     (definer #'define-llvm-raw)
+     (definer #'define-llvm-racket-raw))))
 
 
 
 
 
-
-
-
-
-(define-syntax (define-llvm-multiple stx)
+(define-syntax (define-llvm-multiple-unsafe stx)
  (syntax-case stx ()
   ((_ (name ...) type) 
     #'(begin (define-llvm-unsafe name type) ...))))
+
+(define-syntax (define-llvm-multiple-safe stx)
+ (syntax-case stx ()
+  ((_ (name ...) type) 
+    #'(begin (define-llvm-safe name type) ...))))
 
 
 

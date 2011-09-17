@@ -9,7 +9,7 @@
 
 (provide (all-defined-out))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMBuildTrunc
   LLVMBuildZExt
   LLVMBuildSExt
@@ -21,7 +21,7 @@
   LLVMBuildFPExt)
  (_fun LLVMBuilderRef LLVMValueRef LLVMTypeRef _string -> LLVMValueRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMBuildPtrToInt
   LLVMBuildIntToPtr
   LLVMBuildBitCast
@@ -33,5 +33,5 @@
   LLVMBuildFPCast)
  (_fun LLVMBuilderRef LLVMValueRef LLVMTypeRef _string -> LLVMValueRef))
 
-(define-llvm LLVMBuildCast
+(define-llvm-unsafe LLVMBuildCast
  (_fun LLVMBuilderRef LLVMOpcode LLVMValueRef LLVMTypeRef _string -> LLVMValueRef))

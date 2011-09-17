@@ -1,7 +1,6 @@
 #lang racket/base
 
 (require (for-syntax "../llvm-util-exptime.rkt" racket/base syntax/parse))
-(require racket/stxparam)
 (require ffi/unsafe)
 
 (require "define.rkt")
@@ -64,6 +63,7 @@
       (write-string ")" port)
       (write-string ">" port))))
 
+;TODO add pred
 (define-syntax-rule (llvm-ref-equal+hash acc type)
  (list
   (lambda (left right =?)
@@ -96,13 +96,13 @@
 (struct unsafe:llvm-type-ref (pointer)
  #:property prop:custom-print-quotable 'never
  #:property prop:custom-write
- (write-llvm-type-ref LLVMGetTypeDescription)
+ (write-llvm-type-ref unsafe:LLVMGetTypeDescription)
  #:property prop:equal+hash
   (llvm-ref-equal+hash unsafe:llvm-type-ref-pointer unsafe:LLVMTypeRef))
 (struct unsafe:llvm-value-ref (pointer)
  #:property prop:custom-print-quotable 'never
  #:property prop:custom-write
- (write-llvm-value-ref LLVMGetValueDescription)
+ (write-llvm-value-ref unsafe:LLVMGetValueDescription)
  #:property prop:equal+hash
  (llvm-ref-equal+hash unsafe:llvm-value-ref-pointer unsafe:LLVMValueRef))
 
@@ -167,39 +167,14 @@
         ...))))
 
 
-(define-syntax (make-syntax-parameter-types stx)
+(define-syntax (make-types stx)
   (syntax-parse stx
    ((_ name:id ...)
-    #'(begin
-        (define-syntax-parameter name
-          (let ((unsafe-id (id-prefix 'unsafe: #'name))
-                (safe-id   (id-prefix 'safe:   #'name)))
-            (lambda (stx)
-              (with-syntax ((id 
-                             (case (syntax-parameter-value #'llvm-safety)
-                               ((unsafe) unsafe-id)
-                               ((safe) safe-id)
-                               (else (raise-syntax-error #f "Not in an llvm-safety-context"
-                                                         stx)))))
-                (syntax-case stx ()
-                  ((_ . args) #'(id . args))
-                  (_ #'id))))))
-        ...))))
+    (with-syntax (((unsafe-id ...) (map (lambda (id) (id-prefix 'unsafe: id))
+                                        (syntax->list #'(name ...)))))
+     #'(begin
+        (define name unsafe-id) ...)))))
 
-
-(make-syntax-parameter-types
-  LLVMContextRef
-  LLVMModuleRef
-  LLVMTypeRef
-  LLVMValueRef
-  LLVMBasicBlockRef
-  LLVMBuilderRef
-  LLVMModuleProviderRef
-  LLVMMemoryBufferRef
-  LLVMPassManagerRef
-  LLVMPassRegistryRef
-  LLVMUseRef
-  LLVMTargetDataRef)
 
 
 (make-llvm-types
@@ -216,6 +191,22 @@
   (unsafe:LLVMUseRef            unsafe:llvm-use-ref             unsafe:llvm-use-ref-pointer)
   (unsafe:LLVMTargetDataRef     unsafe:llvm-target-data-ref     unsafe:llvm-target-data-ref-pointer)
   (safe:LLVMContextRef   safe:llvm-context-ref    safe:llvm-context-ref-pointer))
+
+(make-types
+  LLVMContextRef
+  LLVMModuleRef
+  LLVMTypeRef
+  LLVMValueRef
+  LLVMBasicBlockRef
+  LLVMBuilderRef
+  LLVMModuleProviderRef
+  LLVMMemoryBufferRef
+  LLVMPassManagerRef
+  LLVMPassRegistryRef
+  LLVMUseRef
+  LLVMTargetDataRef)
+
+
 
 (make-safe-llvm-types
   (safe:LLVMModuleRef         safe:llvm-module-ref          safe:llvm-module-ref-pointer)
@@ -234,17 +225,19 @@
 
 
 (define LLVMMessage 
- (make-ctype
-  _pointer
-  (lambda (scheme)
-   (when scheme
-    (error 'LLVMMessage "Cannot Convert non null pointers to C"))
-   #f)
-  (lambda (cptr)
-   (and cptr
-    (begin0
-     (bytes->string/utf-8 (make-byte-string cptr))
-     (LLVMDisposeMessage cptr))))))
+ (let ()
+  (define-llvm-unsafe LLVMDisposeMessage (_fun _pointer -> _void))
+  (make-ctype
+   _pointer
+   (lambda (scheme)
+    (when scheme
+     (error 'LLVMMessage "Cannot Convert non null pointers to C"))
+    #f)
+   (lambda (cptr)
+    (and cptr
+     (begin0
+      (bytes->string/utf-8 (make-byte-string cptr))
+      (unsafe:LLVMDisposeMessage cptr)))))))
 
 (define _malloc-string
  (make-ctype
@@ -283,12 +276,11 @@
 
 ;/*===-- Error handling ----------------------------------------------------===*/
 
-(define-llvm LLVMDisposeMessage (_fun _pointer -> _void))
 
 
 
-(define-llvm-racket LLVMGetTypeDescription (_fun unsafe:LLVMTypeRef -> _malloc-string))
-(define-llvm-racket LLVMGetValueDescription (_fun unsafe:LLVMValueRef -> _malloc-string))
+(define-llvm-racket-unsafe LLVMGetTypeDescription (_fun unsafe:LLVMTypeRef -> _malloc-string))
+(define-llvm-racket-unsafe LLVMGetValueDescription (_fun unsafe:LLVMValueRef -> _malloc-string))
 
 (define-llvm-racket-safe LLVMGetTypeDescription (_fun safe:LLVMTypeRef -> _malloc-string))
 (define-llvm-racket-safe LLVMGetValueDescription (_fun safe:LLVMValueRef -> _malloc-string))

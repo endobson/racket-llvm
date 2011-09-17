@@ -25,41 +25,41 @@
 ; */
 
 ;/** See llvm::LLVMTypeKind::getTypeID. */
-(define-llvm-both LLVMGetTypeKind (_fun LLVMTypeRef -> LLVMTypeKind))
+(define-llvm-unsafe LLVMGetTypeKind (_fun LLVMTypeRef -> LLVMTypeKind))
 
 ;/** See llvm::LLVMType::getContext. */
-(define-llvm LLVMGetTypeContext (_fun LLVMTypeRef -> LLVMContextRef))
+(define-llvm-unsafe LLVMGetTypeContext (_fun LLVMTypeRef -> LLVMContextRef))
 
 ;/* Operations on integer types */
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMInt1TypeInContext
   LLVMInt8TypeInContext
   LLVMInt16TypeInContext
   LLVMInt32TypeInContext
   LLVMInt64TypeInContext) (_fun LLVMContextRef -> LLVMTypeRef))
 
-(define-llvm LLVMIntTypeInContext (_fun LLVMContextRef _uint -> LLVMTypeRef))
+(define-llvm-unsafe LLVMIntTypeInContext (_fun LLVMContextRef _uint -> LLVMTypeRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMInt1Type
   LLVMInt8Type
   LLVMInt16Type
   LLVMInt32Type
   LLVMInt64Type) (_fun -> LLVMTypeRef))
-(define-llvm LLVMIntType (_fun _uint -> LLVMTypeRef))
+(define-llvm-unsafe LLVMIntType (_fun _uint -> LLVMTypeRef))
 
-(define-llvm LLVMGetIntTypeWidth (_fun LLVMTypeRef -> _uint))
+(define-llvm-unsafe LLVMGetIntTypeWidth (_fun LLVMTypeRef -> _uint))
 
 ;/* Operations on real types */
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMFloatTypeInContext
   LLVMDoubleTypeInContext
   LLVMX86FP80TypeInContext
   LLVMFP128TypeInContext
   LLVMPPCFP128TypeInContext) (_fun LLVMContextRef -> LLVMTypeRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMFloatType
   LLVMDoubleType
   LLVMX86FP80Type
@@ -67,7 +67,7 @@
   LLVMPPCFP128Type) (_fun -> LLVMTypeRef))
 
 ;/* Operations on function types */
-(define-llvm LLVMFunctionType
+(define-llvm-unsafe LLVMFunctionType
   (_fun (ret-type arg-types varargs) ::
         (ret-type : LLVMTypeRef)
         (arg-types : (_list i LLVMTypeRef))
@@ -76,13 +76,13 @@
         -> LLVMTypeRef))
 
 
-(define-llvm LLVMIsFunctionVarArg (_fun LLVMTypeRef -> LLVMBool))
-(define-llvm LLVMGetReturnType (_fun LLVMTypeRef -> LLVMTypeRef))
-(define-llvm LLVMCountParamTypes (_fun LLVMTypeRef -> _uint))
-(define-llvm LLVMGetParamTypes (_fun LLVMTypeRef _pointer -> _void))
+(define-llvm-unsafe LLVMIsFunctionVarArg (_fun LLVMTypeRef -> LLVMBool))
+(define-llvm-unsafe LLVMGetReturnType (_fun LLVMTypeRef -> LLVMTypeRef))
+(define-llvm-unsafe LLVMCountParamTypes (_fun LLVMTypeRef -> _uint))
+(define-llvm-unsafe LLVMGetParamTypes (_fun LLVMTypeRef _pointer -> _void))
 
 ;/* Operations on struct types */
-(define-llvm LLVMStructTypeInContext
+(define-llvm-unsafe LLVMStructTypeInContext
   (_fun (context types packed) ::
         (context : LLVMContextRef)
         (types : (_list i LLVMTypeRef))
@@ -90,7 +90,7 @@
         (packed : LLVMBool)
         -> LLVMTypeRef))
 
-(define-llvm LLVMStructType
+(define-llvm-unsafe LLVMStructType
   (_fun (types packed) ::
         (types : (_list i LLVMTypeRef))
         (_uint = (length types))
@@ -98,9 +98,9 @@
         -> LLVMTypeRef))
 
 
-(define-llvm LLVMStructCreateNamed (_fun LLVMContextRef _string -> LLVMTypeRef))
+(define-llvm-unsafe LLVMStructCreateNamed (_fun LLVMContextRef _string -> LLVMTypeRef))
 
-(define-llvm LLVMStructSetBody
+(define-llvm-unsafe LLVMStructSetBody
  (_fun (type types packed) ::
        (type : LLVMTypeRef)
        (types : (_list i LLVMTypeRef))
@@ -109,29 +109,29 @@
        -> _void))
 
 
-(define-llvm LLVMCountStructElementTypes (_fun LLVMTypeRef -> _uint))
+(define-llvm-unsafe LLVMCountStructElementTypes (_fun LLVMTypeRef -> _uint))
 
-(define-llvm LLVMGetStructElementTypes
+(define-llvm-unsafe LLVMGetStructElementTypes
   (_fun (type) ::
         (type : LLVMTypeRef)
-        (types : (_list o LLVMTypeRef (LLVMCountStructElementTypes type)))
+        (types : (_list o LLVMTypeRef (unsafe:LLVMCountStructElementTypes type)))
         -> _void
         -> types))
-(define-llvm LLVMIsPackedStruct (_fun LLVMTypeRef -> LLVMBool))
-(define-llvm LLVMIsOpaqueStruct (_fun LLVMTypeRef -> LLVMBool))
+(define-llvm-unsafe LLVMIsPackedStruct (_fun LLVMTypeRef -> LLVMBool))
+(define-llvm-unsafe LLVMIsOpaqueStruct (_fun LLVMTypeRef -> LLVMBool))
 
-(define-llvm LLVMGetTypeByName (_fun LLVMModuleRef _string -> LLVMTypeRef))
+(define-llvm-unsafe LLVMGetTypeByName (_fun LLVMModuleRef _string -> LLVMTypeRef))
 
 
 ;/* Operations on array, pointer, and vector types (sequence types) */
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMArrayType
   LLVMPointerType
   LLVMVectorType) (_fun LLVMTypeRef _uint -> LLVMTypeRef))
 
-(define-llvm LLVMGetElementType (_fun LLVMTypeRef -> LLVMTypeRef))
+(define-llvm-unsafe LLVMGetElementType (_fun LLVMTypeRef -> LLVMTypeRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMGetArrayLength
   LLVMGetPointerAddressSpace
   LLVMGetVectorSize) (_fun LLVMTypeRef -> _uint))
@@ -139,12 +139,12 @@
 
 ;/* Operations on other types */
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMVoidTypeInContext
   LLVMLabelTypeInContext
   LLVMX86MMXTypeInContext) (_fun LLVMContextRef -> LLVMTypeRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMVoidType
   LLVMLabelType
   LLVMX86MMXType) (_fun -> LLVMTypeRef))

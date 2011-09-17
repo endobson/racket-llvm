@@ -5,5 +5,5 @@
 (provide
  (all-from-out
    "private/simple/all.rkt"
-   "privete/unsafe/structs.rkt"))
+   "private/unsafe/structs.rkt"))
 

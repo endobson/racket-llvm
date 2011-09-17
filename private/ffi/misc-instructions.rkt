@@ -10,9 +10,9 @@
 
 ;/* Miscellaneous instructions */
 
-(define-llvm LLVMBuildPhi (_fun LLVMBuilderRef LLVMTypeRef _string -> LLVMValueRef))
+(define-llvm-unsafe LLVMBuildPhi (_fun LLVMBuilderRef LLVMTypeRef _string -> LLVMValueRef))
 
-(define-llvm LLVMBuildCall
+(define-llvm-unsafe LLVMBuildCall
  (_fun (builder fun args name) ::
        (builder : LLVMBuilderRef)
        (fun : LLVMValueRef)
@@ -21,29 +21,29 @@
        (name : _string)
        -> LLVMValueRef))
 
-(define-llvm LLVMBuildSelect
+(define-llvm-unsafe LLVMBuildSelect
  (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
 
-(define-llvm LLVMBuildVAArg
+(define-llvm-unsafe LLVMBuildVAArg
  (_fun LLVMBuilderRef LLVMValueRef LLVMTypeRef _string -> LLVMValueRef))
 
-(define-llvm LLVMBuildExtractElement
+(define-llvm-unsafe LLVMBuildExtractElement
  (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
-(define-llvm LLVMBuildInsertElement
+(define-llvm-unsafe LLVMBuildInsertElement
  (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
 
-(define-llvm LLVMBuildShuffleVector
+(define-llvm-unsafe LLVMBuildShuffleVector
  (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
 
 
-(define-llvm LLVMBuildExtractValue
+(define-llvm-unsafe LLVMBuildExtractValue
  (_fun LLVMBuilderRef LLVMValueRef _uint  _string -> LLVMValueRef))
-(define-llvm LLVMBuildInsertValue
+(define-llvm-unsafe LLVMBuildInsertValue
  (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _uint  _string -> LLVMValueRef))
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMBuildIsNull
   LLVMBuildIsNotNull)
  (_fun LLVMBuilderRef LLVMValueRef _string -> LLVMValueRef))
 
-(define-llvm LLVMBuildPtrDiff (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
+(define-llvm-unsafe LLVMBuildPtrDiff (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
 

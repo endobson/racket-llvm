@@ -10,7 +10,7 @@
 
 ;/*===-- Memory buffers ----------------------------------------------------===*/
 ;
-(define-llvm LLVMCreateMemoryBufferWithContentsOfFile
+(define-llvm-unsafe LLVMCreateMemoryBufferWithContentsOfFile
    (_fun (path) ::
           (path : _string)
           (buffer : (_ptr o LLVMMemoryBufferRef))
@@ -21,7 +21,7 @@
           (if ans message buffer)))
 
 
-(define-llvm LLVMCreateMemoryBufferWithSTDIN
+(define-llvm-unsafe LLVMCreateMemoryBufferWithSTDIN
    (_fun () ::
           (buffer : (_ptr o LLVMMemoryBufferRef))
           (message : (_ptr io LLVMMessage) = #f)
@@ -30,7 +30,7 @@
           ->
           (if ans message buffer)))
 
-(define-llvm LLVMDisposeMemoryBuffer
+(define-llvm-unsafe LLVMDisposeMemoryBuffer
  (_fun LLVMMemoryBufferRef -> _void))
 
 

@@ -10,7 +10,7 @@
 (provide (all-defined-out))
 
 ;/* Arithmetic */
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
   (LLVMBuildAdd
    LLVMBuildNSWAdd
    LLVMBuildNUWAdd
@@ -38,10 +38,10 @@
    LLVMBuildXor)
   (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
 
-(define-llvm LLVMBuildBinOp
+(define-llvm-unsafe LLVMBuildBinOp
  (_fun LLVMBuilderRef LLVMOpcode LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMBuildNeg
   LLVMBuildNSWNeg
   LLVMBuildNUWNeg
@@ -51,14 +51,14 @@
 
 
 ;/* Comparisons */
-(define-llvm LLVMBuildICmp
+(define-llvm-unsafe LLVMBuildICmp
   (_fun LLVMBuilderRef
         LLVMIntPredicate
         LLVMValueRef
         LLVMValueRef
         _string -> LLVMValueRef))
 
-(define-llvm LLVMBuildFCmp
+(define-llvm-unsafe LLVMBuildFCmp
   (_fun LLVMBuilderRef
         LLVMRealPredicate
         LLVMValueRef

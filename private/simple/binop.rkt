@@ -4,7 +4,7 @@
 
 (require
   "../unsafe/structs.rkt"
-  "../ffi/arithmetic.rkt"
+  "../ffi/unsafe.rkt"
   "base.rkt")
 
 (require racket/contract)

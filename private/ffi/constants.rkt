@@ -10,8 +10,8 @@
 (provide (all-defined-out))
 
 ;/* Operations on scalar constants */
-(define-llvm LLVMConstInt (_fun LLVMTypeRef _long LLVMBool -> LLVMValueRef))
-(define-llvm LLVMConstIntOfArbitraryPrecision
+(define-llvm-unsafe LLVMConstInt (_fun LLVMTypeRef _long LLVMBool -> LLVMValueRef))
+(define-llvm-unsafe LLVMConstIntOfArbitraryPrecision
  (_fun (type words) ::
        (type : LLVMTypeRef)
        (_uint = (length words))
@@ -20,7 +20,7 @@
 
 
 ;/* Operations on constants of any type */
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMConstNull      ; /* all zeroes */
   LLVMConstAllOnes   ; /* only for int/vector */
   LLVMGetUndef
@@ -28,22 +28,22 @@
  (_fun LLVMTypeRef -> LLVMValueRef))
 
 
-(define-llvm LLVMConstIntOfString
+(define-llvm-unsafe LLVMConstIntOfString
  (_fun LLVMTypeRef _string _uint8 -> LLVMValueRef))
-(define-llvm LLVMConstIntOfStringAndSize
+(define-llvm-unsafe LLVMConstIntOfStringAndSize
  (_fun LLVMTypeRef _string _uint _uint8 -> LLVMValueRef))
 
-(define-llvm LLVMConstReal (_fun LLVMTypeRef _double* -> LLVMValueRef))
-(define-llvm LLVMConstRealOfString
+(define-llvm-unsafe LLVMConstReal (_fun LLVMTypeRef _double* -> LLVMValueRef))
+(define-llvm-unsafe LLVMConstRealOfString
  (_fun LLVMTypeRef _string -> LLVMValueRef))
-(define-llvm LLVMConstRealOfStringAndSize
+(define-llvm-unsafe LLVMConstRealOfStringAndSize
  (_fun LLVMTypeRef _string _uint -> LLVMValueRef))
 
-(define-llvm LLVMConstIntGetZExtValue (_fun LLVMValueRef -> _ulong))
-(define-llvm LLVMConstIntGetSExtValue (_fun LLVMValueRef -> _long))
+(define-llvm-unsafe LLVMConstIntGetZExtValue (_fun LLVMValueRef -> _ulong))
+(define-llvm-unsafe LLVMConstIntGetSExtValue (_fun LLVMValueRef -> _long))
 
 ;/* Operations on composite constants */
-(define-llvm LLVMConstStringInContext
+(define-llvm-unsafe LLVMConstStringInContext
  (_fun (context str dnt) ::
        (context : LLVMContextRef)
        (str : _string)
@@ -52,7 +52,7 @@
        -> LLVMValueRef))
        
 
-(define-llvm LLVMConstStructInContext
+(define-llvm-unsafe LLVMConstStructInContext
  (_fun (context fields packed) ::
        (context : LLVMContextRef)
        (fields : (_list i LLVMValueRef))
@@ -61,7 +61,7 @@
        -> LLVMValueRef))
      
 
-(define-llvm LLVMConstString
+(define-llvm-unsafe LLVMConstString
  (_fun (str dnt) ::
        (str : _string)
        (_uint = (string-length str))
@@ -70,14 +70,14 @@
 
 
 
-(define-llvm LLVMConstStruct
+(define-llvm-unsafe LLVMConstStruct
  (_fun (fields packed) ::
        (fields : (_list i LLVMValueRef))
        (_uint = (length fields))
        (packed : LLVMBool)
        -> LLVMValueRef))
 
-(define-llvm LLVMConstNamedStruct
+(define-llvm-unsafe LLVMConstNamedStruct
  (_fun (type fields) ::
        (type : LLVMTypeRef)
        (fields : (_list i LLVMValueRef))
@@ -85,7 +85,7 @@
        -> LLVMValueRef))
 
 
-(define-llvm LLVMConstArray
+(define-llvm-unsafe LLVMConstArray
  (_fun (type elements) ::
        (type : LLVMTypeRef)
        (elements : (_list i LLVMValueRef))
@@ -93,18 +93,18 @@
        -> LLVMValueRef))
 
 
-(define-llvm LLVMConstVector
+(define-llvm-unsafe LLVMConstVector
  (_fun (elements) ::
        (elements : (_list i LLVMValueRef))
        (_uint = (length elements))
        -> LLVMValueRef))
 
 
-(define-llvm LLVMGetConstOpcode (_fun LLVMValueRef -> LLVMOpcode))
-(define-llvm-multiple
+(define-llvm-unsafe LLVMGetConstOpcode (_fun LLVMValueRef -> LLVMOpcode))
+(define-llvm-multiple-unsafe
  (LLVMAlignOf LLVMSizeOf) (_fun LLVMTypeRef -> LLVMValueRef))
 
-(define-llvm-multiple 
+(define-llvm-multiple-unsafe 
  (LLVMConstNeg
   LLVMConstNSWNeg
   LLVMConstNUWNeg
@@ -112,7 +112,7 @@
   LLVMConstNot)
  (_fun LLVMValueRef -> LLVMValueRef))
 
-(define-llvm-multiple 
+(define-llvm-multiple-unsafe 
  (LLVMConstAdd
   LLVMConstNSWAdd
   LLVMConstNUWAdd
@@ -138,14 +138,14 @@
  (_fun LLVMValueRef LLVMValueRef  -> LLVMValueRef))
 
 
-(define-llvm LLVMConstICmp
+(define-llvm-unsafe LLVMConstICmp
  (_fun LLVMIntPredicate LLVMValueRef LLVMValueRef -> LLVMValueRef))
-(define-llvm LLVMConstFCmp
+(define-llvm-unsafe LLVMConstFCmp
  (_fun LLVMRealPredicate LLVMValueRef LLVMValueRef -> LLVMValueRef))
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMConstShl LLVMConstLShr LLVMConstAShr)
  (_fun LLVMValueRef LLVMValueRef -> LLVMValueRef))
-(define-llvm-multiple (LLVMConstGEP LLVMConstInBoundsGEP)
+(define-llvm-multiple-unsafe (LLVMConstGEP LLVMConstInBoundsGEP)
  (_fun (ptr indices) ::
        (ptr : LLVMValueRef)
        (indices : (_list i LLVMValueRef))
@@ -153,7 +153,7 @@
        -> LLVMValueRef))
         
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMConstTrunc
   LLVMConstSExt
   LLVMConstZExt
@@ -173,22 +173,22 @@
  (_fun LLVMValueRef LLVMTypeRef -> LLVMValueRef))
 
 
-(define-llvm LLVMConstIntCast
+(define-llvm-unsafe LLVMConstIntCast
  (_fun LLVMValueRef LLVMTypeRef LLVMBool -> LLVMValueRef))
 
-(define-llvm LLVMConstFPCast
+(define-llvm-unsafe LLVMConstFPCast
  (_fun LLVMValueRef LLVMTypeRef -> LLVMValueRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMConstSelect
   LLVMConstInsertElement
   LLVMConstShuffleVector)
  (_fun LLVMValueRef LLVMValueRef LLVMValueRef -> LLVMValueRef))
 
-(define-llvm LLVMConstExtractElement
+(define-llvm-unsafe LLVMConstExtractElement
  (_fun LLVMValueRef LLVMValueRef -> LLVMValueRef))
 
-(define-llvm LLVMConstExtractValue
+(define-llvm-unsafe LLVMConstExtractValue
  (_fun (agg indices) ::
        (agg : LLVMValueRef)
        (indices : (_list i _uint))
@@ -197,7 +197,7 @@
        LLVMValueRef))
 
 
-(define-llvm LLVMConstInsertValue
+(define-llvm-unsafe LLVMConstInsertValue
  (_fun (agg elem indices) ::
        (agg : LLVMValueRef)
        (elem : LLVMValueRef)
@@ -206,4 +206,4 @@
        ->
        LLVMValueRef))
 
-(define-llvm LLVMConstInlineAsm (_fun LLVMTypeRef _string _string LLVMBool LLVMBool -> LLVMValueRef))
+(define-llvm-unsafe LLVMConstInlineAsm (_fun LLVMTypeRef _string _string LLVMBool LLVMBool -> LLVMValueRef))

@@ -84,16 +84,16 @@
       macro(VAArgInst)
 |#
 ;/* Operations on all values */
-(define-llvm LLVMTypeOf (_fun LLVMValueRef -> LLVMTypeRef))
-(define-llvm LLVMGetValueName (_fun LLVMValueRef -> _string))
+(define-llvm-unsafe LLVMTypeOf (_fun LLVMValueRef -> LLVMTypeRef))
+(define-llvm-unsafe LLVMGetValueName (_fun LLVMValueRef -> _string))
 
-(define-llvm LLVMSetValueName (_fun LLVMValueRef _string -> _void))
+(define-llvm-unsafe LLVMSetValueName (_fun LLVMValueRef _string -> _void))
 
-(define-llvm LLVMDumpValue (_fun LLVMValueRef -> _void))
-(define-llvm LLVMReplaceAllUsesWith (_fun LLVMValueRef LLVMValueRef -> _void))
-(define-llvm LLVMHasMetadata (_fun LLVMValueRef -> _int))
-(define-llvm LLVMGetMetadata (_fun LLVMValueRef _uint -> LLVMValueRef))
-(define-llvm LLVMSetMetadata (_fun LLVMValueRef _uint LLVMValueRef -> _void))
+(define-llvm-unsafe LLVMDumpValue (_fun LLVMValueRef -> _void))
+(define-llvm-unsafe LLVMReplaceAllUsesWith (_fun LLVMValueRef LLVMValueRef -> _void))
+(define-llvm-unsafe LLVMHasMetadata (_fun LLVMValueRef -> _int))
+(define-llvm-unsafe LLVMGetMetadata (_fun LLVMValueRef _uint -> LLVMValueRef))
+(define-llvm-unsafe LLVMSetMetadata (_fun LLVMValueRef _uint LLVMValueRef -> _void))
 
 
 ;/* Conversion functions. Return the input value if it is an instance of the
@@ -105,19 +105,19 @@ LLVM_FOR_EACH_VALUE_SUBCLASS(LLVM_DECLARE_VALUE_CAST)
 |#
 
 ;/* Operations on Uses */
-(define-llvm LLVMGetFirstUse (_fun LLVMValueRef -> LLVMUseRef))
-(define-llvm LLVMGetNextUse (_fun LLVMUseRef -> LLVMUseRef))
-(define-llvm-multiple
+(define-llvm-unsafe LLVMGetFirstUse (_fun LLVMValueRef -> LLVMUseRef))
+(define-llvm-unsafe LLVMGetNextUse (_fun LLVMUseRef -> LLVMUseRef))
+(define-llvm-multiple-unsafe
  (LLVMGetUser LLVMGetUsedValue)
  (_fun LLVMUseRef -> LLVMValueRef))
 
 ;/* Operations on Users */
-(define-llvm LLVMGetOperand (_fun LLVMValueRef _uint -> LLVMValueRef))
-(define-llvm LLVMSetOperand (_fun LLVMValueRef _uint LLVMValueRef -> _void))
-(define-llvm LLVMGetNumOperands (_fun LLVMValueRef -> _int))
+(define-llvm-unsafe LLVMGetOperand (_fun LLVMValueRef _uint -> LLVMValueRef))
+(define-llvm-unsafe LLVMSetOperand (_fun LLVMValueRef _uint LLVMValueRef -> _void))
+(define-llvm-unsafe LLVMGetNumOperands (_fun LLVMValueRef -> _int))
 
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMIsConstant
   LLVMIsNull
   LLVMIsUndef)
@@ -125,13 +125,13 @@ LLVM_FOR_EACH_VALUE_SUBCLASS(LLVM_DECLARE_VALUE_CAST)
 
 
 ;/* Operations on metadata */
-(define-llvm LLVMMDStringInContext
+(define-llvm-unsafe LLVMMDStringInContext
  (_fun LLVMContextRef _string _uint -> LLVMValueRef))
-(define-llvm LLVMMDString
+(define-llvm-unsafe LLVMMDString
  (_fun _string _uint -> LLVMValueRef))
 
-(define-llvm LLVMMDNodeInContext
+(define-llvm-unsafe LLVMMDNodeInContext
  (_fun LLVMContextRef LLVMValueRef _uint -> LLVMValueRef))
-(define-llvm LLVMMDNode
+(define-llvm-unsafe LLVMMDNode
  (_fun LLVMValueRef _uint -> LLVMValueRef))
 

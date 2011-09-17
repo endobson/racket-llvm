@@ -14,32 +14,32 @@
 ; * exclusive means of building instructions using the C interface.
 ; */
 
-(define-llvm LLVMCreateBuilderInContext (_fun LLVMContextRef -> LLVMBuilderRef))
-(define-llvm LLVMCreateBuilder (_fun -> LLVMBuilderRef))
+(define-llvm-unsafe LLVMCreateBuilderInContext (_fun LLVMContextRef -> LLVMBuilderRef))
+(define-llvm-unsafe LLVMCreateBuilder (_fun -> LLVMBuilderRef))
 
-(define-llvm LLVMPositionBuilder (_fun LLVMBuilderRef LLVMBasicBlockRef LLVMValueRef -> _void))
-(define-llvm LLVMPositionBuilderBefore
+(define-llvm-unsafe LLVMPositionBuilder (_fun LLVMBuilderRef LLVMBasicBlockRef LLVMValueRef -> _void))
+(define-llvm-unsafe LLVMPositionBuilderBefore
   (_fun LLVMBuilderRef LLVMValueRef -> _void))
 
-(define-llvm LLVMPositionBuilderAtEnd (_fun LLVMBuilderRef LLVMBasicBlockRef -> _void))
+(define-llvm-unsafe LLVMPositionBuilderAtEnd (_fun LLVMBuilderRef LLVMBasicBlockRef -> _void))
 
-(define-llvm LLVMGetInsertBlock (_fun LLVMBuilderRef -> LLVMBasicBlockRef))
+(define-llvm-unsafe LLVMGetInsertBlock (_fun LLVMBuilderRef -> LLVMBasicBlockRef))
 
-(define-llvm LLVMClearInsertionPosition
+(define-llvm-unsafe LLVMClearInsertionPosition
  (_fun LLVMBuilderRef -> _void))
 
-(define-llvm LLVMInsertIntoBuilder
+(define-llvm-unsafe LLVMInsertIntoBuilder
  (_fun LLVMBuilderRef LLVMValueRef -> _void))
-(define-llvm LLVMInsertIntoBuilderWithName
+(define-llvm-unsafe LLVMInsertIntoBuilderWithName
  (_fun LLVMBuilderRef LLVMValueRef _string -> _void))
 
-(define-llvm LLVMDisposeBuilder (_fun LLVMBuilderRef -> _void))
+(define-llvm-unsafe LLVMDisposeBuilder (_fun LLVMBuilderRef -> _void))
 
 
 
 
 ;/* Metadata */
-(define-llvm LLVMGetCurrentDebugLocation (_fun LLVMBuilderRef -> LLVMValueRef))
-(define-llvm LLVMSetCurrentDebugLocation (_fun LLVMBuilderRef LLVMValueRef -> _void))
-(define-llvm LLVMSetInstDebugLocation (_fun LLVMBuilderRef LLVMValueRef -> _void))
+(define-llvm-unsafe LLVMGetCurrentDebugLocation (_fun LLVMBuilderRef -> LLVMValueRef))
+(define-llvm-unsafe LLVMSetCurrentDebugLocation (_fun LLVMBuilderRef LLVMValueRef -> _void))
+(define-llvm-unsafe LLVMSetInstDebugLocation (_fun LLVMBuilderRef LLVMValueRef -> _void))
 

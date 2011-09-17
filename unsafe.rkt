@@ -1,9 +1,9 @@
 #lang racket/base
-(require "private/ffi/all.rkt")
+(require "private/ffi/unsafe.rkt")
 (require "private/unsafe/structs.rkt")
 
 (provide
  (all-from-out
-   "private/ffi/all.rkt"
-   "privete/unsafe/structs.rkt"))
+   "private/ffi/unsafe.rkt"
+   "private/unsafe/structs.rkt"))
 

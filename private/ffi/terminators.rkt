@@ -9,9 +9,9 @@
 (provide (all-defined-out))
 
 ;/* Terminators */
-(define-llvm LLVMBuildRetVoid (_fun LLVMBuilderRef -> LLVMValueRef))
-(define-llvm LLVMBuildRet (_fun LLVMBuilderRef LLVMValueRef -> LLVMValueRef))
-(define-llvm LLVMBuildAggregateRet
+(define-llvm-unsafe LLVMBuildRetVoid (_fun LLVMBuilderRef -> LLVMValueRef))
+(define-llvm-unsafe LLVMBuildRet (_fun LLVMBuilderRef LLVMValueRef -> LLVMValueRef))
+(define-llvm-unsafe LLVMBuildAggregateRet
   (_fun (builder vals) ::
         (builder : LLVMBuilderRef)
         (vals : (_list i LLVMValueRef))
@@ -19,22 +19,22 @@
         -> LLVMValueRef))
 
 
-(define-llvm LLVMBuildBr (_fun LLVMBuilderRef LLVMBasicBlockRef -> LLVMValueRef))
+(define-llvm-unsafe LLVMBuildBr (_fun LLVMBuilderRef LLVMBasicBlockRef -> LLVMValueRef))
 
 
-(define-llvm LLVMBuildCondBr
+(define-llvm-unsafe LLVMBuildCondBr
  (_fun LLVMBuilderRef
        LLVMValueRef
        LLVMBasicBlockRef
        LLVMBasicBlockRef -> LLVMValueRef))
 
-(define-llvm LLVMBuildSwitch
+(define-llvm-unsafe LLVMBuildSwitch
  (_fun LLVMBuilderRef LLVMValueRef LLVMBasicBlockRef _uint -> LLVMValueRef))
 
-(define-llvm LLVMAddCase (_fun LLVMValueRef LLVMValueRef LLVMBasicBlockRef -> _void))
+(define-llvm-unsafe LLVMAddCase (_fun LLVMValueRef LLVMValueRef LLVMBasicBlockRef -> _void))
 
-(define-llvm LLVMBuildIndirectBr (_fun LLVMBuilderRef LLVMValueRef _uint -> LLVMValueRef))
-(define-llvm LLVMBuildInvoke
+(define-llvm-unsafe LLVMBuildIndirectBr (_fun LLVMBuilderRef LLVMValueRef _uint -> LLVMValueRef))
+(define-llvm-unsafe LLVMBuildInvoke
  (_fun (builder fun args then catch name) ::
        (builder : LLVMBuilderRef)
        (fun : LLVMValueRef)
@@ -46,21 +46,21 @@
        ->
        LLVMValueRef))
 
-(define-llvm LLVMBuildLandingPad
+(define-llvm-unsafe LLVMBuildLandingPad
  (_fun LLVMBuilderRef
        LLVMTypeRef
        LLVMValueRef
        _uint
        _string
        -> _void))
-(define-llvm LLVMBuildResume
+(define-llvm-unsafe LLVMBuildResume
  (_fun LLVMBuilderRef LLVMValueRef -> LLVMValueRef))
 
-(define-llvm LLVMBuildUnreachable
+(define-llvm-unsafe LLVMBuildUnreachable
  (_fun LLVMBuilderRef -> LLVMValueRef))
 
 ;/* Add a destination to the indirectbr instruction */
-(define-llvm LLVMAddDestination (_fun LLVMValueRef LLVMBasicBlockRef -> _void))
+(define-llvm-unsafe LLVMAddDestination (_fun LLVMValueRef LLVMBasicBlockRef -> _void))
 
-(define-llvm LLVMAddClause (_fun LLVMValueRef LLVMValueRef -> _void))
-(define-llvm LLVMSetCleanup (_fun LLVMValueRef LLVMBool -> _void))
+(define-llvm-unsafe LLVMAddClause (_fun LLVMValueRef LLVMValueRef -> _void))
+(define-llvm-unsafe LLVMSetCleanup (_fun LLVMValueRef LLVMBool -> _void))

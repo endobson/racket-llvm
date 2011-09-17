@@ -5,7 +5,7 @@
   racket/list
   (except-in ffi/unsafe ->)
   "../unsafe/structs.rkt"
-  "../ffi/all.rkt")
+  "../ffi/unsafe.rkt")
 
 
 

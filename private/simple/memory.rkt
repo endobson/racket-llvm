@@ -4,7 +4,7 @@
 
 (require
   "../unsafe/structs.rkt"
-  "../ffi/all.rkt"
+  "../ffi/unsafe.rkt"
   "base.rkt")
 
 (define load/c

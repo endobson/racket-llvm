@@ -11,76 +11,76 @@
 
 
 ;/* Operations on functions */
-(define-llvm LLVMAddFunction (_fun LLVMModuleRef _string LLVMTypeRef -> LLVMValueRef))
+(define-llvm-unsafe LLVMAddFunction (_fun LLVMModuleRef _string LLVMTypeRef -> LLVMValueRef))
 
-(define-llvm LLVMGetNamedFunction (_fun LLVMModuleRef _string -> LLVMValueRef))
+(define-llvm-unsafe LLVMGetNamedFunction (_fun LLVMModuleRef _string -> LLVMValueRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMGetFirstFunction
   LLVMGetLastFunction)
  (_fun LLVMModuleRef -> LLVMValueRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMGetNextFunction
   LLVMGetPreviousFunction)
  (_fun LLVMValueRef -> LLVMValueRef))
 
-(define-llvm LLVMDeleteFunction
+(define-llvm-unsafe LLVMDeleteFunction
  (_fun LLVMValueRef -> _void))
 
-(define-llvm LLVMGetIntrinsicID
+(define-llvm-unsafe LLVMGetIntrinsicID
  (_fun LLVMValueRef -> _uint))
 
-(define-llvm LLVMGetFunctionCallConv
+(define-llvm-unsafe LLVMGetFunctionCallConv
  (_fun LLVMValueRef -> LLVMCallConv))
 
-(define-llvm LLVMSetFunctionCallConv
+(define-llvm-unsafe LLVMSetFunctionCallConv
  (_fun LLVMValueRef LLVMCallConv -> _void))
 
-(define-llvm LLVMGetGC
+(define-llvm-unsafe LLVMGetGC
  (_fun LLVMValueRef -> _string))
-(define-llvm LLVMSetGC (_fun LLVMValueRef _string -> _void))
+(define-llvm-unsafe LLVMSetGC (_fun LLVMValueRef _string -> _void))
 
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMAddFunctionAttr
   LLVMRemoveFunctionAttr)
  (_fun LLVMValueRef LLVMAttribute -> _void))
 
-(define-llvm LLVMGetFunctionAttr
+(define-llvm-unsafe LLVMGetFunctionAttr
  (_fun LLVMValueRef -> LLVMAttribute))
  
 
 ;/* Operations on parameters */
 
-(define-llvm LLVMCountParams (_fun LLVMValueRef -> _uint))
-(define-llvm LLVMGetParams
+(define-llvm-unsafe LLVMCountParams (_fun LLVMValueRef -> _uint))
+(define-llvm-unsafe LLVMGetParams
  (_fun (fun) ::
        (fun : LLVMValueRef)
-       (params : (_list o LLVMValueRef (LLVMCountParams fun)))
+       (params : (_list o LLVMValueRef (unsafe:LLVMCountParams fun)))
        -> _void
        -> params))
 
-(define-llvm LLVMGetParam (_fun LLVMValueRef _uint -> LLVMValueRef))
+(define-llvm-unsafe LLVMGetParam (_fun LLVMValueRef _uint -> LLVMValueRef))
 
-(define-llvm LLVMGetParamParent (_fun LLVMValueRef -> LLVMValueRef))
+(define-llvm-unsafe LLVMGetParamParent (_fun LLVMValueRef -> LLVMValueRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMGetFirstParam
   LLVMGetLastParam)
  (_fun LLVMValueRef -> LLVMValueRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMGetNextParam
   LLVMGetPreviousParam)
  (_fun LLVMValueRef -> LLVMValueRef))
 
-(define-llvm-multiple
+(define-llvm-multiple-unsafe
  (LLVMAddAttribute
   LLVMRemoveAttribute)
  (_fun LLVMValueRef LLVMAttribute -> _void))
 
-(define-llvm LLVMGetAttribute (_fun LLVMValueRef -> LLVMAttribute))
-(define-llvm LLVMSetParamAlignment (_fun LLVMValueRef _uint -> _void))
+(define-llvm-unsafe LLVMGetAttribute (_fun LLVMValueRef -> LLVMAttribute))
+(define-llvm-unsafe LLVMSetParamAlignment (_fun LLVMValueRef _uint -> _void))
 
 
