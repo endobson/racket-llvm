@@ -19,14 +19,21 @@
 (define-llvm-unsafe LLVMValueIsBasicBlock (_fun LLVMValueRef -> LLVMBool))
 (define-llvm-unsafe LLVMValueAsBasicBlock (_fun LLVMValueRef -> LLVMBasicBlockRef))
 (define-llvm-unsafe LLVMGetBasicBlockParent (_fun LLVMBasicBlockRef -> LLVMValueRef))
-;(define-llvm LLVMGetBasicBlockTerminator (_fun LLVMBasicBlockRef -> LLVMValueRef))
-;Not yet in my dev repo of llvm
+(define-llvm-unsafe LLVMGetBasicBlockTerminator (_fun LLVMBasicBlockRef -> LLVMValueRef))
 
 
 (define-llvm-safe LLVMGetBasicBlockParent
   (_fun (bb : safe:LLVMBasicBlockRef) ->
         (ptr : _pointer) ->
         (safe:llvm-value-ref ptr (safe:llvm-basic-block-ref-module bb)))) 
+
+
+(define-llvm-safe LLVMGetBasicBlockTerminator
+  (_fun (bb : safe:LLVMBasicBlockRef) ->
+        (ptr : _pointer) ->
+        (and ptr
+          (safe:llvm-value-ref ptr (safe:llvm-basic-block-ref-module bb)))))
+
 
 (define-llvm-unsafe LLVMCountBasicBlocks (_fun LLVMValueRef -> _uint))
 (define-llvm-unsafe LLVMGetBasicBlocks

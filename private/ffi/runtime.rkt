@@ -13,8 +13,6 @@
 
 (define-llvm-multiple-unsafe (LLVMLinkInJIT LLVMLinkInInterpreter) (_fun -> _void))
 
-(define LLVMGenericValueRef _pointer)
-(define LLVMExecutionEngineRef _pointer)
 
 ;/*===-- Operations on generic values --------------------------------------===*/
 
@@ -24,7 +22,7 @@
 (define-llvm-unsafe LLVMCreateGenericValueOfPointer
  (_fun _pointer -> LLVMGenericValueRef))
 
-(define (LLVMCreateGenericValueOfFunctionType fun-type)
+(define (unsafe:LLVMCreateGenericValueOfFunctionType fun-type)
  (get-ffi-obj 'LLVMCreateGenericValueOfPointer llvm-lib 
   (_fun fun-type -> LLVMGenericValueRef)))
 
@@ -45,6 +43,33 @@
 
 (define-llvm-unsafe LLVMDisposeGenericValue
  (_fun LLVMGenericValueRef -> _void))
+
+
+(define-llvm-safe LLVMCreateGenericValueOfInt
+ (_fun safe:LLVMTypeRef _ulong LLVMBool -> safe:LLVMGenericValueRef))
+
+(define-llvm-safe LLVMCreateGenericValueOfPointer
+ (_fun _pointer -> safe:LLVMGenericValueRef))
+
+(define (safe:LLVMCreateGenericValueOfFunctionType fun-type)
+ (get-ffi-obj 'LLVMCreateGenericValueOfPointer llvm-lib 
+  (_fun fun-type -> safe:LLVMGenericValueRef)))
+
+(define-llvm-safe LLVMCreateGenericValueOfFloat
+ (_fun safe:LLVMTypeRef _double* -> safe:LLVMGenericValueRef))
+
+(define-llvm-safe LLVMGenericValueIntWidth
+ (_fun safe:LLVMGenericValueRef -> _uint))
+
+(define-llvm-safe LLVMGenericValueToInt
+ (_fun safe:LLVMGenericValueRef LLVMBool -> _long))
+
+(define-llvm-safe LLVMGenericValueToPointer
+ (_fun safe:LLVMGenericValueRef -> _pointer))
+
+(define-llvm-safe LLVMGenericValueToFloat
+ (_fun safe:LLVMTypeRef safe:LLVMGenericValueRef -> _double*))
+
 
 
 ;/*===-- Operations on execution engines -----------------------------------===*/
@@ -80,6 +105,14 @@
        ->
        (if err message execution-engine)))
 
+
+(define-llvm-safe LLVMCreateExecutionEngineForModule
+  safe:LLVMExecutionEngineCreator)
+
+(define-llvm-safe LLVMCreateJITCompilerForModule
+  safe:LLVMJITCreator)
+
+
 (define-llvm-multiple-unsafe 
  (LLVMDisposeExecutionEngine
   LLVMRunStaticConstructors
@@ -107,6 +140,19 @@
        (args : (_list i LLVMGenericValueRef))
        ->
        LLVMGenericValueRef))
+
+
+(define-llvm-safe LLVMRunFunction
+ (_fun (engine function args) ::
+       (engine : safe:LLVMExecutionEngineRef)
+       (function : safe:LLVMValueRef)
+       (_uint = (length args))
+       (args : (_list i safe:LLVMGenericValueRef))
+       ->
+       safe:LLVMGenericValueRef))
+
+
+
 
 
 (define-llvm-unsafe LLVMAddModule (_fun LLVMExecutionEngineRef LLVMModuleRef -> _void))

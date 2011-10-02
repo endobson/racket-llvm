@@ -20,12 +20,15 @@
   LLVMPassRegistryRef
   LLVMUseRef
   LLVMTargetDataRef
+  LLVMExecutionEngineRef
+  LLVMGenericValueRef
   safe:LLVMContextRef
   safe:LLVMModuleRef
   safe:LLVMTypeRef
   safe:LLVMValueRef
   safe:LLVMBasicBlockRef
   safe:LLVMBuilderRef
+  safe:LLVMExecutionEngineRef
   LLVMMessage
   set-safe:llvm-builder-ref-module!
   safe:llvm-builder-ref-module
@@ -40,8 +43,13 @@
 
   safe:LLVMContextCreator
   safe:LLVMModuleCreator
+  safe:LLVMModuleCreatorFromBitcode
+  safe:LLVMMemoryBufferCreatorFromFile
   safe:LLVMBuilderCreator
   safe:LLVMModuleDescriptionMaker
+  safe:LLVMExecutionEngineCreator
+  safe:LLVMJITCreator
+  safe:LLVMGenericValueRef
   unsafe:LLVMModuleDescriptionMaker
 
   _non-null-string
@@ -151,16 +159,20 @@
 (struct unsafe:llvm-pass-registry-ref (pointer))
 (struct unsafe:llvm-use-ref (pointer))
 (struct unsafe:llvm-target-data-ref (pointer))
+(struct unsafe:llvm-execution-engine-ref (pointer))
+(struct unsafe:llvm-generic-value-ref (pointer))
 
 
 (struct safe:llvm-basic-block-ref (pointer module))
 (struct safe:llvm-builder-ref (pointer context (module #:mutable)))
 ;(struct safe:llvm-module-provider-ref (pointer))
-;(struct safe:llvm-memory-buffer-ref (pointer))
+(struct safe:llvm-memory-buffer-ref (pointer))
 ;(struct safe:llvm-pass-manager-ref (pointer))
 ;(struct safe:llvm-pass-registry-ref (pointer))
 ;(struct safe:llvm-use-ref (pointer))
 ;(struct safe:llvm-target-data-ref (pointer))
+(struct safe:llvm-execution-engine-ref (pointer modules))
+(struct safe:llvm-generic-value-ref (pointer))
 
 
 
@@ -199,18 +211,20 @@
 
 
 (make-llvm-types
-  (unsafe:LLVMContextRef        unsafe:llvm-context-ref         unsafe:llvm-context-ref-pointer)
-  (unsafe:LLVMModuleRef         unsafe:llvm-module-ref          unsafe:llvm-module-ref-pointer)
-  (unsafe:LLVMTypeRef           unsafe:llvm-type-ref            unsafe:llvm-type-ref-pointer)
-  (unsafe:LLVMValueRef          unsafe:llvm-value-ref           unsafe:llvm-value-ref-pointer)
-  (unsafe:LLVMBasicBlockRef     unsafe:llvm-basic-block-ref     unsafe:llvm-basic-block-ref-pointer)
-  (unsafe:LLVMBuilderRef        unsafe:llvm-builder-ref         unsafe:llvm-builder-ref-pointer)
-  (unsafe:LLVMModuleProviderRef unsafe:llvm-module-provider-ref unsafe:llvm-module-provider-ref-pointer)
-  (unsafe:LLVMMemoryBufferRef   unsafe:llvm-memory-buffer-ref   unsafe:llvm-memory-buffer-ref-pointer)
-  (unsafe:LLVMPassManagerRef    unsafe:llvm-pass-manager-ref    unsafe:llvm-pass-manager-ref-pointer)
-  (unsafe:LLVMPassRegistryRef   unsafe:llvm-pass-registry-ref   unsafe:llvm-pass-registry-ref-pointer)
-  (unsafe:LLVMUseRef            unsafe:llvm-use-ref             unsafe:llvm-use-ref-pointer)
-  (unsafe:LLVMTargetDataRef     unsafe:llvm-target-data-ref     unsafe:llvm-target-data-ref-pointer)
+  (unsafe:LLVMContextRef         unsafe:llvm-context-ref          unsafe:llvm-context-ref-pointer)
+  (unsafe:LLVMModuleRef          unsafe:llvm-module-ref           unsafe:llvm-module-ref-pointer)
+  (unsafe:LLVMTypeRef            unsafe:llvm-type-ref             unsafe:llvm-type-ref-pointer)
+  (unsafe:LLVMValueRef           unsafe:llvm-value-ref            unsafe:llvm-value-ref-pointer)
+  (unsafe:LLVMBasicBlockRef      unsafe:llvm-basic-block-ref      unsafe:llvm-basic-block-ref-pointer)
+  (unsafe:LLVMBuilderRef         unsafe:llvm-builder-ref          unsafe:llvm-builder-ref-pointer)
+  (unsafe:LLVMModuleProviderRef  unsafe:llvm-module-provider-ref  unsafe:llvm-module-provider-ref-pointer)
+  (unsafe:LLVMMemoryBufferRef    unsafe:llvm-memory-buffer-ref    unsafe:llvm-memory-buffer-ref-pointer)
+  (unsafe:LLVMPassManagerRef     unsafe:llvm-pass-manager-ref     unsafe:llvm-pass-manager-ref-pointer)
+  (unsafe:LLVMPassRegistryRef    unsafe:llvm-pass-registry-ref    unsafe:llvm-pass-registry-ref-pointer)
+  (unsafe:LLVMUseRef             unsafe:llvm-use-ref              unsafe:llvm-use-ref-pointer)
+  (unsafe:LLVMTargetDataRef      unsafe:llvm-target-data-ref      unsafe:llvm-target-data-ref-pointer)
+  (unsafe:LLVMExecutionEngineRef unsafe:llvm-execution-engine-ref unsafe:llvm-execution-engine-ref-pointer)
+  (unsafe:LLVMGenericValueRef    unsafe:llvm-generic-value-ref    unsafe:llvm-generic-value-ref-pointer)
   (safe:LLVMContextRef   safe:llvm-context-ref    safe:llvm-context-ref-pointer))
 
 (make-types
@@ -225,16 +239,31 @@
   LLVMPassManagerRef
   LLVMPassRegistryRef
   LLVMUseRef
-  LLVMTargetDataRef)
+  LLVMTargetDataRef
+  LLVMGenericValueRef
+  LLVMExecutionEngineRef)
 
 
 
 (make-safe-llvm-types
-  (safe:LLVMModuleRef         safe:llvm-module-ref          safe:llvm-module-ref-pointer)
-  (safe:LLVMTypeRef           safe:llvm-type-ref            safe:llvm-type-ref-pointer)
-  (safe:LLVMValueRef          safe:llvm-value-ref           safe:llvm-value-ref-pointer)
-  (safe:LLVMBasicBlockRef     safe:llvm-basic-block-ref     safe:llvm-basic-block-ref-pointer)
-  (safe:LLVMBuilderRef        safe:llvm-builder-ref         safe:llvm-builder-ref-pointer))
+  (safe:LLVMModuleRef          safe:llvm-module-ref           safe:llvm-module-ref-pointer)
+  (safe:LLVMMemoryBufferRef    safe:llvm-memory-buffer-ref    safe:llvm-memory-buffer-ref-pointer)
+  (safe:LLVMTypeRef            safe:llvm-type-ref             safe:llvm-type-ref-pointer)
+  (safe:LLVMValueRef           safe:llvm-value-ref            safe:llvm-value-ref-pointer)
+  (safe:LLVMBasicBlockRef      safe:llvm-basic-block-ref      safe:llvm-basic-block-ref-pointer)
+  (safe:LLVMBuilderRef         safe:llvm-builder-ref          safe:llvm-builder-ref-pointer)
+  (safe:LLVMExecutionEngineRef safe:llvm-execution-engine-ref safe:llvm-execution-engine-ref-pointer))
+
+(define safe:LLVMGenericValueRef
+ (let ()
+  (define-llvm-safe LLVMDisposeGenericValue (_fun _pointer -> _void))
+  (make-ctype _pointer
+          safe:llvm-generic-value-ref-pointer
+          (lambda (ptr)
+            (let ((v (safe:llvm-generic-value-ref ptr)))
+              (will-register llvm-will-executor v 
+                             (lambda (v) (safe:LLVMDisposeGenericValue (safe:llvm-generic-value-ref-pointer v))))
+              v)))))
 
 
 (define (make-byte-string ptr)
@@ -284,14 +313,29 @@
      (bytes->string/utf-8 (make-byte-string cptr))
      (free cptr))))))
 
-(define safe:LLVMModuleCreator
+(define-values (safe:LLVMModuleCreator safe:LLVMModuleCreatorFromBitcode)
  (let ()
    (define-llvm-safe LLVMDisposeModule (_fun safe:LLVMModuleRef -> _void))
-   (_fun _string (context : safe:LLVMContextRef)
-     -> (ptr : _pointer)
-     -> (let ((mod (safe:llvm-module-ref ptr context)))
-          (will-register llvm-will-executor mod safe:LLVMDisposeModule)
-          mod))))
+   (values
+     (_fun _string (context : safe:LLVMContextRef)
+       -> (ptr : _pointer)
+       -> (let ((mod (safe:llvm-module-ref ptr context)))
+            (will-register llvm-will-executor mod safe:LLVMDisposeModule)
+            mod))
+     (_fun (context buffer) ::
+           (context : safe:LLVMContextRef)
+           (buffer : safe:LLVMMemoryBufferRef)
+           (module-ptr : (_ptr o _pointer))
+           (message : (_ptr io LLVMMessage) = #f)
+           ->
+           (err : LLVMBool)
+           ->
+           (if err message
+            (let ((mod (safe:llvm-module-ref module-ptr context)))
+                        (will-register llvm-will-executor mod safe:LLVMDisposeModule)
+                        mod))))))
+             
+
 
 (define safe:LLVMContextCreator
  (let ()
@@ -309,6 +353,94 @@
      -> (let ((build (safe:llvm-builder-ref ptr context #f)))
           (will-register llvm-will-executor build safe:LLVMDisposeBuilder)
           build))))
+
+(define safe:LLVMMemoryBufferCreatorFromFile
+ (let ()
+   (define-llvm-safe LLVMDisposeMemoryBuffer (_fun safe:LLVMMemoryBufferRef -> _void))
+
+   (_fun (path) ::
+          (path : _string)
+          (buffer-ptr : (_ptr o _pointer))
+          (message : (_ptr io LLVMMessage) = #f)
+          ->
+          (ans : LLVMBool)
+          ->
+          (if ans message
+            (let ((buffer (safe:llvm-memory-buffer-ref buffer-ptr)))
+              (will-register llvm-will-executor buffer safe:LLVMDisposeMemoryBuffer)
+              buffer)))))
+
+(define safe:LLVMExecutionEngineCreator
+ (let ()
+  (define-llvm-safe LLVMDisposeExecutionEngine (_fun safe:LLVMExecutionEngineRef -> _void))
+  (define-llvm-safe LLVMRemoveModule 
+    (_fun (ee module) ::
+       (ee : safe:LLVMExecutionEngineRef)
+       (module : safe:LLVMModuleRef)
+       (out-ptr : (_ptr o _pointer))
+       (message : (_ptr io LLVMMessage) = #f)
+       ->
+       (err : LLVMBool)
+       ->
+       (if err message 
+         (let ((in-ptr (safe:llvm-module-ref-pointer module)))
+           (unless (equal? in-ptr out-ptr)
+             (error 'LLVMRemoveModule "Returned module ~a is not the same as argument module ~a" out-ptr in-ptr))
+           module))))
+  (define (engine-disposer engine)
+    (for ((mod (safe:llvm-execution-engine-ref-modules engine)))
+      (let ((mod (safe:LLVMRemoveModule engine mod)))
+        (when (string? mod)
+          (error 'engine-disposer "Error when trying to clean up a module of the exection engine: ~a" mod))))
+    (safe:LLVMDisposeExecutionEngine engine))
+  (_fun (module) ::
+        (execution-ptr : (_ptr o _pointer))
+        (module : safe:LLVMModuleRef)
+        (message : (_ptr io LLVMMessage) = #f)
+        ->
+        (err : LLVMBool)
+        ->
+         (if err message 
+           (let ((execution-engine (safe:llvm-execution-engine-ref execution-ptr (list module))))
+             (will-register llvm-will-executor execution-engine engine-disposer)
+             execution-engine)))))
+         
+(define safe:LLVMJITCreator
+ (let ()
+  (define-llvm-safe LLVMDisposeExecutionEngine (_fun safe:LLVMExecutionEngineRef -> _void))
+  (define-llvm-safe LLVMRemoveModule 
+    (_fun (ee module) ::
+       (ee : safe:LLVMExecutionEngineRef)
+       (module : safe:LLVMModuleRef)
+       (out-ptr : (_ptr o _pointer))
+       (message : (_ptr io LLVMMessage) = #f)
+       ->
+       (err : LLVMBool)
+       ->
+       (if err message 
+         (let ((in-ptr (safe:llvm-module-ref-pointer module)))
+           (unless (equal? in-ptr out-ptr)
+             (error 'LLVMRemoveModule "Returned module ~a is not the same as argument module ~a" out-ptr in-ptr))
+           module))))
+  (define (engine-disposer engine)
+    (for ((mod (safe:llvm-execution-engine-ref-modules engine)))
+      (let ((mod (safe:LLVMRemoveModule engine mod)))
+        (when (string? mod)
+          (error 'engine-disposer "Error when trying to clean up a module of the exection engine: ~a" mod))))
+    (safe:LLVMDisposeExecutionEngine engine))
+  (_fun (module opt) ::
+        (execution-ptr : (_ptr o _pointer))
+        (module : safe:LLVMModuleRef)
+        (opt : _uint)
+        (message : (_ptr io LLVMMessage) = #f)
+        ->
+        (err : LLVMBool)
+        ->
+         (if err message 
+           (let ((execution-engine (safe:llvm-execution-engine-ref execution-ptr (list module))))
+             (will-register llvm-will-executor execution-engine engine-disposer)
+             execution-engine)))))
+
 
 
 

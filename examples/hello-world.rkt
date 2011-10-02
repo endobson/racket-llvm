@@ -1,12 +1,12 @@
 #lang racket
 
-(require "llvm.rkt")
+(require "../unsafe.rkt")
 
 (define context (LLVMContextCreate))
 (define module (LLVMModuleCreateWithNameInContext "gcd-module" context))
 (define int-type (LLVMInt32TypeInContext context))
-(define fun-type1 (LLVMFunctionType int-type (list int-type int-type) 2 false))
-(define fun-type2 (LLVMFunctionType int-type (list int-type int-type int-type) 3 false))
+(define fun-type1 (LLVMFunctionType int-type (list int-type int-type) false))
+(define fun-type2 (LLVMFunctionType int-type (list int-type int-type int-type) false))
 (define gcd-fun (LLVMAddFunction module "gcd" fun-type1))
 (define mul-add-fun (LLVMAddFunction module "mul-add" fun-type2))
 

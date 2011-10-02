@@ -46,16 +46,16 @@
 
 
 
-
 (define llvm-lib (ffi-lib (build-path llvm-lib-path (string-append "libLLVM-" llvm-version-string))))
-(define llvm-racket-lib (ffi-lib (path-replace-suffix llvm-racket-lib-path "")))
 
+(define llvm-racket-lib (ffi-lib (path-replace-suffix llvm-racket-lib-path "")))
 
 (define cthunk
  (_cprocedure null _void))
 
-((get-ffi-obj 'LLVMInitializeX86TargetInfo llvm-lib cthunk))
-((get-ffi-obj 'LLVMInitializeX86Target llvm-lib cthunk))
+((get-ffi-obj 'LLVMInitializeRacket llvm-racket-lib cthunk))
+;((get-ffi-obj 'LLVMInitializeX86TargetInfo llvm-lib cthunk))
+;((get-ffi-obj 'LLVMInitializeX86Target llvm-lib cthunk))
 
 
 

@@ -52,6 +52,9 @@
 (define-llvm-unsafe LLVMGetTarget (_fun LLVMModuleRef -> _string))
 (define-llvm-unsafe LLVMSetTarget (_fun LLVMModuleRef _string -> _void))
 
+(define-llvm-safe LLVMGetTarget (_fun safe:LLVMModuleRef -> _string))
+(define-llvm-safe LLVMSetTarget (_fun safe:LLVMModuleRef _string -> _void))
+
 
 ;/** See Module::dump. */
 (define-llvm-unsafe LLVMDumpModule (_fun LLVMModuleRef -> _void))

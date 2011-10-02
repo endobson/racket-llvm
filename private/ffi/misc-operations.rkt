@@ -137,6 +137,13 @@ LLVM_FOR_EACH_VALUE_SUBCLASS(LLVM_DECLARE_VALUE_CAST)
  (_fun LLVMValueRef -> LLVMBool))
 
 
+(define-llvm-multiple-safe
+ (LLVMIsConstant
+  LLVMIsNull
+  LLVMIsUndef)
+ (_fun safe:LLVMValueRef -> LLVMBool))
+
+
 ;/* Operations on metadata */
 (define-llvm-unsafe LLVMMDStringInContext
  (_fun LLVMContextRef _string _uint -> LLVMValueRef))

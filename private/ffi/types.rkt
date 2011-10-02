@@ -82,6 +82,18 @@
   LLVMFP128TypeInContext
   LLVMPPCFP128TypeInContext) (_fun LLVMContextRef -> LLVMTypeRef))
 
+
+(define-llvm-multiple-safe
+ (LLVMFloatTypeInContext
+  LLVMDoubleTypeInContext
+  LLVMX86FP80TypeInContext
+  LLVMFP128TypeInContext
+  LLVMPPCFP128TypeInContext)
+ (_fun (ctx : safe:LLVMContextRef) ->
+       (ptr : _pointer) ->
+       (safe:llvm-type-ref ptr ctx)))
+
+
 (define-llvm-multiple-unsafe
  (LLVMFloatType
   LLVMDoubleType
@@ -210,6 +222,13 @@
  (LLVMGetArrayLength
   LLVMGetPointerAddressSpace
   LLVMGetVectorSize) (_fun LLVMTypeRef -> _uint))
+
+
+(define-llvm-multiple-safe
+ (LLVMGetArrayLength
+  LLVMGetPointerAddressSpace
+  LLVMGetVectorSize) (_fun safe:LLVMTypeRef -> _uint))
+
 
 
 ;/* Operations on other types */

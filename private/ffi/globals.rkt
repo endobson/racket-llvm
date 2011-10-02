@@ -36,6 +36,9 @@
 (define-llvm-unsafe LLVMGetVisibility (_fun LLVMValueRef -> LLVMVisibility))
 (define-llvm-unsafe LLVMSetVisibility (_fun LLVMValueRef LLVMVisibility -> _void))
 
+(define-llvm-safe LLVMGetVisibility (_fun safe:LLVMValueRef -> LLVMVisibility))
+(define-llvm-safe LLVMSetVisibility (_fun safe:LLVMValueRef LLVMVisibility -> _void))
+
 (define-llvm-unsafe LLVMGetAlignment (_fun LLVMValueRef -> _uint))
 (define-llvm-unsafe LLVMSetAlignment (_fun LLVMValueRef _uint -> _void))
 

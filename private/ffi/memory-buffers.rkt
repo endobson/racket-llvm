@@ -20,6 +20,8 @@
           ->
           (if ans message buffer)))
 
+(define-llvm-safe LLVMCreateMemoryBufferWithContentsOfFile
+                  safe:LLVMMemoryBufferCreatorFromFile)
 
 (define-llvm-unsafe LLVMCreateMemoryBufferWithSTDIN
    (_fun () ::

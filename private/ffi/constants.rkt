@@ -55,6 +55,13 @@
 (define-llvm-unsafe LLVMConstRealOfStringAndSize
  (_fun LLVMTypeRef _string _uint -> LLVMValueRef))
 
+(define-llvm-safe LLVMConstReal 
+ (_fun (ty : safe:LLVMTypeRef)
+       _double* ->
+       (ptr : _pointer) ->
+       (safe:llvm-value-ref ptr (safe:llvm-type-ref-context ty))))
+
+
 (define-llvm-unsafe LLVMConstIntGetZExtValue (_fun LLVMValueRef -> _ulong))
 (define-llvm-unsafe LLVMConstIntGetSExtValue (_fun LLVMValueRef -> _long))
 
@@ -157,6 +164,14 @@
        (elements : (_list i LLVMValueRef))
        (_uint = (length elements))
        -> LLVMValueRef))
+
+(define-llvm-safe LLVMConstVector
+ (_fun (elems) ::
+       (elements : (_list i safe:LLVMValueRef) = elems)
+       (_uint = (length elements))
+       -> (ptr : _pointer)
+       -> (safe:llvm-value-ref ptr (safe:llvm-value-ref-owner (first elems)))))
+
 
 
 (define-llvm-unsafe LLVMGetConstOpcode (_fun LLVMValueRef -> LLVMOpcode))

@@ -45,6 +45,10 @@
         ->
         (if err message module)))
 
+(define-llvm-safe LLVMParseBitcodeInContext
+                  safe:LLVMModuleCreatorFromBitcode)
+
+
 (define-llvm-unsafe LLVMGetBitcodeModule
   (_fun (buffer) ::
         (buffer : LLVMMemoryBufferRef)

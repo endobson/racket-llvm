@@ -36,4 +36,5 @@
 (define-llvm-racket-safe LLVMIsTerminatorInstruction (_fun safe:LLVMValueRef -> LLVMBool))
 (define-llvm-racket-safe LLVMGetModuleDescription safe:LLVMModuleDescriptionMaker)
 
+(define-llvm-racket-safe LLVMOptimizeModule (_fun safe:LLVMModuleRef -> LLVMBool))
 

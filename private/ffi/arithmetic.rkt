@@ -39,6 +39,16 @@
         (ptr : _pointer) ->
         (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
 
+(define safe:fcmp
+  (_fun (builder : safe:LLVMBuilderRef)
+        LLVMRealPredicate
+        safe:LLVMValueRef
+        safe:LLVMValueRef
+        _non-null-string ->
+        (ptr : _pointer) ->
+        (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
+
+
 
 
 
@@ -143,3 +153,4 @@
         LLVMValueRef
         _string -> LLVMValueRef))
 
+(define-llvm-safe LLVMBuildFCmp safe:fcmp)

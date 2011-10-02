@@ -3,17 +3,16 @@
 (require
   "../ffi/safe.rkt"
   "../safe/structs.rkt"
+  "util.rkt"
+  "aggregate.rkt"
   "base.rkt"
   "binop.rkt"
   "comparison.rkt"
   "cast.rkt"
-  "memory.rkt")
+  "extra.rkt"
+  "memory.rkt"
+  "types.rkt")
 
-
-(define (list*/c ctc)
- (flat-rec-contract rec
-  (cons/c ctc rec)
-  (list/c (listof ctc))))
 
 
 
@@ -27,7 +26,7 @@
   llvm-get-return-type
   llvm-gep-type
   llvm-get-element-type
-
+  llvm-null
   llvm-get-undef)
   
 
@@ -36,16 +35,22 @@
 
 
 (provide (all-from-out
+  "aggregate.rkt"
   "binop.rkt"
   "comparison.rkt"
   "cast.rkt"
-  "memory.rkt"))
+  "extra.rkt"
+  "memory.rkt"
+  "types.rkt"))
 
 (provide/contract
+ (llvm-create-context (-> llvm-context-ref?))
  (llvm-create-module (->* () (string? #:context llvm-context-ref?) llvm-module-ref?))
+ (llvm-create-module-from-bitcode-file
+  (->* (path-string?) (#:context llvm-context-ref?) llvm-module-ref?))
  (llvm-create-builder (->* () (#:context llvm-context-ref?) llvm-builder-ref?))
  (llvm-add-block-to-function (->* (llvm-value-ref?) (#:context llvm-context-ref? #:name string?) llvm-basic-block-ref?))
- (llvm-add-function (->* (llvm-type-ref? string?) (#:module llvm-module-ref?) llvm-value-ref?))
+ (llvm-add-function (->* (llvm-function-type-ref? string?) (#:module llvm-module-ref?) llvm-value-ref?))
  (llvm-set-position (->* (llvm-basic-block-ref?) (#:builder llvm-builder-ref?) void?))
  (llvm-get-insert-block (->* () (#:builder llvm-builder-ref?) llvm-basic-block-ref?))
 
@@ -97,33 +102,34 @@
 
 
 
- (llvm-int (->* (integer?) (llvm-type-ref? #:signed? boolean?) llvm-value-ref?))
- (llvm-null (-> llvm-type-ref? llvm-value-ref?))
+ (llvm-int (->* (integer?) (llvm-integer-type-ref? #:signed? boolean?) llvm-value-ref?))
  (llvm-struct (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (listof llvm-value/c) llvm-value-ref?)) 
- (llvm-named-struct (->* (llvm-type-ref?) #:rest (listof llvm-value/c) llvm-value-ref?)) 
- (llvm-array (->* (llvm-type-ref?) () #:rest (listof llvm-value/c) llvm-value-ref?)) 
- (llvm-array* (->* (llvm-type-ref?) () #:rest (list*/c llvm-value/c) llvm-value-ref?)) 
+ (llvm-named-struct (->* (llvm-named-struct-type-ref?) #:rest (listof llvm-value/c) llvm-value-ref?)) ;TODO Make contract tighter 
 
 
 
- (llvm-int-type  (-> llvm-type-ref?))
- (llvm-int1-type  (->* () (#:context llvm-context-ref?) llvm-type-ref?))
- (llvm-int8-type  (->* () (#:context llvm-context-ref?) llvm-type-ref?))
- (llvm-int16-type (->* () (#:context llvm-context-ref?) llvm-type-ref?))
- (llvm-int32-type (->* () (#:context llvm-context-ref?) llvm-type-ref?))
- (llvm-int64-type (->* () (#:context llvm-context-ref?) llvm-type-ref?))
+ (llvm-int-type  (-> llvm-integer-type-ref?))
+ (llvm-int1-type  (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
+ (llvm-int8-type  (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
+ (llvm-int16-type (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
+ (llvm-int32-type (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
+ (llvm-int64-type (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
 
- (llvm-array-type (->* (llvm-type-ref?) (integer?) llvm-type-ref?))
- (llvm-struct-type (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (listof llvm-type-ref?) llvm-type-ref?))
- (llvm-struct-type* (->* () (#:context llvm-context-ref? #:packed boolean?) #:rest (list*/c llvm-type-ref?) llvm-type-ref?))
- (llvm-named-struct-type (->* () (string? #:context llvm-context-ref?) llvm-type-ref?))
- (llvm-struct-set-body! (->* (llvm-type-ref?) (#:packed boolean?) #:rest (listof llvm-type-ref?) void?))
- (llvm-struct-set-body*! (->* (llvm-type-ref?) (#:packed boolean?) #:rest (list*/c llvm-type-ref?) void?))
 
- (llvm-pointer-type (->* (llvm-type-ref?) (#:address-space integer?) llvm-type-ref?))
- (llvm-function-type (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (listof llvm-type-ref?) llvm-type-ref?))
- (llvm-function-type* (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (list*/c llvm-type-ref?) llvm-type-ref?))
- (llvm-void-type  (->* () (#:context llvm-context-ref?) llvm-type-ref?))
+ (llvm-float-type  (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+ (llvm-double-type  (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+ (llvm-fp128-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+ (llvm-x86-fp80-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+ (llvm-ppc-fp128-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+
+
+ (llvm-struct-set-body! (->* (llvm-unset-named-struct-type-ref?) (#:packed boolean?) #:rest (listof llvm-type-ref?) void?))
+ (llvm-struct-set-body*! (->* (llvm-unset-named-struct-type-ref?) (#:packed boolean?) #:rest (list*/c llvm-type-ref?) void?))
+
+ (llvm-pointer-type (->* (llvm-type-ref?) (#:address-space integer?) llvm-pointer-type-ref?))
+ (llvm-function-type (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (listof llvm-type-ref?) llvm-function-type-ref?))
+ (llvm-function-type* (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (list*/c llvm-type-ref?) llvm-function-type-ref?))
+ (llvm-void-type  (->* () (#:context llvm-context-ref?) llvm-void-type-ref?))
  
 
 
@@ -169,9 +175,13 @@
 (define (llvm-create-module (name "") #:context (context (current-context)))
  (LLVMModuleCreateWithNameInContext name context))
 
-(define (llvm-create-context (name "") #:context (context (current-context)))
- (LLVMModuleCreateWithNameInContext name context))
+(define (llvm-create-module-from-bitcode-file path #:context (context (current-context)))
+ (LLVMParseBitcodeInContext
+  context
+  (LLVMCreateMemoryBufferWithContentsOfFile path)))
 
+(define (llvm-create-context)
+ (LLVMContextCreate))
 
 (define (llvm-create-builder #:context (context (current-context)))
  (LLVMCreateBuilderInContext context))
@@ -290,31 +300,14 @@
  (LLVMConstNamedStruct ty (map value->llvm args)))
 
 
-(define (llvm-array type . args)
- (LLVMConstArray type (map value->llvm args)))
-
-(define (llvm-array* type . args)
- (LLVMConstArray type (map value->llvm (apply list* args))))
-
-
 ;Integer Creation
 (define (llvm-int n (type (current-integer-type)) #:signed? (signed #t))
  (LLVMConstInt type n signed))
-(define (llvm-null type)
- (LLVMConstNull type))
 
 
-(define (llvm-array-type type (size 0))
- (LLVMArrayType type size))
 
-(define (llvm-struct-type #:context (context (current-context)) #:packed (packed #f) . types)
- (LLVMStructTypeInContext context types packed))
 
-(define (llvm-struct-type* #:context (context (current-context)) #:packed (packed #f) . types)
- (LLVMStructTypeInContext context (apply list* types) packed))
 
-(define (llvm-named-struct-type (name "") #:context (context (current-context)))
- (LLVMStructCreateNamed context name))
 
 (define (llvm-struct-set-body! #:packed (packed #f)
                               type . types)
@@ -359,6 +352,25 @@
 
 (define (llvm-int64-type #:context (context (current-context)))
  (LLVMInt64TypeInContext context))
+
+
+(define (llvm-float-type #:context (context (current-context)))
+ (LLVMFloatTypeInContext context))
+
+(define (llvm-double-type #:context (context (current-context)))
+ (LLVMDoubleTypeInContext context))
+
+(define (llvm-fp128-type #:context (context (current-context)))
+ (LLVMFP128TypeInContext context))
+
+(define (llvm-x86-fp80-type #:context (context (current-context)))
+ (LLVMX86FP80TypeInContext context))
+
+
+(define (llvm-ppc-fp128-type #:context (context (current-context)))
+ (LLVMPPCFP128TypeInContext context))
+
+
 
 ;Output
 
