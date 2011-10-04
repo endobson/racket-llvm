@@ -100,6 +100,9 @@
 (define (llvm-get-array-type-length type)
  (LLVMGetArrayLength type))
 
+(define (llvm-get-vector-type-size type)
+ (LLVMGetVectorSize type))
+
 
 (define (llvm-integer-type-ref? ref)
  (and (llvm-type-ref? ref)
@@ -345,6 +348,7 @@
         (_ llvm-type-ref?)))
 
  (llvm-get-array-type-length (-> llvm-array-type-ref? exact-nonnegative-integer?))
+ (llvm-get-vector-type-size (-> llvm-vector-type-ref? exact-positive-integer?))
 
  (llvm-type-of (-> llvm-value-ref? llvm-type-ref?))
  (llvm-get-type-kind (-> llvm-type-ref? symbol?))

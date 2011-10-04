@@ -1,11 +1,11 @@
 #lang racket/base
 
-(require "base.rkt" racket/list)
+(require "base.rkt" "memory.rkt" racket/list)
 (require "../ffi/safe.rkt")
 (require (for-syntax racket/base syntax/parse))
 
 
-(provide llvm-if llvm-for llvm-when)
+(provide llvm-if llvm-for llvm-when llvm-define-mutable llvm-define-reference)
 
 (define (llvm-get-insert-block #:builder (builder (current-builder)))
  (LLVMGetInsertBlock builder))
@@ -130,6 +130,29 @@
             (cons inc-val body-end-block))
         (llvm-set-position finish-block)
         (void)))))
+
+(define-syntax (llvm-define-mutable stx)
+ (syntax-parse stx
+  ((_ var:id init:expr)
+   #'(begin
+      (define initial-value init)
+      (define ptr (llvm-alloca (value->llvm-type initial-value)))
+      (llvm-store initial-value ptr)
+      (llvm-define-reference var ptr)))))
+
+(define-syntax (llvm-define-reference stx)
+ (syntax-parse stx
+  ((_ var:id init:expr)
+   #'(begin
+      (define inner init)
+      (define-syntax var
+       (make-set!-transformer (lambda (stx)
+        (syntax-parse stx #:literals (set!)
+         ((set! _ body:expr) 
+          #'(llvm-store body inner))
+         ((_ args (... ...)) (datum->syntax stx (cons #'(llvm-load inner) #'(args (... ...)))))
+         (_:id #'(llvm-load inner))))))))))
+
 
 
 

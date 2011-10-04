@@ -38,6 +38,20 @@
                   (rest args)))
        (result llvm-value-ref?)))
 
+
+(define llvm-vector*/c
+  (->i ()
+       (#:builder (builder llvm-builder-ref?))
+       #:rest (args (non-empty-list*/c llvm-value/c))
+       #:pre/name (args)
+        "Matching element types"
+        (let ((args (apply list* args)))
+         (let ((t (value->llvm-type (first args))))
+           (andmap (lambda (e) (equal? t (value->llvm-type e)))
+                   (rest args))))
+       (result llvm-value-ref?)))
+
+
 (define llvm-constant-array/c
   (->i ()
        ()
@@ -68,6 +82,7 @@
   (llvm-extract-element llvm-extract-element/c)
   (llvm-insert-element llvm-insert-element/c)
   (llvm-vector llvm-vector/c)
+  (llvm-vector* llvm-vector*/c)
   (llvm-constant-array llvm-constant-array/c)
   (llvm-constant-array* llvm-constant-array*/c))
 
@@ -85,12 +100,17 @@
     (llvm-insert-element acc arg i #:builder builder)))
 
 
-(define (llvm-constant-array args)
+(define (llvm-vector* #:builder (builder (current-builder)) . args)
+  (apply llvm-vector #:builder builder (apply list* args)))
+
+
+
+(define (llvm-constant-array . args)
  (LLVMConstArray (llvm-array-type (value->llvm-type (first args))
                                   (length args))
                  (map value->llvm args)))
-(define (llvm-constant-array* args)
- (llvm-constant-array (apply list* args)))
+(define (llvm-constant-array* . args)
+ (apply llvm-constant-array (apply list* args)))
 
 
 

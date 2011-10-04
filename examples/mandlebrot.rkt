@@ -2,6 +2,7 @@
 
 (require "../simple.rkt")
 (require "../private/simple/base.rkt")
+(require "../private/short.rkt")
 (require ffi/unsafe)
 (require racket/flonum)
 (require racket/cmdline)
@@ -35,31 +36,19 @@
 (define bool-type (llvm-int1-type))
 (define float-type (current-float-type))
 
-(define crs-type (llvm-array-type float-type))
-(define output-row-type (llvm-array-type (llvm-int8-type)))
+
+(define mandel-size 8)
+(define (mandel-vec type) (ll (vec type mandel-size)))
+
+
 (define calculate-row-type
-  (llvm-function-type
-    (llvm-void-type)
-    float-type
-    (llvm-pointer-type crs-type)
-    (llvm-pointer-type output-row-type)))
+  (ll (-> float (ptr (arr float)) (ptr (arr i8)) void)))
 
 
 (define mandelbrot-type
-  (llvm-function-type
-    bool-type
-    float-type
-    float-type))
-
-
-
-(define mandel-size 1)
-
-(define mandelbrot2-type
-  (llvm-function-type
-    (llvm-vector-type bool-type mandel-size)
-    (llvm-vector-type float-type mandel-size)
-    (llvm-vector-type float-type mandel-size)))
+  (ll (-> (mandel-vec float)
+          (mandel-vec float)
+          (mandel-vec bool))))
 
 
 
@@ -73,107 +62,68 @@
 
 (define calculate-row (llvm-add-function calculate-row-type "calculate_row"))
 (define mandelbrot (llvm-add-function mandelbrot-type "mandelbrot"))
-(define mandelbrot2 (llvm-add-function mandelbrot2-type "mandelbrot2"))
 (LLVMSetVisibility mandelbrot 'LLVMHiddenVisibility)
 (LLVMSetLinkage mandelbrot 'LLVMPrivateLinkage)
 
-(define (llvm-and* vector size)
-  (for/fold ((acc (llvm-int 1 (llvm-int1-type)))) ((i size))
+(define (llvm-and* vector)
+  (for/fold ((acc (llvm-int 1 (llvm-int1-type))))
+            ((i (llvm-get-vector-type-size (value->llvm-type vector))))
     (llvm-and acc (llvm-extract-element vector i))))
 
-(define (llvm-vector* v size)
-  (apply llvm-vector (build-list size (lambda (i) v))))
+(define (mandel-vector v)
+  (llvm-vector* (build-list mandel-size (lambda (i) v))))
 
-(let ()
-  (define entry-block (llvm-add-block-to-function mandelbrot2 #:name "entry")) 
-  (llvm-set-position entry-block)
-  (define cr (llvm-get-param 0))
-  (define ci (llvm-get-param 1))
-  (define LIMIT (llvm-vector* 4.0 mandel-size))
-
-  (define zr-box (llvm-alloca (llvm-vector-type float-type mandel-size)))
-  (define zi-box (llvm-alloca (llvm-vector-type float-type mandel-size)))
-  (llvm-store (llvm-vector* 0.0 mandel-size) zr-box)
-  (llvm-store (llvm-vector* 0.0 mandel-size) zi-box)
-
-  (llvm-for i 0 (llvm-icmp '< i ITERATIONS) (llvm+ i 1)
-    (define zr (llvm-load zr-box))
-    (define zi (llvm-load zi-box))
-    (define magnitude (llvm-fl+ (llvm-fl* zr zr) (llvm-fl* zi zi))) 
-    (define dual-bits (llvm-fcmp '> magnitude LIMIT))
-    (llvm-when (llvm-and* dual-bits mandel-size) 
-        (llvm-ret (llvm-vector* #f mandel-size)))
-    (define zr-next (llvm-fl+ (llvm-fl- (llvm-fl* zr zr) (llvm-fl* zi zi)) cr))
-    (define zi-next (llvm-fl+ (llvm-fl* (llvm-vector* 2.0 mandel-size) (llvm-fl* zr zi)) ci))
-    (llvm-store zr-next zr-box)
-    (llvm-store zi-next zi-box))
-
-  (let ()
-    (define zr (llvm-load zr-box))
-    (define zi (llvm-load zi-box))
-    (define magnitude (llvm-fl+ (llvm-fl* zr zr) (llvm-fl* zi zi))) 
-    (llvm-ret (llvm-fcmp '< magnitude LIMIT)))
-
-  (void))
-
-
-(let ()
+(void (ll (let ()
   (define entry-block (llvm-add-block-to-function mandelbrot #:name "entry")) 
   (llvm-set-position entry-block)
   (define cr (llvm-get-param 0))
   (define ci (llvm-get-param 1))
-  (define LIMIT 4.0)
+  (define LIMIT (mandel-vector 4.0))
 
-  (define zr-box (llvm-alloca float-type))
-  (define zi-box (llvm-alloca float-type))
-  (llvm-store 0.0 zr-box)
-  (llvm-store 0.0 zi-box)
+  (llvm-define-mutable zr (mandel-vector 0.0))
+  (llvm-define-mutable zi (mandel-vector 0.0))
 
-  (llvm-for i 0 (llvm-icmp '<= i ITERATIONS) (llvm+ i 1)
-    (define zr (llvm-load zr-box))
-    (define zi (llvm-load zi-box))
-    (define magnitude (llvm-fl+ (llvm-fl* zr zr) (llvm-fl* zi zi))) 
-    (llvm-when (llvm-fcmp '> magnitude LIMIT)
-        (llvm-ret #f))
-    (define zr-next (llvm-fl+ (llvm-fl- (llvm-fl* zr zr) (llvm-fl* zi zi)) cr))
-    (define zi-next (llvm-fl+ (llvm-fl* 2.0 (llvm-fl* zr zi)) ci))
-    (llvm-store zr-next zr-box)
-    (llvm-store zi-next zi-box))
-  (llvm-ret #t)
+  (define (compute-magnitude)
+    (+ (* zr zr) (* zi zi)))
 
-  (void))
+  (for i 0 (< i ITERATIONS) (+ i 1)
+    (when (llvm-and* (> (compute-magnitude)  LIMIT)) 
+        (return (mandel-vector #f)))
+    (set!-values (zr zi)
+      (values
+        (+ (- (* zr zr) (* zi zi)) cr)
+        (+ (* (mandel-vector 2.0) (* zr zi)) ci))))
+
+  (return (< (compute-magnitude) LIMIT)))))
 
 
-(let ()
+(define minus -)
+
+(void (let () (ll
   (define entry-block (llvm-add-block-to-function calculate-row #:name "entry")) 
   (llvm-set-position entry-block)
 
-
-  (llvm-for i 0 (llvm-< i N) (llvm+ i 8)
+  (for i 0 (< i N) (+ i 8)
     (define bits
      (apply append
       (for/list ((j (in-range 0 8 mandel-size)))
         (let* ((ci (llvm-get-param 0))
                (crs (llvm-get-param 1))
-               (crs2 (for/list ((j mandel-size))
-                        (llvm-load (llvm-gep crs 0 (llvm+ i j))))))
-           (let ((bits (llvm-call mandelbrot2 (apply llvm-vector crs2) (llvm-vector* ci mandel-size))))
+               (crs2 (for/list ((k mandel-size))
+                        (load (gep crs 0 (+ i (+ j k)))))))
+           (let ((bits (call mandelbrot (llvm-vector* crs2) (mandel-vector ci))))
              (for/list ((i mandel-size))
               (llvm-extract-element bits i)))))))
-    (define dest (llvm-gep (llvm-get-param 2) 0 (llvm/ i 8)))
-    (define shifted-bits 
-      (for/list ((j 8) (b bits))
-        (llvm-shl (llvm-zext b (llvm-int8-type))
-                  (llvm-int (- 7 j) (llvm-int8-type)))))
-    (define result
-      (for/fold ((ans (llvm-int 0 (llvm-int8-type)))) ((b shifted-bits))
-        (llvm-or ans b)))
-    (llvm-store result dest))
+    (llvm-store
+     (for/fold ((ans (llvm-int 0 (llvm-int8-type))))
+               ((j 8) (b bits))
+        (or ans 
+           (<< (zext b i8)
+               (llvm-int (minus 7 j) i8))))
+     (gep (llvm-get-param 2) 0 (/ i 8))))
 
 
-  (llvm-ret-void)
-
-  (void))
+  (llvm-ret-void))))
   
 
 (let ((err (llvm-verify-module module)))
@@ -182,7 +132,7 @@
         (error 'mandelbrot "Bad module: ~a, module" err))))
 
 
-;(display (llvm-module-description module))
+;(display (llvm-module-description module) (current-error-port))
 (void (LLVMOptimizeModule module))
 
 ;(display (llvm-module-description module))

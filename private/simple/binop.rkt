@@ -21,7 +21,7 @@
 
 
 
-(define llvm-binop/c
+(define llvm-int-binop/c
  (->i ((left llvm-integer/c)
        (right llvm-integer/c))
       (#:builder (builder llvm-builder-ref?)
@@ -31,18 +31,36 @@
       (_ llvm-value-ref?)))
 
 
+(define llvm-binop/c
+ (->i ((left (or/c llvm-integer/c llvm-float/c))
+       (right (or/c llvm-integer/c llvm-float/c)))
+      (#:builder (builder llvm-builder-ref?)
+       #:name (name string?))
+      #:pre (left right)
+       (equal? (value->llvm-type left) (value->llvm-type right))
+      (_ llvm-value-ref?)))
+
+
+
 (provide/contract
- (llvm+ llvm-binop/c)
- (llvm* llvm-binop/c)
- (llvm- llvm-binop/c)
- (llvm/ llvm-binop/c)
- (llvm% llvm-binop/c)
- (llvm-and llvm-binop/c)
- (llvm-or llvm-binop/c)
- (llvm-xor llvm-binop/c)
- (llvm-lshr llvm-binop/c)
- (llvm-ashr llvm-binop/c)
- (llvm-shl llvm-binop/c)
+
+ (llvm-+ llvm-binop/c)
+ (llvm-* llvm-binop/c)
+ (llvm-- llvm-binop/c)
+ (llvm-/ llvm-binop/c)
+
+
+ (llvm-i+ llvm-int-binop/c)
+ (llvm-i* llvm-int-binop/c)
+ (llvm-i- llvm-int-binop/c)
+ (llvm-i/ llvm-int-binop/c)
+ (llvm-i% llvm-int-binop/c)
+ (llvm-and llvm-int-binop/c)
+ (llvm-or llvm-int-binop/c)
+ (llvm-xor llvm-int-binop/c)
+ (llvm-lshr llvm-int-binop/c)
+ (llvm-ashr llvm-int-binop/c)
+ (llvm-shl llvm-int-binop/c)
  
  (llvm-fl+ llvm-float-binop/c)
  (llvm-fl- llvm-float-binop/c)
@@ -52,20 +70,22 @@
  )
 
 
+
+
 ;Provided functions
-(define (llvm+ lhv rhv #:builder (builder (current-builder)) #:name (name ""))
+(define (llvm-i+ lhv rhv #:builder (builder (current-builder)) #:name (name ""))
  (LLVMBuildAdd builder (integer->llvm lhv) (integer->llvm rhv) name))
 
-(define (llvm* lhv rhv #:builder (builder (current-builder)) #:name (name ""))
+(define (llvm-i* lhv rhv #:builder (builder (current-builder)) #:name (name ""))
  (LLVMBuildMul builder (integer->llvm lhv) (integer->llvm rhv) name))
 
-(define (llvm- lhv rhv #:builder (builder (current-builder)) #:name (name ""))
+(define (llvm-i- lhv rhv #:builder (builder (current-builder)) #:name (name ""))
  (LLVMBuildSub builder (integer->llvm lhv) (integer->llvm rhv) name))
 
-(define (llvm/ lhv rhv #:builder (builder (current-builder)) #:name (name ""))
+(define (llvm-i/ lhv rhv #:builder (builder (current-builder)) #:name (name ""))
  (LLVMBuildSDiv builder (integer->llvm lhv) (integer->llvm rhv) name))
 
-(define (llvm% lhv rhv #:builder (builder (current-builder)) #:name (name ""))
+(define (llvm-i% lhv rhv #:builder (builder (current-builder)) #:name (name ""))
  (LLVMBuildSRem builder (integer->llvm lhv) (integer->llvm rhv) name))
 
 
@@ -104,6 +124,12 @@
 (define (llvm-fl/ lhv rhv #:builder (builder (current-builder)) #:name (name ""))
  (LLVMBuildFDiv builder (float->llvm lhv) (float->llvm rhv) name))
 
+(define ((llvm-binop-chooser int float) lhv rhv #:builder (builder (current-builder)) #:name (name ""))
+  ((if (llvm-integer/c lhv) int float) lhv rhv #:builder builder #:name name))
 
+(define llvm-+ (llvm-binop-chooser llvm-i+ llvm-fl+))
+(define llvm-- (llvm-binop-chooser llvm-i- llvm-fl-))
+(define llvm-* (llvm-binop-chooser llvm-i* llvm-fl*))
+(define llvm-/ (llvm-binop-chooser llvm-i/ llvm-fl/))
 
 

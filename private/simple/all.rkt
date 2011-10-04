@@ -127,8 +127,8 @@
  (llvm-struct-set-body*! (->* (llvm-unset-named-struct-type-ref?) (#:packed boolean?) #:rest (list*/c llvm-type-ref?) void?))
 
  (llvm-pointer-type (->* (llvm-type-ref?) (#:address-space integer?) llvm-pointer-type-ref?))
- (llvm-function-type (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (listof llvm-type-ref?) llvm-function-type-ref?))
- (llvm-function-type* (->* (llvm-type-ref?) (#:varargs? boolean?) #:rest (list*/c llvm-type-ref?) llvm-function-type-ref?))
+ (llvm-function-type (->* (llvm-type-ref?) (#:varargs boolean?) #:rest (listof llvm-type-ref?) llvm-function-type-ref?))
+ (llvm-function-type* (->* (llvm-type-ref?) (#:varargs boolean?) #:rest (list*/c llvm-type-ref?) llvm-function-type-ref?))
  (llvm-void-type  (->* () (#:context llvm-context-ref?) llvm-void-type-ref?))
  
 
@@ -323,10 +323,10 @@
 (define (llvm-pointer-type type  #:address-space (space 0))
  (LLVMPointerType type space))
 
-(define (llvm-function-type return-type #:varargs? (varargs #f) . args)
+(define (llvm-function-type return-type #:varargs (varargs #f) . args)
  (LLVMFunctionType return-type args varargs))
 
-(define (llvm-function-type* return-type #:varargs? (varargs #f) . args)
+(define (llvm-function-type* return-type #:varargs (varargs #f) . args)
  (LLVMFunctionType return-type (apply list* args) varargs))
 
 

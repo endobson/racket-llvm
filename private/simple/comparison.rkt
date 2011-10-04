@@ -22,9 +22,10 @@
        (left llvm-integer/c)
        (right llvm-integer/c))
       (#:builder (builder llvm-builder-ref?)
-       #:signed? (signed boolean?)
+       #:signed (signed boolean?)
        #:name (name string?))
-      #:pre (left right)
+      #:pre/name (left right)
+       "Equal types"
        (equal?
         (value->llvm-type left)
         (value->llvm-type left))
@@ -35,9 +36,10 @@
        (left llvm-float/c)
        (right llvm-float/c))
       (#:builder (builder llvm-builder-ref?)
-       #:ordered? (ordered boolean?)
+       #:ordered (ordered boolean?)
        #:name (name string?))
-      #:pre (left right)
+      #:pre/name (left right)
+       "Equal types"
        (equal?
         (value->llvm-type left)
         (value->llvm-type left))
@@ -45,17 +47,42 @@
 
 
 
-(define comparison/c
+(define int-comparison/c
  (->i ((left llvm-integer-or-pointer/c)
        (right llvm-integer-or-pointer/c))
       (#:builder (builder llvm-builder-ref?)
-       #:signed? (signed boolean?)
+       #:signed (signed boolean?)
        #:name (name string?))
-      #:pre (left right)
+      #:pre/name (left right)
+       "Equal types"
        (equal?
         (value->llvm-type left)
         (value->llvm-type left))
       (_ llvm-value-ref?)))
+
+
+(define comparison/c
+ (->i ((left (or/c llvm-float/c llvm-integer-or-pointer/c))
+       (right (or/c llvm-float/c llvm-integer-or-pointer/c)))
+      (#:builder (builder llvm-builder-ref?)
+       #:signed (signed boolean?)
+       #:ordered (ordered boolean?)
+       #:name (name string?))
+      #:pre/name (left right)
+       "Equal types"
+       (equal?
+        (value->llvm-type left)
+        (value->llvm-type left))
+      #:pre/name (left ordered)
+       "Ordered only used with float types"
+       (or (unsupplied-arg? ordered)
+           (llvm-float/c left))
+      #:pre/name (left signed)
+       "Signed only used with integer types"
+       (or (unsupplied-arg? signed)
+           (llvm-integer-or-pointer/c left))
+      (_ llvm-value-ref?)))
+
 
 
 
@@ -64,9 +91,10 @@
  (->i ((left llvm-float/c)
        (right llvm-float/c))
       (#:builder (builder llvm-builder-ref?)
-       #:ordered? (ordered boolean?)
+       #:ordered (ordered boolean?)
        #:name (name string?))
-      #:pre (left right)
+      #:pre/name (left right)
+       "Equal types"
        (equal?
         (value->llvm-type left)
         (value->llvm-type left))
@@ -77,12 +105,12 @@
 (provide/contract
  (llvm-icmp icmp/c)
  (llvm-fcmp fcmp/c)
- (llvm-=  comparison/c)
- (llvm-/= comparison/c)
- (llvm->  comparison/c)
- (llvm->= comparison/c)
- (llvm-<  comparison/c)
- (llvm-<= comparison/c)
+ (llvm-i=  int-comparison/c)
+ (llvm-i/= int-comparison/c)
+ (llvm-i>  int-comparison/c)
+ (llvm-i>= int-comparison/c)
+ (llvm-i<  int-comparison/c)
+ (llvm-i<= int-comparison/c)
 
  (llvm-fl=  float-comparison/c)
  (llvm-fl/= float-comparison/c)
@@ -91,10 +119,16 @@
  (llvm-fl<  float-comparison/c)
  (llvm-fl<= float-comparison/c)
 
+ (llvm-=  comparison/c)
+ (llvm-/= comparison/c)
+ (llvm->  comparison/c)
+ (llvm->= comparison/c)
+ (llvm-<  comparison/c)
+ (llvm-<= comparison/c)
 
 )
 
-(define (llvm-icmp type lhv rhv #:signed? (signed #t)  #:builder (builder (current-builder)) #:name (name ""))
+(define (llvm-icmp type lhv rhv #:signed (signed #t)  #:builder (builder (current-builder)) #:name (name ""))
   (LLVMBuildICmp builder
    (symbol->llvm-int-predicate type signed)
    (integer->llvm lhv)
@@ -104,7 +138,7 @@
 
 (define (llvm-fcmp symbol
                    lhv rhv
-                   #:ordered? (ordered #t)
+                   #:ordered (ordered #t)
                    #:builder (builder (current-builder))
                    #:name (name ""))
   (LLVMBuildFCmp builder
@@ -114,23 +148,23 @@
    name))
 
 
-(define ((make-specific-comparison symbol) lhv rhv #:signed? (signed #t)  #:builder (builder (current-builder)) #:name (name ""))
- (llvm-icmp symbol lhv rhv #:signed? signed #:builder builder #:name name))
+(define ((make-specific-comparison symbol) lhv rhv #:signed (signed #t)  #:builder (builder (current-builder)) #:name (name ""))
+ (llvm-icmp symbol lhv rhv #:signed signed #:builder builder #:name name))
 
-(define llvm-= (make-specific-comparison '=))
-(define llvm-/= (make-specific-comparison '/=))
-(define llvm-< (make-specific-comparison '<))
-(define llvm-> (make-specific-comparison '>))
-(define llvm-<= (make-specific-comparison '<=))
-(define llvm->= (make-specific-comparison '>=))
+(define llvm-i= (make-specific-comparison '=))
+(define llvm-i/= (make-specific-comparison '/=))
+(define llvm-i< (make-specific-comparison '<))
+(define llvm-i> (make-specific-comparison '>))
+(define llvm-i<= (make-specific-comparison '<=))
+(define llvm-i>= (make-specific-comparison '>=))
 
 
 (define ((make-specific-float-comparison symbol) lhv rhv
             #:builder (builder (current-builder))
-            #:ordered? (ordered #f)
+            #:ordered (ordered #t)
             #:name (name ""))
  (llvm-fcmp symbol 
-            lhv rhv #:builder builder #:ordered? ordered #:name name))
+            lhv rhv #:builder builder #:ordered ordered #:name name))
 
 (define llvm-fl=  (make-specific-float-comparison '=))
 (define llvm-fl>  (make-specific-float-comparison '>))
@@ -171,5 +205,21 @@
   ((<=) (if signed 'LLVMIntSLE 'LLVMIntULE))
   (else (error 'symbol->llvm-int-predicate "Expected comparison symbol, got ~a" sym))))
 
+(define ((llvm-comparison-chooser int float)
+         lhv rhv
+         #:builder (builder (current-builder))
+         #:signed (signed #t)
+         #:ordered (ordered #t)
+         #:name (name ""))
+  (if (llvm-integer-or-pointer/c lhv)
+      (int  lhv rhv #:builder builder #:signed signed  #:name name)
+      (float  lhv rhv #:builder builder #:ordered ordered  #:name name)))
+
+(define llvm-=  (llvm-comparison-chooser llvm-i=  llvm-fl=))
+(define llvm-/= (llvm-comparison-chooser llvm-i/= llvm-fl/=))
+(define llvm->  (llvm-comparison-chooser llvm-i>  llvm-fl>))
+(define llvm->= (llvm-comparison-chooser llvm-i>= llvm-fl>=))
+(define llvm-<  (llvm-comparison-chooser llvm-i<  llvm-fl<))
+(define llvm-<= (llvm-comparison-chooser llvm-i<= llvm-fl<=))
 
 

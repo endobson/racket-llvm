@@ -1,12 +1,46 @@
 #lang racket
-(require "testing.rkt")
+(require "private/rename.rkt")
 
-(define a 'aa)
-(define b 'bb)
-(define c 'cc)
-(define x 'xx)
-(define z 'zz)
-(define (unsyntax args) (error 'top-level-unsyntax))
-        
-(bar ((a z)) (bar ((a x) (b c)) (bar ((b z)) (list a b #,a #,b #,#,a #,#,b #,#,#,#,#,a))))
+
+(define-syntax (make-bind-to-5 stx)
+  (syntax-case stx ()
+   ((_ id later)
+    #'(define-syntax (later stx)
+        (syntax-case stx ()
+         ((_ body) 
+           (with-syntax ((new-id (syntax-local-introduce #'id)))
+            (printf "~a ~a~n"
+              (free-identifier=? #'body #'new-id)
+              (bound-identifier=? #'body #'new-id))
+            #'(let ((new-id 5))
+                body))))))))
+
+
+
+
+
+(let  ()
+  (make-bind-to-5 five later)
+  (let ()
+    (define five 4)
+    (later five)))
+
+(let  ()
+  (make-bind-to-5 five later)
+  (let ()
+    (define five 4)
+    (#%expression 
+     (later five))))
+
+
+(let  ()
+  (make-bind-to-5 five later)
+  (letrec ((five 4))
+    (later five)))
+
+
+(let ()
+  (make-bind-to-5 five later)
+  (let ((five 4))
+    (later five)))
 
