@@ -33,6 +33,9 @@
 (define-llvm-unsafe LLVMGetSection (_fun LLVMValueRef -> _string))
 (define-llvm-unsafe LLVMSetSection (_fun LLVMValueRef _string -> _void))
 
+(define-llvm-safe LLVMGetSection (_fun safe:LLVMValueRef -> _string))
+(define-llvm-safe LLVMSetSection (_fun safe:LLVMValueRef _string -> _void))
+
 (define-llvm-unsafe LLVMGetVisibility (_fun LLVMValueRef -> LLVMVisibility))
 (define-llvm-unsafe LLVMSetVisibility (_fun LLVMValueRef LLVMVisibility -> _void))
 
@@ -41,6 +44,10 @@
 
 (define-llvm-unsafe LLVMGetAlignment (_fun LLVMValueRef -> _uint))
 (define-llvm-unsafe LLVMSetAlignment (_fun LLVMValueRef _uint -> _void))
+
+(define-llvm-safe LLVMGetAlignment (_fun safe:LLVMValueRef -> _uint))
+(define-llvm-safe LLVMSetAlignment (_fun safe:LLVMValueRef _uint -> _void))
+
 
 ;/* Operations on global variables */
 (define-llvm-unsafe LLVMAddGlobal
@@ -79,6 +86,14 @@
   LLVMGetInitializer)
  (_fun LLVMValueRef -> LLVMValueRef))
 
+
+(define-llvm-multiple-safe
+ (LLVMGetNextGlobal
+  LLVMGetPreviousGlobal
+  LLVMGetInitializer)
+ (_fun safe:LLVMValueRef -> safe:LLVMValueRef))
+
+
 (define-llvm-unsafe LLVMSetInitializer (_fun LLVMValueRef LLVMValueRef -> _void))
 (define-llvm-safe LLVMSetInitializer (_fun safe:LLVMValueRef safe:LLVMValueRef -> _void))
 
@@ -88,6 +103,14 @@
 (define-llvm-multiple-unsafe
  (LLVMSetThreadLocal LLVMSetGlobalConstant)
  (_fun LLVMValueRef LLVMBool -> _void))
+
+
+(define-llvm-multiple-safe
+ (LLVMIsThreadLocal LLVMIsGlobalConstant)
+ (_fun safe:LLVMValueRef -> LLVMBool))
+(define-llvm-multiple-safe
+ (LLVMSetThreadLocal LLVMSetGlobalConstant)
+ (_fun safe:LLVMValueRef LLVMBool -> _void))
 
 
 

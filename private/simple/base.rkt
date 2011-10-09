@@ -120,6 +120,7 @@
              LLVMPPC_FP128TypeKind))
    #t)))
 
+;TODO make these predicates do stuff
 (define (llvm-unnamed-struct-type-ref? ref) #t)
 (define (llvm-named-struct-type-ref? ref) #t)
 (define (llvm-unset-named-struct-type-ref? ref) #t)
@@ -127,6 +128,11 @@
 (define (llvm-vector-type-ref? ref) #t)
 (define (llvm-pointer-type-ref? ref) #t)
 (define (llvm-void-type-ref? ref) #t)
+(define (llvm-generic-value? v) #t)
+(define (llvm-execution-engine-ref? v) #t)
+(define (llvm:global? v) #t)
+(define (llvm:global-variable? v) #t)
+(define llvm:value? llvm-value-ref?)
 
 
 
@@ -336,6 +342,11 @@
  (llvm-vector-type-ref? predicate/c)
  (llvm-pointer-type-ref? predicate/c)
  (llvm-void-type-ref? predicate/c)
+ (llvm-generic-value? predicate/c)
+ (llvm-execution-engine-ref? predicate/c)
+ (llvm:global-variable? predicate/c)
+ (llvm:global? predicate/c)
+ (llvm:value? predicate/c)
   
  (llvm-vector? predicate/c)
 

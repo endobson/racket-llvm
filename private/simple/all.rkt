@@ -10,7 +10,10 @@
   "comparison.rkt"
   "cast.rkt"
   "extra.rkt"
+  "generic.rkt"
+  "globals.rkt"
   "memory.rkt"
+  "runtime.rkt"
   "types.rkt")
 
 
@@ -40,7 +43,10 @@
   "comparison.rkt"
   "cast.rkt"
   "extra.rkt"
+  "generic.rkt"
+  "globals.rkt"
   "memory.rkt"
+  "runtime.rkt"
   "types.rkt"))
 
 (provide/contract
@@ -66,13 +72,13 @@
  (llvm-global-string-ptr (->* (string?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
 
  (llvm-verify-module (->* () (llvm-module-ref?) (or/c #f string?)))
+ (llvm-assert-module-valid (->* () (llvm-module-ref?) void?))
  (llvm-module-description (->* () (llvm-module-ref?) string?))
 
  (llvm-write-bitcode-to-file (case-> (-> path-string? void?) (-> llvm-module-ref? path-string? void?)))
 
 
- (llvm-ret      (->* (llvm-value/c) (#:builder llvm-builder-ref?) llvm-value-ref?))
- (llvm-ret-void (->* () (#:builder llvm-builder-ref?) llvm-value-ref?))
+ (llvm-ret      (->* () (llvm-value/c #:builder llvm-builder-ref?) llvm-value-ref?))
  (llvm-add-block (->* ()
                       (#:context llvm-context-ref?
                        #:builder llvm-builder-ref?
@@ -116,7 +122,7 @@
  (llvm-int64-type (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
 
 
- (llvm-float-type  (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+ (llvm-single-type  (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
  (llvm-double-type  (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
  (llvm-fp128-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
  (llvm-x86-fp80-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
@@ -234,17 +240,25 @@
 (define (llvm-verify-module (module (current-module)))
  (LLVMVerifyModule module 'LLVMReturnStatusAction))
 
+(define (llvm-assert-module-valid (module (current-module)))
+ (let ((err (llvm-verify-module module)))
+  (void
+   (and err
+        (error 'assert-module-valid
+               "Bad module: ~n~a" err)))))
+
+
 
 (define (llvm-global-string-ptr string #:builder (builder (current-builder)) #:name (name ""))
  (LLVMBuildGlobalStringPtr builder string name))
 
 
 
-(define (llvm-ret val #:builder (builder (current-builder)))
- (LLVMBuildRet builder (value->llvm val)))
+(define (llvm-ret (val (void)) #:builder (builder (current-builder)))
+  (if (void? val)
+    (LLVMBuildRetVoid builder)
+    (LLVMBuildRet builder (value->llvm val))))
 
-(define (llvm-ret-void #:builder (builder (current-builder)))
- (LLVMBuildRetVoid builder))
 
 
 (define (llvm-cond-br cond true-block false-block #:builder (builder (current-builder)))
@@ -354,7 +368,7 @@
  (LLVMInt64TypeInContext context))
 
 
-(define (llvm-float-type #:context (context (current-context)))
+(define (llvm-single-type #:context (context (current-context)))
  (LLVMFloatTypeInContext context))
 
 (define (llvm-double-type #:context (context (current-context)))

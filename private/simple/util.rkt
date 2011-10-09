@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require racket/contract)
-(provide list*/c non-empty-list*/c)
+(provide list*/c non-empty-list*/c power-of-two?)
 
 (define (list*/c ctc)
  (flat-rec-contract rec
@@ -14,3 +14,9 @@
    (cons/c ctc (list*/c ctc))
    (list/c (non-empty-listof ctc))))
 
+(define (power-of-two? v)
+  (and (exact-positive-integer? v)
+       (let loop ((w 1))
+         (if (>= w v)
+             (= w v)
+             (loop (* 2 w))))))
