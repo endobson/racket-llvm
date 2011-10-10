@@ -2,6 +2,7 @@
 
 (require (for-syntax "../llvm-util-exptime.rkt" racket/base syntax/parse))
 (require ffi/unsafe)
+(require (prefix-in c: racket/contract))
 
 (require "define.rkt")
 
@@ -33,8 +34,12 @@
   set-safe:llvm-builder-ref-module!
   safe:llvm-builder-ref-module
   safe:llvm-basic-block-ref-module
-  safe:llvm-basic-block-ref
-  safe:llvm-value-ref
+  (c:contract-out
+   (safe:llvm-value-ref
+    (c:-> cpointer? (c:or/c safe:llvm-module-ref? safe:llvm-context-ref?)
+        safe:llvm-value-ref?))
+   (safe:llvm-basic-block-ref
+    (c:-> cpointer? safe:llvm-module-ref? safe:llvm-basic-block-ref?)))
   safe:llvm-value-ref-owner
   safe:llvm-type-ref
   safe:llvm-type-ref-context

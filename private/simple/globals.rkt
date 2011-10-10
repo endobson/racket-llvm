@@ -34,11 +34,11 @@
 
 (define set-initializer/c
   (->i ((global-var llvm:global-variable?)
-        (value llvm:value?))
+        (value llvm-value/c))
        #:pre/name (global-var value)
         "Matching types"
         (equal? (llvm-get-element-type (llvm-type-of global-var))
-                (llvm-type-of value))
+                (value->llvm-type value))
         (result void?)))
 (define alignment/c
   (or/c 0 power-of-two?))
@@ -116,7 +116,7 @@
 (define (llvm:get-initializer global-var)
   (LLVMGetInitializer global-var))
 (define (llvm:set-initializer! global-var value)
-  (LLVMSetInitializer global-var value))
+  (LLVMSetInitializer global-var (value->llvm value)))
 
 (define (llvm:is-thread-local? global-val)
   (LLVMIsThreadLocal global-val))

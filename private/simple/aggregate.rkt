@@ -106,8 +106,7 @@
 
 
 (define (llvm-constant-array . args)
- (LLVMConstArray (llvm-array-type (value->llvm-type (first args))
-                                  (length args))
+ (LLVMConstArray (value->llvm-type (first args))
                  (map value->llvm args)))
 (define (llvm-constant-array* . args)
  (apply llvm-constant-array (apply list* args)))

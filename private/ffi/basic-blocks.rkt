@@ -65,7 +65,7 @@
         (fun : safe:LLVMValueRef)
         (name : _non-null-string) ->
         (bb : _pointer) ->
-        (safe:llvm-basic-block-ref bb ctx)))
+        (safe:llvm-basic-block-ref bb (safe:llvm-value-ref-owner fun))))
 
 (define-llvm-unsafe LLVMAppendBasicBlock
  (_fun LLVMValueRef _string -> LLVMBasicBlockRef))

@@ -12,6 +12,7 @@
   "extra.rkt"
   "generic.rkt"
   "globals.rkt"
+  "intrinsics.rkt"
   "memory.rkt"
   "runtime.rkt"
   "types.rkt")
@@ -45,6 +46,7 @@
   "extra.rkt"
   "generic.rkt"
   "globals.rkt"
+  "intrinsics.rkt"
   "memory.rkt"
   "runtime.rkt"
   "types.rkt"))
@@ -65,8 +67,6 @@
  (llvm-get-named-global (->* (string?) (#:module llvm-module-ref?) llvm-value-ref?))
  (llvm-add-global
   (->* (llvm-type-ref? string?) (#:module llvm-module-ref?) llvm-value-ref?))
- (llvm-set-initializer
-  (->* (llvm-value-ref? llvm-value-ref?) void?))
  (llvm-set-value-name (-> llvm-value-ref? string? void?))
 
  (llvm-global-string-ptr (->* (string?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
@@ -221,8 +221,6 @@
 (define (llvm-add-global type name  #:module (module (current-module)))
  (LLVMAddGlobal module type name))
 
-(define (llvm-set-initializer global value)
- (LLVMSetInitializer global value))
 
 
 (define (llvm-module-description (module (current-module)))

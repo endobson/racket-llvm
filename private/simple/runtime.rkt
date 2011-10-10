@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require "base.rkt" "../ffi/safe.rkt" "../safe/structs.rkt" racket/contract)
+(require (only-in ffi/unsafe cpointer?))
 
 
 (provide/contract
@@ -10,6 +11,9 @@
   (llvm:extract-function (-> llvm-execution-engine-ref?
                              llvm-value-ref?
                              procedure?))
+  (llvm:extract-global   (-> llvm-execution-engine-ref?
+                             llvm:global-variable?
+                             cpointer?))
 
   )
 
@@ -22,5 +26,14 @@
   (LLVMCreateJITCompilerForModule module level))
 
 (define (llvm:extract-function ee function)
-  (lambda args 
-    (LLVMRunFunction ee function args)))
+  (let ((runner (if (equal? (llvm-get-type-kind
+                              (llvm-get-return-type
+                               (llvm-get-element-type
+                                (llvm-type-of function))))
+                            'LLVMVoidTypeKind)
+                    LLVMRunVoidFunction LLVMRunFunction)))
+   (lambda args 
+     (runner ee function args))))
+
+(define (llvm:extract-global ee global)
+  (LLVMGetPointerToGlobal ee global))

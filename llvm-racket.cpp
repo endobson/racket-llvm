@@ -106,23 +106,8 @@ void LLVMInitializeRacket() {
 bool LLVMOptimizeModule(LLVMModuleRef Mod) {
     Module* M = unwrap(Mod);
 
-  // Initialize passes
-  // PassRegistry Registry;
-  // initializeCore(Registry);
-  // initializeScalarOpts(Registry);
-  // initializeIPO(Registry);
-  // initializeAnalysis(Registry);
-  // initializeIPA(Registry);
-  // initializeTransformUtils(Registry);
-  // initializeInstCombine(Registry);
-  // initializeInstrumentation(Registry);
-  // initializeTarget(Registry);
-
-
-
   // Create a PassManager to hold and optimize the collection of passes we are
   // about to build.
-  //
   PassManager Passes;
 
   // Add an appropriate TargetLibraryInfo pass for the module's triple.
@@ -152,7 +137,15 @@ bool LLVMOptimizeModule(LLVMModuleRef Mod) {
 }
 
 
+LLVMValueRef LLVMGetIntrinsic(
+  LLVMModuleRef M,
+  Intrinsic::ID id,
+  LLVMTypeRef *ParamTypes,
+  unsigned ParamCount) {
 
+ ArrayRef<Type*> Tys(unwrap(ParamTypes), ParamCount);
+ return wrap(Intrinsic::getDeclaration(unwrap(M), id, Tys));
+}
 
 
 

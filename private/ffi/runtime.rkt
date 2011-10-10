@@ -151,6 +151,20 @@
        ->
        safe:LLVMGenericValueRef))
 
+(define safe:LLVMRunVoidFunction
+  (let ()
+   (define-llvm-unsafe LLVMDisposeGenericValue
+    (_fun _pointer -> _void))
+   (define-llvm-safe LLVMRunFunction
+    (_fun (engine function args) ::
+          (engine : safe:LLVMExecutionEngineRef)
+          (function : safe:LLVMValueRef)
+          (_uint = (length args))
+          (args : (_list i safe:LLVMGenericValueRef))
+          -> (ptr : _pointer)
+          -> (unsafe:LLVMDisposeGenericValue ptr)))
+   safe:LLVMRunFunction))
+
 
 
 
@@ -197,3 +211,8 @@
 
 (define-llvm-unsafe LLVMGetPointerToGlobal
  (_fun LLVMExecutionEngineRef LLVMValueRef -> _pointer))
+
+
+(define-llvm-safe LLVMGetPointerToGlobal
+ (_fun safe:LLVMExecutionEngineRef safe:LLVMValueRef -> _pointer))
+

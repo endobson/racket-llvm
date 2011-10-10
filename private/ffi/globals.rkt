@@ -13,7 +13,7 @@
 (define-llvm-unsafe LLVMGetGlobalParent (_fun LLVMValueRef -> LLVMModuleRef))
 
 (define-llvm-safe LLVMGetGlobalParent
-  (_fun (v : LLVMValueRef) ->
+  (_fun (v : safe:LLVMValueRef) ->
         (ptr : _pointer) ->
         (let ((o (safe:llvm-value-ref-owner v)))
          (if (equal? ptr (safe:llvm-module-ref-pointer o))

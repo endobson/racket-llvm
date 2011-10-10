@@ -2,11 +2,13 @@
 
 (require "base.rkt" "memory.rkt" "globals.rkt" racket/list)
 (require "../ffi/safe.rkt")
+(require (only-in "../ffi/ctypes.rkt" set-safe:llvm-builder-ref-module!))
 (require (for-syntax racket/base syntax/parse racket/syntax racket/list syntax/kerncase))
 
 
 (provide llvm-if llvm-for llvm-when
          llvm-define-mutable llvm-define-reference llvm-declare-function
+         llvm-define-global
          llvm-define-function llvm-define-module
          llvm-implement-function)
 
@@ -94,6 +96,12 @@
 (define (llvm-create-builder #:context (context (current-context)))
  (LLVMCreateBuilderInContext context))
 
+
+(define (llvm-add-global type name  #:module (module (current-module)))
+ (LLVMAddGlobal module type name))
+
+(define (llvm-pointer-type type  #:address-space (space 0))
+ (LLVMPointerType type space))
 
 
 
@@ -296,12 +304,20 @@
                       (current-integer-type (llvm-int32-type #:context ctx))
                       (current-float-type (llvm-double-type #:context ctx))
                       (current-builder (llvm-create-builder #:context ctx)))
+         (set-safe:llvm-builder-ref-module! (current-builder) module-name)
          (handle-bodies () bodies ...)
          (set! renamed-exports exports.export) ...
          (void))))))
 
 
-
+(define-syntax (llvm-define-global stx)
+ (syntax-parse stx
+  ((_ name:id init:expr)
+   (define/with-syntax name-string (symbol->string (syntax-e #'name)))
+   #'(begin
+       (define value init)
+       (define name (llvm-add-global (value->llvm-type value) name-string))
+       (llvm:set-initializer! name value)))))
 
 
 

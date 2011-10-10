@@ -15,6 +15,7 @@
   "functions.rkt"
   "globals.rkt"
   "instructions.rkt"
+  "intrinsics.rkt"
   "memory-buffers.rkt"
   "memory.rkt"
   "misc-instructions.rkt"

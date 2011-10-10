@@ -5,8 +5,11 @@
 
 (provide/contract
   (llvm:int->generic (->* (exact-integer?) (#:type llvm-integer-type-ref? #:signed boolean?) llvm-generic-value?))
+  (llvm:int32->generic (->* (exact-integer?) (#:signed boolean?) llvm-generic-value?))
                      
-  (llvm:float->generic (->* (real?) (#:type llvm-float-type-ref?) llvm-generic-value?))
+
+
+  (llvm:float->generic (->* (real?) (#:type (or/c llvm-float-type-ref? 'single 'double)) llvm-generic-value?))
   (llvm:single->generic (-> real? llvm-generic-value?))
   (llvm:double->generic (-> real? llvm-generic-value?))
                      
@@ -15,7 +18,10 @@
   (llvm:generic-get-int-width (-> llvm-generic-value? exact-positive-integer?))
   (llvm:generic->int (->* (llvm-generic-value?) (#:signed boolean?) exact-integer?))
   (llvm:generic->pointer (-> llvm-generic-value?  cpointer?))
-  (llvm:generic->float (->* (llvm-generic-value?) (#:type (or/c 'float 'double llvm-float-type-ref?)) exact-integer?))
+
+  (llvm:generic->float (->* (llvm-generic-value?) (#:type (or/c 'single 'double llvm-float-type-ref?)) real?))
+  (llvm:generic->single (->* (llvm-generic-value?)  real?))
+  (llvm:generic->double (->* (llvm-generic-value?)  real?))
 
   )
 
@@ -29,14 +35,25 @@
 (define (llvm-double-type #:context (context (current-context)))
  (LLVMDoubleTypeInContext context))
 
+(define (llvm-int32-type #:context (context (current-context)))
+ (LLVMInt32TypeInContext context))
+
+
 ;---
 (define context (llvm-create-context))
 (define single (llvm-single-type #:context context))
 (define double (llvm-double-type #:context context))
+(define int32 (llvm-int32-type #:context context))
 
 
 (define (llvm:int->generic n #:type (type (current-integer-type)) #:signed (signed #t))
  (LLVMCreateGenericValueOfInt type n signed))
+
+;TODO clean this up
+(define (llvm:int32->generic n #:signed (signed #t))
+  (LLVMCreateGenericValueOfInt int32 n signed))
+
+
 
 (define (llvm:pointer->generic ptr)
  (LLVMCreateGenericValueOfPointer ptr))
@@ -69,7 +86,18 @@
   (LLVMGenericValueToPointer gen))
 
 (define (llvm:generic->float gen #:type (type (current-float-type)))
-  (LLVMGenericValueToFloat type gen))
+ (let ((type (cond
+              ((llvm-float-type-ref? type) type)
+              ((equal? 'double type) double)
+              ((equal? 'single type) single))))
+  (LLVMGenericValueToFloat type gen)))
+    
+
+(define (llvm:generic->double x)
+ (llvm:generic->float x #:type double))
+
+(define (llvm:generic->single x)
+ (llvm:generic->float x #:type single))
 
 
 
