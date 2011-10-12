@@ -78,11 +78,29 @@
 (define-llvm-unsafe LLVMBuildShuffleVector
  (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
 
-
 (define-llvm-unsafe LLVMBuildExtractValue
  (_fun LLVMBuilderRef LLVMValueRef _uint  _string -> LLVMValueRef))
 (define-llvm-unsafe LLVMBuildInsertValue
  (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _uint  _string -> LLVMValueRef))
+
+(define-llvm-safe LLVMBuildExtractValue
+  (_fun (builder : safe:LLVMBuilderRef)
+        safe:LLVMValueRef
+        _uint
+        _non-null-string ->
+        (ptr : _pointer) ->
+        (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
+(define-llvm-safe LLVMBuildInsertValue
+  (_fun (builder : safe:LLVMBuilderRef)
+        safe:LLVMValueRef
+        safe:LLVMValueRef
+        _uint
+        _non-null-string ->
+        (ptr : _pointer) ->
+        (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
+
+
+
 (define-llvm-multiple-unsafe
  (LLVMBuildIsNull
   LLVMBuildIsNotNull)

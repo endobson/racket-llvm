@@ -60,10 +60,10 @@
 ;Helpers
 
 (define (llvm-get-type-at-index type idx)
- (LLVMGetTypeAtIndex type idx))
+ (LLVMGetTypeAtIndex type (value->llvm idx)))
 
 (define (llvm-is-valid-type-index type idx)
- (LLVMIsValidTypeIndex type idx))
+ (LLVMIsValidTypeIndex type (value->llvm idx)))
 
 
 (define (llvm-valid-gep-indices? type indices)
@@ -121,10 +121,13 @@
    #t)))
 
 ;TODO make these predicates do stuff
+(define (llvm-struct-type-ref? type)
+  (equal? 'LLVMStructTypeKind (llvm-get-type-kind type)))
 (define (llvm-unnamed-struct-type-ref? ref) #t)
 (define (llvm-named-struct-type-ref? ref) #t)
 (define (llvm-unset-named-struct-type-ref? ref) #t)
-(define (llvm-array-type-ref? ref) #t)
+(define (llvm-array-type-ref? type) 
+  (equal? 'LLVMArrayTypeKind (llvm-get-type-kind type)))
 (define (llvm-vector-type-ref? ref) #t)
 (define (llvm-pointer-type-ref? ref) #t)
 (define (llvm-void-type-ref? ref) #t)
@@ -133,26 +136,37 @@
 (define (llvm:global? v) #t)
 (define (llvm:global-variable? v) #t)
 (define llvm:value? llvm-value-ref?)
+(define llvm:array?
+  (lambda (v)
+    (and (llvm-value-ref? v)
+         (llvm-array-type-ref? (llvm-type-of v)))))
+(define llvm:struct?
+  (lambda (v)
+    (and (llvm-value-ref? v)
+         (llvm-struct-type-ref? (llvm-type-of v)))))
 
 
 
 
 (define (llvm-function-type-ref? type)
- (eq? (llvm-get-type-kind type)
-      'LLVMFunctionTypeKind))
+ (and (llvm-type-ref? type)
+  (eq? (llvm-get-type-kind type)
+       'LLVMFunctionTypeKind)))
 
 (define (llvm-composite-type-ref? type)
- (memq (llvm-get-type-kind type)
-  '(LLVMStructTypeKind
-    LLVMArrayTypeKind
-    LLVMPointerTypeKind
-    LLVMVectorTypeKind)))
+ (and (llvm-type-ref? type)
+  (memq (llvm-get-type-kind type)
+   '(LLVMStructTypeKind
+     LLVMArrayTypeKind
+     LLVMPointerTypeKind
+     LLVMVectorTypeKind))))
 
 (define (llvm-sequential-type-ref? type)
- (memq (llvm-get-type-kind type)
-  '(LLVMArrayTypeKind
-    LLVMPointerTypeKind
-    LLVMVectorTypeKind)))
+ (and (llvm-type-ref? type)
+  (memq (llvm-get-type-kind type)
+   '(LLVMArrayTypeKind
+     LLVMPointerTypeKind
+     LLVMVectorTypeKind))))
 
 (define (llvm-terminator-instruction? value)
  (LLVMIsTerminatorInstruction value))
@@ -347,6 +361,8 @@
  (llvm:global-variable? predicate/c)
  (llvm:global? predicate/c)
  (llvm:value? predicate/c)
+ (llvm:array? predicate/c)
+ (llvm:struct? predicate/c)
   
  (llvm-vector? predicate/c)
 
@@ -369,12 +385,17 @@
  (llvm-get-undef (-> llvm-type-ref? llvm-value-ref?))
  (llvm-null (-> llvm-type-ref? llvm-value-ref?))
 
+ (llvm-is-valid-type-index
+  (-> llvm-composite-type-ref?
+      llvm-integer/c
+      boolean?))
+
  (llvm-get-type-at-index
   (->i ((type llvm-composite-type-ref?)
-        (index llvm-value/c))
+        (index llvm-integer/c))
        #:pre (type index)
         (llvm-is-valid-type-index type index)
-       (_ llvm-value-ref?)))
+       (_ llvm-type-ref?)))
 
  )
 

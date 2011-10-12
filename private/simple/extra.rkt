@@ -6,9 +6,9 @@
 (require (for-syntax racket/base syntax/parse racket/syntax racket/list syntax/kerncase))
 
 
-(provide llvm-if llvm-for llvm-when
+(provide llvm-if llvm-for llvm-when llvm-unless
          llvm-define-mutable llvm-define-reference llvm-declare-function
-         llvm-define-global
+         llvm-define-global llvm-loop
          llvm-define-function llvm-define-module
          llvm-implement-function)
 
@@ -103,23 +103,35 @@
 (define (llvm-pointer-type type  #:address-space (space 0))
  (LLVMPointerType type space))
 
-
-
-(define-syntax (llvm-when stx)
+(define-syntax (llvm-maybe stx)
  (syntax-parse stx
-  ((_ cond-expr:expr then-expr:expr)
-   #'(let ()
-       (define-basic-block then-block end-block)
-       (define br-val cond-expr)
-       (llvm-cond-br br-val then-block end-block)
+  ((_ expr:expr ...)
+   #'(unless (llvm-get-terminator)
+       expr ...))))
 
-       (llvm-set-position then-block)
-       then-expr
-       (unless (llvm-get-terminator)
-         (llvm-br end-block))
 
-       (llvm-set-position end-block)
-       (void)))))
+(define-syntaxes (llvm-when llvm-unless)
+ (let ()
+  (define (maker which)
+   (lambda (stx)
+    (syntax-parse stx
+     ((_ cond-expr:expr then-expr:expr ...)
+      #`(let ()
+          (define-basic-block then-block end-block)
+          (define br-val cond-expr)
+          #,(if which
+                #'(llvm-cond-br br-val then-block end-block)
+                #'(llvm-cond-br br-val end-block then-block))
+   
+          (llvm-set-position then-block)
+          (let () then-expr ...)
+          (llvm-maybe
+            (llvm-br end-block))
+   
+          (llvm-set-position end-block)
+          (void))))))
+  (values (maker #t) (maker #f))))
+
 
 
 
@@ -134,49 +146,37 @@
        (llvm-set-position then-block)
        (define then-val then-expr)
        (define then-end-block (llvm-get-insert-block))
-       (llvm-br merge-block)
+       (llvm-maybe
+        (set! then-end-block #f)
+        (llvm-br merge-block))
        
        (llvm-set-position else-block)
        (define else-val else-expr)
        (define else-end-block (llvm-get-insert-block))
-       (llvm-br merge-block)
+       (llvm-maybe
+        (set! else-end-block #f)
+        (llvm-br merge-block))
 
        (llvm-set-position merge-block)
        (define merge-val (llvm-phi (value->llvm-type else-val)))
-       (llvm-add-incoming merge-val
-            (cons then-val then-end-block)
-            (cons else-val else-end-block))
+       (when then-end-block
+        (llvm-add-incoming merge-val
+             (cons then-val then-end-block)))
+       (when else-end-block
+        (llvm-add-incoming merge-val
+             (cons else-val else-end-block)))
        merge-val))))
+
 
 (define-syntax (llvm-for stx)
   (syntax-parse stx
    ((_ var:id init:expr test:expr inc:expr bodies:expr ...)
-    #'(let ()
-        (define-basic-block start-block body-block finish-block)
+    #'(llvm-loop for-loop ((var init))
+        (llvm-when test 
+          (let () bodies ...)
+          (for-loop inc))))))
 
-        (define init-val init)
-        (define entry-block (llvm-get-insert-block))
-        (llvm-br start-block)
-        
-        (llvm-set-position start-block)
-        (define var (llvm-phi (value->llvm-type init-val)))
-        (define test-val test)
-        (llvm-cond-br test-val body-block finish-block)
 
-        (llvm-set-position body-block)
-        (let ()
-          bodies ...)
-
-        (define inc-val inc)
-        (define body-end-block (llvm-get-insert-block))
-
-        (llvm-br start-block)
-
-        (llvm-add-incoming var
-            (cons init-val entry-block)
-            (cons inc-val body-end-block))
-        (llvm-set-position finish-block)
-        (void)))))
 
 (define-syntax (llvm-define-mutable stx)
  (syntax-parse stx
@@ -319,5 +319,26 @@
        (define name (llvm-add-global (value->llvm-type value) name-string))
        (llvm:set-initializer! name value)))))
 
+(define-syntax (llvm-loop stx)
+  (syntax-parse stx
+   ((_ name:id ((arg:id init:expr) ...) bodies:expr ...)
+    (define/with-syntax (arg2 ...) (generate-temporaries #'(arg ...)))
+    (define/with-syntax (arg-string ...)
+     (map (compose symbol->string syntax-e) (syntax->list #'(arg ...))))
+    (define/with-syntax (arg-value ...) (generate-temporaries #'(arg ...)))
+    (define/with-syntax block-name (string-append "begin-" (symbol->string (syntax-e #'name))))
+
+    #'(let ((arg-value init) ...)
+       (define incoming-block (llvm-get-insert-block))
+       (define begin-block (llvm-add-block #:name block-name))
+       (llvm-br begin-block)
+       (llvm-set-position begin-block)
+       (define (name #:builder (builder (current-builder)) arg2 ...) 
+         (let ((current-block (llvm-get-insert-block #:builder builder)))
+          (llvm-add-incoming arg (cons arg2 current-block)) ...
+          (llvm-br begin-block #:builder builder)))
+       (define arg (llvm-phi (value->llvm-type arg-value) #:name arg-string)) ...
+       (llvm-add-incoming arg (cons arg-value incoming-block)) ...
+       bodies ...))))
 
 

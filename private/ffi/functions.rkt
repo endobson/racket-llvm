@@ -66,6 +66,12 @@
   LLVMRemoveFunctionAttr)
  (_fun LLVMValueRef LLVMAttribute -> _void))
 
+(define-llvm-multiple-safe
+ (LLVMAddFunctionAttr
+  LLVMRemoveFunctionAttr)
+ (_fun safe:LLVMValueRef LLVMAttribute -> _void))
+
+
 (define-llvm-unsafe LLVMGetFunctionAttr
  (_fun LLVMValueRef -> LLVMAttribute))
  
