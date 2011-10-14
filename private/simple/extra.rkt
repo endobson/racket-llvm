@@ -10,7 +10,10 @@
          llvm-define-mutable llvm-define-reference llvm-declare-function
          llvm-define-global llvm-loop
          llvm-define-function llvm-define-module
-         llvm-implement-function)
+         llvm-implement-function 
+         
+         ;TODO
+         llvm:box)
 
 (define (llvm-get-insert-block #:builder (builder (current-builder)))
  (LLVMGetInsertBlock builder))
@@ -176,7 +179,10 @@
           (let () bodies ...)
           (for-loop inc))))))
 
-
+(define (llvm:box v)
+  (define ptr (llvm-alloca (value->llvm-type v)))
+  (llvm-store v ptr)
+  ptr)
 
 (define-syntax (llvm-define-mutable stx)
  (syntax-parse stx
