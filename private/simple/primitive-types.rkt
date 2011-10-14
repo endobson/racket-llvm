@@ -1,21 +1,21 @@
 #lang racket/base
 
 (require
-  "../safe/structs.rkt"
+  "predicates.rkt"
   "../ffi/safe.rkt")
 
 (provide 
-  llvm-integer-type-ref?
-  llvm-float-type-ref?
+  llvm:integer-type?
+  llvm:float-type?
   llvm-get-type-kind)
 
-(define (llvm-integer-type-ref? ref)
- (and (llvm-type-ref? ref)
+(define (llvm:integer-type? ref)
+ (and (llvm:type? ref)
   (let ((type-kind (llvm-get-type-kind ref)))
    (equal? type-kind 'LLVMIntegerTypeKind))))
 
-(define (llvm-float-type-ref? ref)
- (and (llvm-type-ref? ref)
+(define (llvm:float-type? ref)
+ (and (llvm:type? ref)
   (let ((type-kind (llvm-get-type-kind ref)))
    (member type-kind
            '(LLVMFloatTypeKind

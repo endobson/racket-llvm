@@ -5,10 +5,10 @@
 (require 
   racket/contract
   unstable/contract
-  "../safe/structs.rkt"
   "../ffi/safe.rkt"
   "util.rkt"
   "parameters.rkt"
+  "predicates.rkt"
   "primitive-types.rkt")
 
 ;TODO add contracts
@@ -23,63 +23,63 @@
 
 
   ;Deconstructors
-  (llvm-get-type-kind (-> llvm-type-ref? symbol?))
-  (llvm-get-element-type (-> llvm-sequential-type-ref? llvm-type-ref?))
-  (llvm-get-return-type (-> llvm-function-type-ref? llvm-type-ref?))
+  (llvm-get-type-kind (-> llvm:type? symbol?))
+  (llvm-get-element-type (-> llvm:sequential-type? llvm:type?))
+  (llvm-get-return-type (-> llvm:function-type? llvm:type?))
 
   ;Constructors
-  (llvm-int-type  (-> llvm-integer-type-ref?))
-  (llvm-int1-type  (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
-  (llvm-int8-type  (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
-  (llvm-int16-type (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
-  (llvm-int32-type (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
-  (llvm-int64-type (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
+  (llvm-int-type  (-> llvm:integer-type?))
+  (llvm-int1-type  (->* () (#:context llvm:context?) llvm:integer-type?))
+  (llvm-int8-type  (->* () (#:context llvm:context?) llvm:integer-type?))
+  (llvm-int16-type (->* () (#:context llvm:context?) llvm:integer-type?))
+  (llvm-int32-type (->* () (#:context llvm:context?) llvm:integer-type?))
+  (llvm-int64-type (->* () (#:context llvm:context?) llvm:integer-type?))
 
 
-  (llvm-single-type  (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
-  (llvm-double-type  (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
-  (llvm-fp128-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
-  (llvm-x86-fp80-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
-  (llvm-ppc-fp128-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+  (llvm-single-type  (->* () (#:context llvm:context?) llvm:float-type?))
+  (llvm-double-type  (->* () (#:context llvm:context?) llvm:float-type?))
+  (llvm-fp128-type (->* () (#:context llvm:context?) llvm:float-type?))
+  (llvm-x86-fp80-type (->* () (#:context llvm:context?) llvm:float-type?))
+  (llvm-ppc-fp128-type (->* () (#:context llvm:context?) llvm:float-type?))
 
   ;Mutators
   (llvm-named-struct-type-set-body!
-    (->* (llvm-unset-named-struct-type-ref?)
+    (->* (llvm:unset-named-struct-type?)
          (#:packed boolean?)
-         #:rest (listof llvm-type-ref?)
+         #:rest (listof llvm:type?)
          void?))
   (llvm-named-struct-type-set-body*!
-    (->* (llvm-unset-named-struct-type-ref?)
+    (->* (llvm:unset-named-struct-type?)
          (#:packed boolean?)
-         #:rest (list*/c llvm-type-ref?)
+         #:rest (list*/c llvm:type?)
          void?))
 
-  (llvm-pointer-type (->* (llvm-type-ref?) (#:address-space integer?) llvm-pointer-type-ref?))
-  (llvm-function-type (->* (llvm-type-ref?) (#:varargs boolean?) #:rest (listof llvm-type-ref?) llvm-function-type-ref?))
-  (llvm-function-type* (->* (llvm-type-ref?) (#:varargs boolean?) #:rest (list*/c llvm-type-ref?) llvm-function-type-ref?))
-  (llvm-void-type  (->* () (#:context llvm-context-ref?) llvm-void-type-ref?))
+  (llvm-pointer-type (->* (llvm:type?) (#:address-space integer?) llvm:pointer-type?))
+  (llvm-function-type (->* (llvm:type?) (#:varargs boolean?) #:rest (listof llvm:type?) llvm:function-type?))
+  (llvm-function-type* (->* (llvm:type?) (#:varargs boolean?) #:rest (list*/c llvm:type?) llvm:function-type?))
+  (llvm-void-type  (->* () (#:context llvm:context?) llvm:void-type?))
 
 
 
   ;Predicates
-  (llvm-integer-type-ref? predicate/c)
-  (llvm-float-type-ref? predicate/c)
-  (llvm-function-type-ref? predicate/c)
-  (llvm-struct-type-ref? predicate/c)
-  (llvm-unnamed-struct-type-ref? predicate/c)
-  (llvm-named-struct-type-ref? predicate/c)
-  (llvm-unset-named-struct-type-ref? predicate/c)
-  (llvm-array-type-ref? predicate/c)
-  (llvm-vector-type-ref? predicate/c)
-  (llvm-pointer-type-ref? predicate/c)
-  (llvm-void-type-ref? predicate/c)
+  (llvm:integer-type? predicate/c)
+  (llvm:float-type? predicate/c)
+  (llvm:function-type? predicate/c)
+  (llvm:struct-type? predicate/c)
+  (llvm:unnamed-struct-type? predicate/c)
+  (llvm:named-struct-type? predicate/c)
+  (llvm:unset-named-struct-type? predicate/c)
+  (llvm:array-type? predicate/c)
+  (llvm:vector-type? predicate/c)
+  (llvm:pointer-type? predicate/c)
+  (llvm:void-type? predicate/c)
   ;TODO rename to llvm-integer-type-width, etc
   (llvm-get-int-type-width
-    (-> llvm-integer-type-ref? exact-positive-integer?))
+    (-> llvm:integer-type? exact-positive-integer?))
   (llvm-get-array-type-length
-    (-> llvm-array-type-ref? exact-nonnegative-integer?))
+    (-> llvm:array-type? exact-nonnegative-integer?))
   (llvm-get-vector-type-size
-    (-> llvm-vector-type-ref? exact-positive-integer?))
+    (-> llvm:vector-type? exact-positive-integer?))
 
 
   ))
@@ -200,21 +200,21 @@
 ;Predicates
 
 
-(define (llvm-function-type-ref? type)
- (and (llvm-type-ref? type)
+(define (llvm:function-type? type)
+ (and (llvm:type? type)
   (eq? (llvm-get-type-kind type)
        'LLVMFunctionTypeKind)))
 
-(define (llvm-composite-type-ref? type)
- (and (llvm-type-ref? type)
+(define (llvm:composite-type? type)
+ (and (llvm:type? type)
   (memq (llvm-get-type-kind type)
    '(LLVMStructTypeKind
      LLVMArrayTypeKind
      LLVMPointerTypeKind
      LLVMVectorTypeKind))))
 
-(define (llvm-sequential-type-ref? type)
- (and (llvm-type-ref? type)
+(define (llvm:sequential-type? type)
+ (and (llvm:type? type)
   (memq (llvm-get-type-kind type)
    '(LLVMArrayTypeKind
      LLVMPointerTypeKind
@@ -222,17 +222,17 @@
 
 
 ;TODO implement
-(define (llvm-vector-type-ref? ref) #t)
-(define (llvm-pointer-type-ref? ref) #t)
-(define (llvm-void-type-ref? ref) #t)
+(define (llvm:vector-type? t) #t)
+(define (llvm:pointer-type? t) #t)
+(define (llvm:void-type? t) #t)
 
 
-(define (llvm-struct-type-ref? type)
+(define (llvm:struct-type? type)
   (equal? 'LLVMStructTypeKind (llvm-get-type-kind type)))
-(define (llvm-unnamed-struct-type-ref? ref) #t)
-(define (llvm-named-struct-type-ref? ref) #t)
-(define (llvm-unset-named-struct-type-ref? ref) #t)
-(define (llvm-array-type-ref? type) 
+(define (llvm:unnamed-struct-type? t) #t)
+(define (llvm:named-struct-type? t) #t)
+(define (llvm:unset-named-struct-type? t) #t)
+(define (llvm:array-type? type) 
   (equal? 'LLVMArrayTypeKind (llvm-get-type-kind type)))
 
 

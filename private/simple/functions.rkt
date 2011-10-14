@@ -4,8 +4,8 @@
   racket/contract
   unstable/contract
   "../ffi/safe.rkt"
-  "../safe/structs.rkt"
   "parameters.rkt"
+  "predicates.rkt"
   "types.rkt"
   "values.rkt")
 
@@ -15,18 +15,18 @@
   (llvm:function-pointer? predicate/c)
 
   (llvm-add-function
-    (->* (llvm-function-type-ref? string?)
-         (#:module llvm-module-ref?) llvm-value-ref?))
+    (->* (llvm:function-type? string?)
+         (#:module llvm:module?) llvm:value?))
 
   (llvm-get-named-function
-    (->* (string?) (#:module llvm-module-ref?) llvm-value-ref?))))
+    (->* (string?) (#:module llvm:module?) llvm:value?))))
 
 
 (define (llvm:function-pointer? v)
  (and (llvm:value? v)
   (let ((type (llvm-type-of v)))
-    (and (llvm-pointer-type-ref? type)
-         (llvm-function-type-ref? (llvm-get-element-type type))))))
+    (and (llvm:pointer-type? type)
+         (llvm:function-type? (llvm-get-element-type type))))))
 
 
 (define (llvm-add-function type name #:module (module (current-module)))

@@ -1,10 +1,10 @@
 #lang racket
 
 (require
-  "../safe/structs.rkt"
   "../ffi/safe.rkt"
   "types.rkt"
   "values.rkt"
+  "predicates.rkt"
   "parameters.rkt")
 
 (provide
@@ -19,9 +19,9 @@
   (llvm-boolean/c contract?)
   (llvm-int
     (->* (integer?)
-         (llvm-integer-type-ref?
+         (llvm:integer-type?
           #:signed? boolean?)
-         llvm-value-ref?))))
+         llvm:value?))))
 
  
 ;TODO enhance contract
@@ -46,27 +46,27 @@
 (define (integer->llvm n)
  (cond
   ((exact-integer? n) (LLVMConstInt (current-integer-type) n #t))
-  ((llvm-value-ref? n) n)
+  ((llvm:value? n) n)
   (else (error 'integer->llvm "Unknown input value ~a" n))))
 
 
 (define (float->llvm n)
  (cond
   ((real? n) (LLVMConstReal (current-float-type) n))
-  ((llvm-value-ref? n) n)
+  ((llvm:value? n) n)
   (else (error 'float->llvm "Unknown input value ~a" n))))
 
 
 (define (boolean->llvm n)
  (cond
   ((boolean? n) (LLVMConstInt (current-boolean-type) (if n 1 0) #t))
-  ((llvm-value-ref? n) n)
+  ((llvm:value? n) n)
   (else (error 'boolean->llvm "Unknown input value ~a" n))))
 
 (define (string->llvm v #:null-terminate (null-terminate #f))
  (cond
   ((string? v) (LLVMConstStringInContext (current-context) v (not null-terminate)))
-  ((llvm-value-ref? v) v)
+  ((llvm:value? v) v)
   (else (error 'string->llvm "Unknown input value ~a" v))))
 
 
@@ -76,7 +76,7 @@
   ((exact-integer? n) (LLVMConstInt (current-integer-type) n #t))
   ((real? n) (LLVMConstReal (current-float-type) n))
   ((string? n) (LLVMConstStringInContext (current-context) n #t))
-  ((llvm-value-ref? n) n)
+  ((llvm:value? n) n)
   (else (error 'value->llvm "Unknown input value ~a" n))))
 
 ;Type Level
@@ -95,7 +95,7 @@
 (define llvm-current-integer/c
  (flat-named-contract 'llvm-current-integer/c
   (lambda (n) (or (exact-integer? n)
-    (and (llvm-value-ref? n)
+    (and (llvm:value? n)
          (equal?
            (current-integer-type)
            (llvm-type-of n)))))))
@@ -106,8 +106,8 @@
 (define llvm-integer/c
  (flat-named-contract 'llvm-integer/c
   (lambda (n) (or (exact-integer? n)
-    (and (llvm-value-ref? n)
-         (llvm-integer-type-ref?
+    (and (llvm:value? n)
+         (llvm:integer-type?
            (llvm-type-of n)))))))
 
 (define llvm-integer32/c
@@ -119,9 +119,9 @@
     (cond
       ((exact-integer? n)
        (check-type (current-integer-type)))
-      ((llvm-value-ref? n)
+      ((llvm:value? n)
        (let ((ty (llvm-type-of n)))
-         (and (llvm-integer-type-ref? ty)
+         (and (llvm:integer-type? ty)
               (check-type ty))))
       (else #f)))))
 
@@ -130,35 +130,27 @@
 (define llvm-float/c
  (flat-named-contract 'llvm-float/c
   (lambda (n) (or (real? n)
-    (and (llvm-value-ref? n)
-         (llvm-float-type-ref?
+    (and (llvm:value? n)
+         (llvm:float-type?
            (llvm-type-of n)))))))
 
 (define llvm-any-pointer/c
  (flat-named-contract 'llvm-any-pointer/c
   (lambda (v) 
-    (and (llvm-value-ref? v)
+    (and (llvm:value? v)
      (let ((t (llvm-type-of v)))
       (and (eq? (llvm-get-type-kind t)
                 'LLVMPointerTypeKind)))))))
 
-(define llvm-function-pointer/c
- (flat-named-contract 'llvm-function-pointer/c
-  (lambda (v) 
-    (and (llvm-value-ref? v)
-     (let ((t (llvm-type-of v)))
-      (and (eq? (llvm-get-type-kind t)
-                'LLVMPointerTypeKind)
-           (llvm-function-type-ref? (llvm-get-element-type t))))))))
 
 
 
 
 
-
+;TODO make tighter
 (define llvm-boolean/c
  (flat-named-contract 'llvm-boolean/c
-  (lambda (n) (or (boolean? n) (llvm-value-ref? n)))))
+  (lambda (n) (or (boolean? n) (llvm:value? n)))))
 
 
 (define llvm-value/c
@@ -167,7 +159,7 @@
                   (boolean? v)
                   (exact-integer? v)
                   (real? v)
-                  (llvm-value-ref? v)))))
+                  (llvm:value? v)))))
 
 
 (define llvm-constant-value/c
@@ -176,7 +168,7 @@
                   (boolean? v)
                   (exact-integer? v)
                   (real? v)
-                  (and (llvm-value-ref? v)
+                  (and (llvm:value? v)
                        (llvm:constant? v))))))
                        
 

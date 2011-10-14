@@ -11,7 +11,7 @@
   "values.rkt"
   "util.rkt"
   "convertible.rkt"
-  "../safe/structs.rkt"
+  "predicates.rkt"
   "../ffi/safe.rkt")
 
 (provide
@@ -29,30 +29,30 @@
   (llvm-constant-array llvm-constant-array/c)
   (llvm-constant-array* llvm-constant-array*/c)
   (llvm-struct
-    (->* () (#:context llvm-context-ref?
+    (->* () (#:context llvm:context?
              #:packed boolean?)
-         #:rest (listof llvm-value/c) llvm-value-ref?)) 
+         #:rest (listof llvm-value/c) llvm:value?)) 
  (llvm-named-struct
-   (->* (llvm-named-struct-type-ref?)
-        #:rest (listof llvm-value/c) llvm-value-ref?)))) ;TODO Make contract tighter 
+   (->* (llvm:named-struct-type?)
+        #:rest (listof llvm-value/c) llvm:value?)))) ;TODO Make contract tighter 
 
  
 
 
 ;Predicates
 (define (llvm:array? v)
-  (and (llvm-value-ref? v)
-    (llvm-array-type-ref?
+  (and (llvm:value? v)
+    (llvm:array-type?
       (llvm-type-of v))))
 
 (define (llvm:struct? v)
- (and (llvm-value-ref? v)
-   (llvm-struct-type-ref?
+ (and (llvm:value? v)
+   (llvm:struct-type?
      (llvm-type-of v))))
 
 (define (llvm:vector? v)
-  (and (llvm-value-ref? v)
-   (llvm-vector-type-ref?
+  (and (llvm:value? v)
+   (llvm:vector-type?
      (llvm-type-of v))))
 
 
@@ -60,27 +60,27 @@
 (define llvm-extract-element/c
   (->* (llvm:vector?
         llvm-integer32/c)
-       (#:builder llvm-builder-ref?
+       (#:builder llvm:builder?
         #:name string?)
-       llvm-value-ref?))
+       llvm:value?))
 
 (define llvm-insert-element/c
   (->i ((vector llvm:vector?)
         (arg llvm-value/c)
         (index llvm-integer32/c))
-       (#:builder (builder llvm-builder-ref?)
+       (#:builder (builder llvm:builder?)
         #:name (name string?))
        #:pre/name (vector arg)
         "Element and vector types don't match"
         (equal? (llvm-get-element-type (llvm-type-of vector))
                 (value->llvm-type arg))
-       (_ llvm-value-ref?)))
+       (_ llvm:value?)))
 
 
 (define llvm-extract-value/c
   (->i ((aggregate (or/c llvm:array? llvm:struct?))
         (index exact-nonnegative-integer?))
-       (#:builder (builder llvm-builder-ref?)
+       (#:builder (builder llvm:builder?)
         #:name (name string?))
        #:pre/name (aggregate index)
         "Invalid array index"
@@ -92,13 +92,13 @@
         "Invalid struct index"
         (or (not (llvm:struct? aggregate))
             (llvm-is-valid-type-index (llvm-type-of aggregate) index))
-       (_ llvm-value-ref?)))
+       (_ llvm:value?)))
 
 (define llvm-insert-value/c
   (->i ((aggregate (or/c llvm:array? llvm:struct?))
         (arg llvm-value/c)
         (index exact-nonnegative-integer?))
-       (#:builder (builder llvm-builder-ref?)
+       (#:builder (builder llvm:builder?)
         #:name (name string?))
        #:pre/name (aggregate index)
         "Invalid array index"
@@ -114,24 +114,24 @@
         "Element and aggregate types don't match"
         (equal? (llvm-get-type-at-index (llvm-type-of aggregate) index)
                 (value->llvm-type arg))
-       (_ llvm-value-ref?)))
+       (_ llvm:value?)))
 
 
 (define llvm-vector/c
   (->i ()
-       (#:builder (builder llvm-builder-ref?))
+       (#:builder (builder llvm:builder?))
        #:rest (args (non-empty-listof llvm-value/c))
        #:pre/name (args)
         "Element types don't match"
         (let ((t (value->llvm-type (first args))))
           (andmap (lambda (e) (equal? t (value->llvm-type e)))
                   (rest args)))
-       (_ llvm-value-ref?)))
+       (_ llvm:value?)))
 
 
 (define llvm-vector*/c
   (->i ()
-       (#:builder (builder llvm-builder-ref?))
+       (#:builder (builder llvm:builder?))
        #:rest (args (non-empty-list*/c llvm-value/c))
        #:pre/name (args)
         "Element types don't match"
@@ -139,7 +139,7 @@
          (let ((t (value->llvm-type (first args))))
            (andmap (lambda (e) (equal? t (value->llvm-type e)))
                    (rest args))))
-       (_ llvm-value-ref?)))
+       (_ llvm:value?)))
 
 
 (define llvm-constant-array/c
@@ -151,7 +151,7 @@
         (let ((elem-type (value->llvm-type (first args))))
          (for ((arg (rest args)))
            (equal? elem-type (value->llvm-type arg))))
-       (_ llvm-value-ref?)))
+       (_ llvm:value?)))
 
 
 (define llvm-constant-array*/c
@@ -164,7 +164,7 @@
          (let ((elem-type (value->llvm-type (first args))))
           (for ((arg (rest args)))
             (equal? elem-type (value->llvm-type arg)))))
-       (_ llvm-value-ref?)))
+       (_ llvm:value?)))
 
 
 (define (llvm-extract-element v index #:builder (builder (current-builder)) #:name (name ""))

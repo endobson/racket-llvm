@@ -5,34 +5,34 @@
   unstable/contract
   racket/list
   "../ffi/safe.rkt"
-  "../safe/structs.rkt"
   "parameters.rkt"
+  "predicates.rkt"
   "convertible.rkt"
   "values.rkt"
   "types.rkt")
 
 (provide
  (contract-out
-  (llvm-valid-gep-indices? (-> llvm-type-ref? (listof llvm-integer/c) boolean?))
+  (llvm-valid-gep-indices? (-> llvm:type? (listof llvm-integer/c) boolean?))
   (llvm-gep-type
-    (->i ((type llvm-type-ref?)
+    (->i ((type llvm:type?)
           (indices (listof llvm-integer/c)))
          #:pre (type indices)
           (llvm-valid-gep-indices? type indices)
-         (_ llvm-type-ref?)))
+         (_ llvm:type?)))
  
  
   (llvm-is-valid-type-index
-   (-> llvm-pointer-type-ref?
+   (-> llvm:pointer-type?
        llvm-integer/c
        boolean?))
  
   (llvm-get-type-at-index
-   (->i ((type llvm-pointer-type-ref?)
+   (->i ((type llvm:pointer-type?)
          (index llvm-integer/c))
         #:pre (type index)
          (llvm-is-valid-type-index type index)
-        (_ llvm-type-ref?))))) 
+        (_ llvm:type?))))) 
 
 
 

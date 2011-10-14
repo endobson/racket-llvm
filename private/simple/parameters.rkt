@@ -2,19 +2,19 @@
 
 (require 
   racket/contract
-  "../safe/structs.rkt"
   "../ffi/safe.rkt"
+  "predicates.rkt"
   "primitive-types.rkt")
 
 ;TODO contracts
 (provide
  (contract-out
-  (current-builder         (parameter/c llvm-builder-ref?))
-  (current-context         (parameter/c llvm-context-ref?))
-  (current-module          (parameter/c llvm-module-ref?))
-  (current-integer-type    (parameter/c llvm-integer-type-ref?))
-  (current-float-type      (parameter/c llvm-float-type-ref?))
-  (current-boolean-type (-> llvm-integer-type-ref?))))
+  (current-builder         (parameter/c llvm:builder?))
+  (current-context         (parameter/c llvm:context?))
+  (current-module          (parameter/c llvm:module?))
+  (current-integer-type    (parameter/c llvm:integer-type?))
+  (current-float-type      (parameter/c llvm:float-type?))
+  (current-boolean-type (-> llvm:integer-type?))))
 
 (define current-builder
  (make-derived-parameter
