@@ -27,7 +27,16 @@
   (llvm-vector llvm-vector/c)
   (llvm-vector* llvm-vector*/c)
   (llvm-constant-array llvm-constant-array/c)
-  (llvm-constant-array* llvm-constant-array*/c)))
+  (llvm-constant-array* llvm-constant-array*/c)
+  (llvm-struct
+    (->* () (#:context llvm-context-ref?
+             #:packed boolean?)
+         #:rest (listof llvm-value/c) llvm-value-ref?)) 
+ (llvm-named-struct
+   (->* (llvm-named-struct-type-ref?)
+        #:rest (listof llvm-value/c) llvm-value-ref?)))) ;TODO Make contract tighter 
+
+ 
 
 
 ;Predicates
@@ -190,6 +199,16 @@
 (define (llvm-constant-array* . args)
  (apply llvm-constant-array (apply list* args)))
 
+
+
+
+
+
+(define (llvm-struct #:context (context (current-context)) #:packed (packed #f) . args)
+ (LLVMConstStructInContext context (map value->llvm args) packed))
+
+(define (llvm-named-struct ty . args)
+ (LLVMConstNamedStruct ty (map value->llvm args)))
 
 
 

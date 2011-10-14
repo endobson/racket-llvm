@@ -7,6 +7,7 @@
   unstable/contract
   "../safe/structs.rkt"
   "../ffi/safe.rkt"
+  "util.rkt"
   "parameters.rkt"
   "primitive-types.rkt")
 
@@ -27,6 +28,38 @@
   (llvm-get-return-type (-> llvm-function-type-ref? llvm-type-ref?))
 
   ;Constructors
+  (llvm-int-type  (-> llvm-integer-type-ref?))
+  (llvm-int1-type  (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
+  (llvm-int8-type  (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
+  (llvm-int16-type (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
+  (llvm-int32-type (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
+  (llvm-int64-type (->* () (#:context llvm-context-ref?) llvm-integer-type-ref?))
+
+
+  (llvm-single-type  (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+  (llvm-double-type  (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+  (llvm-fp128-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+  (llvm-x86-fp80-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+  (llvm-ppc-fp128-type (->* () (#:context llvm-context-ref?) llvm-float-type-ref?))
+
+  ;Mutators
+  (llvm-named-struct-type-set-body!
+    (->* (llvm-unset-named-struct-type-ref?)
+         (#:packed boolean?)
+         #:rest (listof llvm-type-ref?)
+         void?))
+  (llvm-named-struct-type-set-body*!
+    (->* (llvm-unset-named-struct-type-ref?)
+         (#:packed boolean?)
+         #:rest (list*/c llvm-type-ref?)
+         void?))
+
+  (llvm-pointer-type (->* (llvm-type-ref?) (#:address-space integer?) llvm-pointer-type-ref?))
+  (llvm-function-type (->* (llvm-type-ref?) (#:varargs boolean?) #:rest (listof llvm-type-ref?) llvm-function-type-ref?))
+  (llvm-function-type* (->* (llvm-type-ref?) (#:varargs boolean?) #:rest (list*/c llvm-type-ref?) llvm-function-type-ref?))
+  (llvm-void-type  (->* () (#:context llvm-context-ref?) llvm-void-type-ref?))
+
+
 
   ;Predicates
   (llvm-integer-type-ref? predicate/c)
@@ -101,6 +134,66 @@
 
 (define (llvm-named-struct-type (name "") #:context (context (current-context)))
  (LLVMStructCreateNamed context name))
+
+(define (llvm-pointer-type type  #:address-space (space 0))
+ (LLVMPointerType type space))
+
+(define (llvm-function-type return-type #:varargs (varargs #f) . args)
+ (LLVMFunctionType return-type args varargs))
+
+(define (llvm-function-type* return-type #:varargs (varargs #f) . args)
+ (LLVMFunctionType return-type (apply list* args) varargs))
+
+
+(define (llvm-void-type #:context (context (current-context)))
+ (LLVMVoidTypeInContext context))
+
+
+
+(define (llvm-int-type)
+ (current-integer-type))
+
+(define (llvm-int1-type #:context (context (current-context)))
+ (LLVMInt1TypeInContext context))
+
+(define (llvm-int8-type #:context (context (current-context)))
+ (LLVMInt8TypeInContext context))
+
+(define (llvm-int16-type #:context (context (current-context)))
+ (LLVMInt16TypeInContext context))
+
+(define (llvm-int32-type #:context (context (current-context)))
+ (LLVMInt32TypeInContext context))
+
+(define (llvm-int64-type #:context (context (current-context)))
+ (LLVMInt64TypeInContext context))
+
+
+(define (llvm-single-type #:context (context (current-context)))
+ (LLVMFloatTypeInContext context))
+
+(define (llvm-double-type #:context (context (current-context)))
+ (LLVMDoubleTypeInContext context))
+
+(define (llvm-fp128-type #:context (context (current-context)))
+ (LLVMFP128TypeInContext context))
+
+(define (llvm-x86-fp80-type #:context (context (current-context)))
+ (LLVMX86FP80TypeInContext context))
+
+(define (llvm-ppc-fp128-type #:context (context (current-context)))
+ (LLVMPPCFP128TypeInContext context))
+
+
+
+;Mutators
+(define (llvm-named-struct-type-set-body! #:packed (packed #f)
+                              type . types)
+ (LLVMStructSetBody type types packed))
+
+(define (llvm-named-struct-type-set-body*! #:packed (packed #f)
+                              type . types)
+ (LLVMStructSetBody type (apply list* types) packed))
 
 
 

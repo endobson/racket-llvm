@@ -4,7 +4,6 @@
   racket/contract
   "../safe/structs.rkt"
   "../ffi/safe.rkt"
-  "base.rkt"
   "convertible.rkt"
   "parameters.rkt")
 

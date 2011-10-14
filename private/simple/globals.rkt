@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require "../ffi/safe.rkt" "../safe/structs.rkt" "util.rkt" "types.rkt"
-  "convertible.rkt" "types-values.rkt")
+ "parameters.rkt"  "convertible.rkt" "types-values.rkt")
 (require (for-syntax racket/base) racket/contract unstable/contract)
 
 
@@ -10,6 +10,16 @@
 
   (llvm:global-variable? predicate/c)
   (llvm:global? predicate/c)
+
+
+  (llvm-get-named-global (->* (string?) (#:module llvm-module-ref?) llvm-value-ref?))
+  (llvm-add-global
+   (->* (llvm-type-ref? string?) (#:module llvm-module-ref?) llvm-value-ref?))
+  ;TODO look into changing the name of this
+  (llvm-global-string-ptr
+    (->* (string?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
+
+
 
   (llvm:get-visibility  (-> llvm:global? visibility/c))
   (llvm:set-visibility! (-> llvm:global? visibility/c void?))
@@ -36,6 +46,20 @@
 ;TODO implement
 (define (llvm:global? v) #t)
 (define (llvm:global-variable? v) #t)
+
+
+(define (llvm-get-named-global name #:module (module (current-module)))
+ (LLVMGetNamedGlobal module name))
+
+
+(define (llvm-add-global type name #:module (module (current-module)))
+ (LLVMAddGlobal module type name))
+
+(define (llvm-global-string-ptr string #:builder (builder (current-builder)) #:name (name ""))
+ (LLVMBuildGlobalStringPtr builder string name))
+
+
+
 
 
 

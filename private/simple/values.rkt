@@ -10,13 +10,11 @@
  (contract-out
   (llvm:value? predicate/c)
 
- (llvm-terminator-instruction? (-> llvm-value-ref? boolean?))
- (llvm-get-undef (-> llvm-type-ref? llvm-value-ref?))
- (llvm-null (-> llvm-type-ref? llvm-value-ref?))
- (llvm:constant? predicate/c)
-  
-
-  ))
+  (llvm-terminator-instruction? (-> llvm-value-ref? boolean?))
+  (llvm-get-undef (-> llvm-type-ref? llvm-value-ref?))
+  (llvm-null (-> llvm-type-ref? llvm-value-ref?))
+  (llvm:constant? predicate/c)
+  (llvm-set-value-name (-> llvm-value-ref? string? void?)) ))
 
 
 (define llvm:value? llvm-value-ref?)
@@ -35,4 +33,7 @@
 
 (define (llvm-null type)
  (LLVMConstNull type))
+
+(define (llvm-set-value-name value name)
+ (LLVMSetValueName value name))
 

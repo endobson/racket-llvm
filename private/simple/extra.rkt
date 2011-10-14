@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require "parameters.rkt" "memory.rkt" "globals.rkt" racket/list
-  "convertible.rkt" "types-values.rkt")
+  "convertible.rkt" "types-values.rkt" "modules.rkt" "types.rkt" "builder.rkt" "functions.rkt" "misc-instructions.rkt")
 (require "../ffi/safe.rkt")
 (require (only-in "../ffi/ctypes.rkt" set-safe:llvm-builder-ref-module!))
 (require (for-syntax racket/base syntax/parse racket/syntax racket/list syntax/kerncase))
@@ -12,12 +12,22 @@
          llvm-define-global llvm-loop
          llvm-define-function llvm-define-module
          llvm-implement-function 
-         
-         ;TODO
+         enter-module/32 define-basic-block
          llvm:box)
 
-(define (llvm-get-insert-block #:builder (builder (current-builder)))
- (LLVMGetInsertBlock builder))
+
+(define-syntax (enter-module/32 stx)
+ (syntax-case stx ()
+  ((_ context-expr module-expr body bodies ...)
+   #'(let ((context context-expr)
+           (module module-expr))
+      (parameterize ((current-module module)
+                     (current-context context)
+                     (current-builder (llvm-create-builder #:context context))
+                     (current-integer-type (llvm-int32-type #:context context)))
+       body bodies ...)))))
+
+
 
 (define-syntax (define-basic-block stx)
  (syntax-case stx ()
@@ -28,84 +38,9 @@
     #`(begin
        (define id (llvm-add-block #:name name)) ...)))))
 
-(define (llvm-add-block
-           #:context (context (current-context))
-           #:builder (builder (current-builder))
-           #:name    (name ""))
- (LLVMAppendBasicBlockInContext context (builder->function builder) name))
-
-
-(define (llvm-get-param index #:function (function (builder->function (current-builder))))
- (LLVMGetParam function index))
-
-(define (llvm-add-block-to-function function
-           #:context (context (current-context))
-           #:name    (name ""))
- (LLVMAppendBasicBlockInContext context function name))
-
-
-(define (llvm-add-function type name #:module (module (current-module)))
- (LLVMAddFunction module name type))
-
-(define (builder->function builder)
-  (LLVMGetBasicBlockParent (LLVMGetInsertBlock builder)))
-
-(define (llvm-br block #:builder (builder (current-builder)))
- (LLVMBuildBr builder block))
-
-(define (llvm-set-position block #:builder (builder (current-builder)))
- (LLVMPositionBuilderAtEnd builder block))
-
-
-(define (llvm-phi type #:builder (builder (current-builder)) #:name (name ""))
- (LLVMBuildPhi builder type name))
-
-(define (llvm-add-incoming phi . input-values)
- (define (extract-value v)
-  (if (cons? v) (value->llvm (car v)) v))
- (define (extract-block v)
-  (if (cons? v) (cdr v)  (LLVMGetInstructionParent v)))
-
- (define values (map extract-value input-values))
- (define blocks (map extract-block input-values))
-  
- (LLVMAddIncoming phi values blocks))
- 
-
-(define (llvm-cond-br cond true-block false-block #:builder (builder (current-builder)))
- (LLVMBuildCondBr builder (boolean->llvm cond) true-block false-block))
-
 (define (llvm-get-terminator (block (llvm-get-insert-block)))
   (LLVMGetBasicBlockTerminator block))
 
-(define (llvm-function-type return-type #:varargs (varargs #f) . args)
- (LLVMFunctionType return-type args varargs))
-
-
-(define (llvm-create-context)
- (LLVMContextCreate))
-
-
-(define (llvm-create-module (name "") #:context (context (current-context)))
- (LLVMModuleCreateWithNameInContext name context))
-
-
-(define (llvm-int32-type #:context (context (current-context)))
- (LLVMInt32TypeInContext context))
-
-(define (llvm-double-type #:context (context (current-context)))
- (LLVMDoubleTypeInContext context))
-
-
-(define (llvm-create-builder #:context (context (current-context)))
- (LLVMCreateBuilderInContext context))
-
-
-(define (llvm-add-global type name  #:module (module (current-module)))
- (LLVMAddGlobal module type name))
-
-(define (llvm-pointer-type type  #:address-space (space 0))
- (LLVMPointerType type space))
 
 (define-syntax (llvm-maybe stx)
  (syntax-parse stx

@@ -2,7 +2,7 @@
 
 (require (only-in ffi/unsafe cpointer?) racket/contract unstable/contract)
 (require "../ffi/safe.rkt" "parameters.rkt" "types.rkt"
-  "convertible.rkt")
+  "convertible.rkt" "modules.rkt")
 
 (provide
  (contract-out
@@ -30,21 +30,9 @@
 ;TODO implement
 (define (llvm-generic-value? v) #t)
 
-;TODO remove
-(define (llvm-create-context)
- (LLVMContextCreate))
-
-(define (llvm-single-type #:context (context (current-context)))
- (LLVMFloatTypeInContext context))
-
-(define (llvm-double-type #:context (context (current-context)))
- (LLVMDoubleTypeInContext context))
-
-(define (llvm-int32-type #:context (context (current-context)))
- (LLVMInt32TypeInContext context))
 
 
-;---
+;Precreated types
 (define context (llvm-create-context))
 (define single (llvm-single-type #:context context))
 (define double (llvm-double-type #:context context))

@@ -16,8 +16,15 @@
   (llvm-integer/c contract?)
   (llvm-integer32/c contract?)
   (llvm-float/c contract?)
-  (llvm-boolean/c contract?)))
+  (llvm-boolean/c contract?)
+  (llvm-int
+    (->* (integer?)
+         (llvm-integer-type-ref?
+          #:signed? boolean?)
+         llvm-value-ref?))))
+
  
+;TODO enhance contract
 (provide
   integer->llvm
   float->llvm
@@ -28,6 +35,13 @@
 ;TODO remove
 (define (llvm-type-of value)
  (LLVMTypeOf value))
+
+
+;Constructors
+
+;Integer Creation
+(define (llvm-int n (type (current-integer-type)) #:signed? (signed #t))
+ (LLVMConstInt type n signed))
 
 
 ;Coercions
