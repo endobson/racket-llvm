@@ -31,9 +31,7 @@
           #:name string?)
          llvm-basic-block-ref?))
   (builder->function (-> llvm-builder-ref? llvm:function-pointer?))
-
-
-  ))
+  (builder->module (-> llvm-builder-ref? llvm-module-ref?))))
 
 
 (define (llvm-create-builder #:context (context (current-context)))

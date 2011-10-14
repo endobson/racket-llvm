@@ -4,6 +4,8 @@
 
 (require "../ffi/safe.rkt"
   "convertible.rkt" "values.rkt"
+  "builder.rkt"
+  "misc-instructions.rkt"
   "../safe/structs.rkt" "parameters.rkt")
 (require racket/contract)
 
@@ -13,16 +15,6 @@
                   (#:builder llvm-builder-ref?
                    #:name string?)
                   llvm-float/c))))
-
-;TODO remove to common code
-(define (llvm-call function #:builder (builder (current-builder)) #:name (name "") . arguments)
- (LLVMBuildCall builder function (map value->llvm arguments) name))
-
-(define (builder->function builder)
-  (LLVMGetBasicBlockParent (LLVMGetInsertBlock builder)))
-
-(define (builder->module builder)
-  (LLVMGetGlobalParent (builder->function builder)))
 
 
 
