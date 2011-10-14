@@ -1,3 +1,4 @@
 *.dylib
+*.dylib.dSYM
 *.so
 compiled
