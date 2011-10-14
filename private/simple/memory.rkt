@@ -5,7 +5,10 @@
 (require
   "../safe/structs.rkt"
   "../ffi/safe.rkt"
-  "base.rkt")
+  "parameters.rkt"
+  "convertible.rkt"
+  "types-values.rkt"
+  "types.rkt")
 
 (define load/c
  (->* (llvm-any-pointer/c)

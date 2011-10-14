@@ -1,22 +1,62 @@
 #lang racket/base
 
-(require racket/contract
-         racket/list)
-(require "base.rkt"
-         "types.rkt"
-         "util.rkt"
-         "../safe/structs.rkt"
-         "../ffi/safe.rkt")
+(require
+  racket/contract
+  unstable/contract
+  racket/list)
+(require 
+  "parameters.rkt"
+  "types.rkt"
+  "values.rkt"
+  "types-values.rkt"
+  "util.rkt"
+  "convertible.rkt"
+  "../safe/structs.rkt"
+  "../ffi/safe.rkt")
 
+(provide
+ (contract-out
+  ;Predicates
+  (llvm:array? predicate/c)
+  (llvm:struct? predicate/c)
+  (llvm:vector? predicate/c)
+  (llvm-extract-element llvm-extract-element/c)
+  (llvm-insert-element llvm-insert-element/c)
+  (llvm-extract-value llvm-extract-value/c)
+  (llvm-insert-value llvm-insert-value/c)
+  (llvm-vector llvm-vector/c)
+  (llvm-vector* llvm-vector*/c)
+  (llvm-constant-array llvm-constant-array/c)
+  (llvm-constant-array* llvm-constant-array*/c)))
+
+
+;Predicates
+(define (llvm:array? v)
+  (and (llvm-value-ref? v)
+    (llvm-array-type-ref?
+      (llvm-type-of v))))
+
+(define (llvm:struct? v)
+ (and (llvm-value-ref? v)
+   (llvm-struct-type-ref?
+     (llvm-type-of v))))
+
+(define (llvm:vector? v)
+  (and (llvm-value-ref? v)
+   (llvm-vector-type-ref?
+     (llvm-type-of v))))
+
+
+;Contracts
 (define llvm-extract-element/c
-  (->* (llvm-vector?
+  (->* (llvm:vector?
         llvm-integer32/c)
        (#:builder llvm-builder-ref?
         #:name string?)
        llvm-value-ref?))
 
 (define llvm-insert-element/c
-  (->i ((vector llvm-vector?)
+  (->i ((vector llvm:vector?)
         (arg llvm-value/c)
         (index llvm-integer32/c))
        (#:builder (builder llvm-builder-ref?)
@@ -116,18 +156,6 @@
           (for ((arg (rest args)))
             (equal? elem-type (value->llvm-type arg)))))
        (_ llvm-value-ref?)))
-
-
-
-(provide/contract
-  (llvm-extract-element llvm-extract-element/c)
-  (llvm-insert-element llvm-insert-element/c)
-  (llvm-extract-value llvm-extract-value/c)
-  (llvm-insert-value llvm-insert-value/c)
-  (llvm-vector llvm-vector/c)
-  (llvm-vector* llvm-vector*/c)
-  (llvm-constant-array llvm-constant-array/c)
-  (llvm-constant-array* llvm-constant-array*/c))
 
 
 (define (llvm-extract-element v index #:builder (builder (current-builder)) #:name (name ""))

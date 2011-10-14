@@ -23,7 +23,7 @@ Correct output N = 1000 is
 (require (for-syntax racket/base))
 (require "../simple.rkt")
 (require "../private/ffi/safe.rkt")
-(require "../private/simple/base.rkt")
+(require "../private/simple/parameters.rkt")
 (require "../private/short.rkt")
 (require (only-in ffi/unsafe _double cblock->vector))
 

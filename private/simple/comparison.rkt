@@ -4,7 +4,9 @@
 (require
   "../safe/structs.rkt"
   "../ffi/safe.rkt"
-  "base.rkt")
+  "convertible.rkt"
+  "types-values.rkt"
+  "parameters.rkt")
 
 
 (define llvm-integer-or-pointer/c

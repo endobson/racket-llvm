@@ -5,17 +5,20 @@
   "../safe/structs.rkt"
   "util.rkt"
   "aggregate.rkt"
-  "base.rkt"
   "binop.rkt"
-  "comparison.rkt"
   "cast.rkt"
+  "comparison.rkt"
+  "convertible.rkt"
   "extra.rkt"
   "generic.rkt"
   "globals.rkt"
+  "parameters.rkt"
   "intrinsics.rkt"
   "memory.rkt"
   "runtime.rkt"
-  "types.rkt")
+  "types.rkt"
+  "types-values.rkt"
+  "values.rkt")
 
 
 
@@ -30,7 +33,6 @@
   llvm-get-return-type
   llvm-gep-type
   llvm-get-element-type
-  llvm-null
   llvm-get-undef)
   
 
@@ -49,7 +51,9 @@
   "intrinsics.rkt"
   "memory.rkt"
   "runtime.rkt"
-  "types.rkt"))
+  "types.rkt"
+  "types-values.rkt"
+  "values.rkt"))
 
 (provide/contract
  (llvm-create-context (-> llvm-context-ref?))

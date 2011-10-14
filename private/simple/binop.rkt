@@ -5,7 +5,9 @@
 (require
   "../safe/structs.rkt"
   "../ffi/safe.rkt"
-  "base.rkt")
+  "convertible.rkt"
+  "types-values.rkt"
+  "parameters.rkt")
 
 (require racket/contract)
 

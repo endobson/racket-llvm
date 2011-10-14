@@ -1,9 +1,11 @@
 #lang racket/base
 
-(require "base.rkt" (only-in ffi/unsafe cpointer?) racket/contract)
-(require "../ffi/safe.rkt")
+(require (only-in ffi/unsafe cpointer?) racket/contract unstable/contract)
+(require "../ffi/safe.rkt" "parameters.rkt" "types.rkt"
+  "convertible.rkt")
 
-(provide/contract
+(provide
+ (contract-out
   (llvm:int->generic (->* (exact-integer?) (#:type llvm-integer-type-ref? #:signed boolean?) llvm-generic-value?))
   (llvm:int32->generic (->* (exact-integer?) (#:signed boolean?) llvm-generic-value?))
                      
@@ -23,7 +25,10 @@
   (llvm:generic->single (->* (llvm-generic-value?)  real?))
   (llvm:generic->double (->* (llvm-generic-value?)  real?))
 
-  )
+  (llvm-generic-value? predicate/c)))
+
+;TODO implement
+(define (llvm-generic-value? v) #t)
 
 ;TODO remove
 (define (llvm-create-context)

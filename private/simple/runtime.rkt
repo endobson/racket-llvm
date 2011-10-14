@@ -1,10 +1,18 @@
 #lang racket/base
 
-(require "base.rkt" "../ffi/safe.rkt" "../safe/structs.rkt" racket/contract)
-(require (only-in ffi/unsafe cpointer?))
+(require
+  "../ffi/safe.rkt"
+  "../safe/structs.rkt"
+  "parameters.rkt"
+  "types-values.rkt"
+  "globals.rkt"
+  racket/contract
+  unstable/contract)
+(require (only-in ffi/unsafe cpointer?) "types.rkt")
 
 
-(provide/contract
+(provide
+ (contract-out
 
   (llvm:optimize-module (->* () (llvm-module-ref?) boolean?))
   (llvm:create-jit (->* () (llvm-module-ref? #:level (one-of/c 0 1 2 3)) llvm-execution-engine-ref?))
@@ -14,9 +22,11 @@
   (llvm:extract-global   (-> llvm-execution-engine-ref?
                              llvm:global-variable?
                              cpointer?))
+  (llvm-execution-engine-ref? predicate/c)))
 
-  )
 
+;TODO implement
+(define (llvm-execution-engine-ref? v) #t)
 
 (define (llvm:optimize-module (module (current-module)))
   (LLVMOptimizeModule module))

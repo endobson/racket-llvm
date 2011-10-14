@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require "../simple.rkt")
-(require "../private/simple/base.rkt")
+(require "../private/simple/parameters.rkt")
 (require "../private/short.rkt")
 (require ffi/unsafe)
 (require racket/flonum)

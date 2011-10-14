@@ -4,7 +4,9 @@
   racket/contract
   "../safe/structs.rkt"
   "../ffi/safe.rkt"
-  "base.rkt")
+  "base.rkt"
+  "convertible.rkt"
+  "parameters.rkt")
 
 (provide/contract
  (llvm-bit-cast (->* (llvm-value-ref? llvm-type-ref?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))

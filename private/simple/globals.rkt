@@ -1,11 +1,16 @@
 #lang racket/base
 
-(require "base.rkt" "../ffi/safe.rkt" "../safe/structs.rkt" "util.rkt")
-(require (for-syntax racket/base) racket/contract)
+(require "../ffi/safe.rkt" "../safe/structs.rkt" "util.rkt" "types.rkt"
+  "convertible.rkt" "types-values.rkt")
+(require (for-syntax racket/base) racket/contract unstable/contract)
 
 
 (provide
  (contract-out 
+
+  (llvm:global-variable? predicate/c)
+  (llvm:global? predicate/c)
+
   (llvm:get-visibility  (-> llvm:global? visibility/c))
   (llvm:set-visibility! (-> llvm:global? visibility/c void?))
 
@@ -28,7 +33,9 @@
   (llvm:set-global-constant! (-> llvm:global-variable? boolean? void?))))
 
   
-
+;TODO implement
+(define (llvm:global? v) #t)
+(define (llvm:global-variable? v) #t)
 
 
 

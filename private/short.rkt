@@ -2,7 +2,7 @@
 
 (require "rename.rkt")
 (require "simple/all.rkt")
-(require "simple/base.rkt")
+(require "simple/parameters.rkt")
 (require (for-syntax racket/base syntax/parse))
 (require (for-meta 2 racket/base))
 (require racket/list)
