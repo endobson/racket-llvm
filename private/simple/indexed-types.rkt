@@ -21,7 +21,6 @@
           (llvm-valid-gep-indices? type indices)
          (_ llvm-type-ref?)))
  
-  (llvm-type-of (-> llvm:value? llvm-type-ref?))
  
   (llvm-is-valid-type-index
    (-> llvm-pointer-type-ref?
@@ -37,13 +36,6 @@
 
 
 
-;TODO add contract
-(provide value->llvm-type)
-
-
-
-(define (llvm-type-of value)
- (LLVMTypeOf value))
 
 (define (llvm-get-type-at-index type idx)
  (LLVMGetTypeAtIndex type (value->llvm idx)))
@@ -66,19 +58,4 @@
      (and (memq kind '(LLVMStructTypeKind LLVMArrayTypeKind LLVMVectorTypeKind))
           (llvm-is-valid-type-index type (first indices))
           (loop (llvm-get-type-at-index type (first indices)) (rest indices))))))))
-
-
-
-
-
-(define (value->llvm-type v)
- (cond
-  ((exact-integer? v) (current-integer-type))
-  ((real? v) (current-float-type))
-  ((boolean? v) (current-boolean-type))
-  ((llvm:value? v) (llvm-type-of v))
-  (else (error 'value->llvm-type "Unknown input value ~a" v))))
-
-
-  
 

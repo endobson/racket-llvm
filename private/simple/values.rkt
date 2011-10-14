@@ -3,21 +3,21 @@
 (require
   racket/contract
   unstable/contract
-  "../safe/structs.rkt"
+  "predicates.rkt"
   "../ffi/safe.rkt")
 
 (provide
  (contract-out
   (llvm:value? predicate/c)
 
-  (llvm-terminator-instruction? (-> llvm-value-ref? boolean?))
-  (llvm-get-undef (-> llvm-type-ref? llvm-value-ref?))
-  (llvm-null (-> llvm-type-ref? llvm-value-ref?))
+  (llvm-type-of (-> llvm:value? llvm:type?))
+  (llvm-terminator-instruction? (-> llvm:value? boolean?))
+  (llvm-get-undef (-> llvm:type? llvm:value?))
+  (llvm-null (-> llvm:type? llvm:value?))
   (llvm:constant? predicate/c)
-  (llvm-set-value-name (-> llvm-value-ref? string? void?)) ))
+  (llvm-set-value-name (-> llvm:value? string? void?)) ))
 
 
-(define llvm:value? llvm-value-ref?)
 
 
 (define (llvm-terminator-instruction? value)
@@ -36,4 +36,8 @@
 
 (define (llvm-set-value-name value name)
  (LLVMSetValueName value name))
+
+
+(define (llvm-type-of value)
+ (LLVMTypeOf value))
 

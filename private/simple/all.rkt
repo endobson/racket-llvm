@@ -20,7 +20,7 @@
   "parameters.rkt"
   "runtime.rkt"
   "types.rkt"
-  "types-values.rkt"
+  "indexed-types.rkt"
   "values.rkt")
 
 
@@ -39,7 +39,7 @@
   "modules.rkt"
   "runtime.rkt"
   "types.rkt"
-  "types-values.rkt"
+  "indexed-types.rkt"
   "values.rkt"))
 
 
@@ -47,6 +47,7 @@
   llvm-value-ref?
   llvm-value/c
   llvm-int
+  value->llvm-type
   enter-module/32
   define-basic-block
   llvm-type-of

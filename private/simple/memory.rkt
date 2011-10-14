@@ -7,7 +7,8 @@
   "../ffi/safe.rkt"
   "parameters.rkt"
   "convertible.rkt"
-  "types-values.rkt"
+  "indexed-types.rkt"
+  "values.rkt"
   "types.rkt")
 
 (define load/c

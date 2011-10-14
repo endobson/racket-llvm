@@ -30,11 +30,9 @@
   float->llvm
   boolean->llvm
   string->llvm
-  value->llvm)
+  value->llvm
+  value->llvm-type)
 
-;TODO remove
-(define (llvm-type-of value)
- (LLVMTypeOf value))
 
 
 ;Constructors
@@ -80,6 +78,16 @@
   ((string? n) (LLVMConstStringInContext (current-context) n #t))
   ((llvm-value-ref? n) n)
   (else (error 'value->llvm "Unknown input value ~a" n))))
+
+;Type Level
+(define (value->llvm-type v)
+ (cond
+  ((exact-integer? v) (current-integer-type))
+  ((real? v) (current-float-type))
+  ((boolean? v) (current-boolean-type))
+  ((llvm:value? v) (llvm-type-of v))
+  (else (error 'value->llvm-type "Unknown input value ~a" v))))
+
 
 ;Contracts
 

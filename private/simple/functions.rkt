@@ -5,7 +5,6 @@
   unstable/contract
   "../ffi/safe.rkt"
   "../safe/structs.rkt"
-  "types-values.rkt"
   "parameters.rkt"
   "types.rkt"
   "values.rkt")
@@ -25,7 +24,7 @@
 
 (define (llvm:function-pointer? v)
  (and (llvm:value? v)
-  (let ((type (value->llvm-type v)))
+  (let ((type (llvm-type-of v)))
     (and (llvm-pointer-type-ref? type)
          (llvm-function-type-ref? (llvm-get-element-type type))))))
 

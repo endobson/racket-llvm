@@ -4,7 +4,7 @@
   "../ffi/safe.rkt"
   "../safe/structs.rkt"
   "parameters.rkt"
-  "types-values.rkt"
+  "values.rkt"
   "globals.rkt"
   racket/contract
   unstable/contract)

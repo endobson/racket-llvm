@@ -7,8 +7,8 @@
 (require 
   "parameters.rkt"
   "types.rkt"
+  "indexed-types.rkt"
   "values.rkt"
-  "types-values.rkt"
   "util.rkt"
   "convertible.rkt"
   "../safe/structs.rkt"
