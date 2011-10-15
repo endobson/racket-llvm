@@ -1,10 +1,18 @@
 #lang racket/base
 
-(require "parameters.rkt" "memory.rkt" "globals.rkt" racket/list
-  "convertible.rkt" "indexed-types.rkt" "modules.rkt" "types.rkt" "builder.rkt" "functions.rkt" "misc-instructions.rkt")
-(require "../ffi/safe.rkt")
-(require (only-in "../ffi/ctypes.rkt" set-safe:llvm-builder-ref-module!))
-(require (for-syntax racket/base syntax/parse racket/syntax racket/list syntax/kerncase))
+(require
+ "parameters.rkt"
+ "memory.rkt"
+ "globals.rkt"
+ "convertible.rkt"
+ "modules.rkt"
+ "types.rkt"
+ "builder.rkt"
+ "functions.rkt"
+ "misc-instructions.rkt"
+ "../ffi/safe.rkt"
+ (only-in "../ffi/ctypes.rkt" set-safe:llvm-builder-ref-module!)
+ (for-syntax racket/base syntax/parse racket/syntax racket/list))
 
 
 (provide llvm-if llvm-for llvm-when llvm-unless

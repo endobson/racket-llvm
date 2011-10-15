@@ -8,7 +8,6 @@
   "predicates.rkt"
   "convertible.rkt"
   "indexed-types.rkt"
-  "values.rkt"
   "types.rkt")
 
 (define load/c

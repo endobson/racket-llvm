@@ -6,9 +6,7 @@
   "../ffi/safe.rkt"
   "parameters.rkt"
   "predicates.rkt"
-  "types.rkt"
-  "values.rkt")
-
+  "types.rkt")
 
 (provide
  (contract-out

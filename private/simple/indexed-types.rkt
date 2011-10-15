@@ -2,13 +2,10 @@
 
 (require
   racket/contract
-  unstable/contract
   racket/list
   "../ffi/safe.rkt"
-  "parameters.rkt"
   "predicates.rkt"
   "convertible.rkt"
-  "values.rkt"
   "types.rkt")
 
 (provide

@@ -3,7 +3,6 @@
 (require
   "../ffi/safe.rkt"
   "parameters.rkt"
-  "values.rkt"
   "globals.rkt"
   "predicates.rkt"
   racket/contract

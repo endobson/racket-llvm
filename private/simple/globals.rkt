@@ -5,12 +5,11 @@
   racket/contract
   unstable/contract
   "../ffi/safe.rkt"
-  "util.rkt" "types.rkt"
+  "util.rkt"
+  "types.rkt"
   "parameters.rkt"
   "predicates.rkt"
-  "convertible.rkt"
-  "values.rkt")
-
+  "convertible.rkt")
 
 (provide
  (contract-out 

@@ -1,8 +1,13 @@
 #lang racket/base
 
-(require (only-in ffi/unsafe cpointer?) racket/contract unstable/contract)
-(require "../ffi/safe.rkt" "parameters.rkt" "types.rkt"
-  "convertible.rkt" "modules.rkt")
+(require
+ (only-in ffi/unsafe cpointer?)
+ racket/contract
+ unstable/contract
+ "../ffi/safe.rkt"
+ "parameters.rkt"
+ "types.rkt"
+ "modules.rkt")
 
 (provide
  (contract-out

@@ -1,7 +1,8 @@
 #lang racket/base
 
-(require racket/contract racket/match)
 (require
+  racket/contract
+  racket/match
   "../ffi/safe.rkt"
   "convertible.rkt"
   "predicates.rkt"
