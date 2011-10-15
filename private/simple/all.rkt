@@ -2,7 +2,6 @@
 
 (require
   "../ffi/safe.rkt"
-  "../safe/structs.rkt"
   "util.rkt"
   "aggregate.rkt"
   "binop.rkt"
@@ -18,6 +17,7 @@
   "misc-instructions.rkt"
   "modules.rkt"
   "parameters.rkt"
+  "predicates.rkt"
   "runtime.rkt"
   "types.rkt"
   "indexed-types.rkt"
@@ -44,7 +44,7 @@
 
 
 (provide
-  llvm-value-ref?
+  llvm:value?
   llvm-value/c
   llvm-int
   value->llvm-type

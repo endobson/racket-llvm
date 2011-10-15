@@ -3,35 +3,35 @@
 (require
   racket/contract
   "../ffi/safe.rkt"
-  "../safe/structs.rkt"
   "parameters.rkt"
+  "predicates.rkt"
   "functions.rkt")
 
 
 (provide
  (contract-out
   (llvm-create-builder
-    (->* () (#:context llvm-context-ref?) llvm-builder-ref?))
+    (->* () (#:context llvm:context?) llvm:builder?))
 
   
   (llvm-set-position
-    (->* (llvm-basic-block-ref?) (#:builder llvm-builder-ref?) void?))
+    (->* (llvm:basic-block?) (#:builder llvm:builder?) void?))
   (llvm-get-insert-block
-    (->* () (#:builder llvm-builder-ref?) llvm-basic-block-ref?))
+    (->* () (#:builder llvm:builder?) llvm:basic-block?))
   (llvm-add-block
     (->* ()
-         (#:context llvm-context-ref?
-          #:builder llvm-builder-ref?
+         (#:context llvm:context?
+          #:builder llvm:builder?
           #:name string?)
-         llvm-basic-block-ref?))
+         llvm:basic-block?))
 
   (llvm-add-block-to-function
     (->* (llvm:function-pointer?)
-         (#:context llvm-context-ref?
+         (#:context llvm:context?
           #:name string?)
-         llvm-basic-block-ref?))
-  (builder->function (-> llvm-builder-ref? llvm:function-pointer?))
-  (builder->module (-> llvm-builder-ref? llvm-module-ref?))))
+         llvm:basic-block?))
+  (builder->function (-> llvm:builder? llvm:function-pointer?))
+  (builder->module (-> llvm:builder? llvm:module?))))
 
 
 (define (llvm-create-builder #:context (context (current-context)))

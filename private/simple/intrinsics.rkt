@@ -6,13 +6,14 @@
   "convertible.rkt" "values.rkt"
   "builder.rkt"
   "misc-instructions.rkt"
-  "../safe/structs.rkt" "parameters.rkt")
+  "predicates.rkt"
+  "parameters.rkt")
 (require racket/contract)
 
 (provide
  (contract-out
   (llvm:sqrt (->* (llvm-float/c)
-                  (#:builder llvm-builder-ref?
+                  (#:builder llvm:builder?
                    #:name string?)
                   llvm-float/c))))
 

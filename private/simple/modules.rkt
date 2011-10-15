@@ -3,27 +3,27 @@
 (require
   racket/contract
   "../ffi/safe.rkt"
-  "../safe/structs.rkt"
+  "predicates.rkt"
   "parameters.rkt")
 
 
 (provide
  (contract-out
-  (llvm-create-context (-> llvm-context-ref?))
+  (llvm-create-context (-> llvm:context?))
   (llvm-create-module
-    (->* () (string? #:context llvm-context-ref?) llvm-module-ref?))
+    (->* () (string? #:context llvm:context?) llvm:module?))
 
 
-  (llvm-verify-module (->* () (llvm-module-ref?) (or/c #f string?)))
-  (llvm-assert-module-valid (->* () (llvm-module-ref?) void?))
-  (llvm-module-description (->* () (llvm-module-ref?) string?))
+  (llvm-verify-module (->* () (llvm:module?) (or/c #f string?)))
+  (llvm-assert-module-valid (->* () (llvm:module?) void?))
+  (llvm-module-description (->* () (llvm:module?) string?))
 
 
   (llvm-create-module-from-bitcode-file
-   (->* (path-string?) (#:context llvm-context-ref?) llvm-module-ref?))
+   (->* (path-string?) (#:context llvm:context?) llvm:module?))
   (llvm-write-bitcode-to-file
     (case-> (-> path-string? void?)
-            (-> llvm-module-ref? path-string? void?)))))
+            (-> llvm:module? path-string? void?)))))
 
 (define (llvm-create-context)
  (LLVMContextCreate))

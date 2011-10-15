@@ -4,38 +4,38 @@
   racket/list
   racket/contract
   "../ffi/safe.rkt"
-  "../safe/structs.rkt"
   "util.rkt"
   "parameters.rkt"
+  "predicates.rkt"
   "builder.rkt"
   "convertible.rkt")
 
 
 (provide
  (contract-out
-  (llvm-ret      (->* () (llvm-value/c #:builder llvm-builder-ref?) llvm-value-ref?))
-  (llvm-cond-br (->* (llvm-boolean/c llvm-basic-block-ref? llvm-basic-block-ref?)
-                     (#:builder llvm-builder-ref?)
-                     llvm-value-ref?))
-  (llvm-br (->* (llvm-basic-block-ref?)
-                     (#:builder llvm-builder-ref?)
-                     llvm-value-ref?))
+  (llvm-ret      (->* () (llvm-value/c #:builder llvm:builder?) llvm:value?))
+  (llvm-cond-br (->* (llvm-boolean/c llvm:basic-block? llvm:basic-block?)
+                     (#:builder llvm:builder?)
+                     llvm:value?))
+  (llvm-br (->* (llvm:basic-block?)
+                     (#:builder llvm:builder?)
+                     llvm:value?))
 
-  (llvm-phi (->* (llvm-type-ref?)
-                   (#:builder llvm-builder-ref?
+  (llvm-phi (->* (llvm:type?)
+                   (#:builder llvm:builder?
                     #:name string?)
-                   llvm-value-ref?))
+                   llvm:value?))
 
   (llvm-add-incoming
-    (->* (llvm-value-ref?)
+    (->* (llvm:value?)
          ()
-         #:rest (listof (or/c (cons/c llvm-value/c llvm-basic-block-ref?) llvm-value-ref?))
+         #:rest (listof (or/c (cons/c llvm-value/c llvm:basic-block?) llvm:value?))
          void?))
 
 
-  (llvm-get-param (->*  (integer?) (#:function llvm-value-ref?) llvm-value-ref?))
-  (llvm-call (->* (llvm-value-ref?)  (#:builder llvm-builder-ref? #:name string?) #:rest (listof llvm-value/c) llvm-value-ref?))
-  (llvm-call* (->* (llvm-value-ref?)  (#:builder llvm-builder-ref? #:name string?) #:rest (list*/c llvm-value/c) llvm-value-ref?))))
+  (llvm-get-param (->*  (integer?) (#:function llvm:value?) llvm:value?))
+  (llvm-call (->* (llvm:value?)  (#:builder llvm:builder? #:name string?) #:rest (listof llvm-value/c) llvm:value?))
+  (llvm-call* (->* (llvm:value?)  (#:builder llvm:builder? #:name string?) #:rest (list*/c llvm-value/c) llvm:value?))))
 
 
 

@@ -3,9 +3,9 @@
 
 
 (require
-  "../safe/structs.rkt"
   "../ffi/safe.rkt"
   "convertible.rkt"
+  "predicates.rkt"
   "parameters.rkt")
 
 (require racket/contract)
@@ -14,32 +14,32 @@
 (define llvm-float-binop/c
  (->i ((left llvm-float/c)
        (right llvm-float/c))
-      (#:builder (builder llvm-builder-ref?)
+      (#:builder (builder llvm:builder?)
        #:name (name string?))
       #:pre (left right)
        (equal? (value->llvm-type left) (value->llvm-type right))
-      (_ llvm-value-ref?)))
+      (_ llvm:value?)))
 
 
 
 (define llvm-int-binop/c
  (->i ((left llvm-integer/c)
        (right llvm-integer/c))
-      (#:builder (builder llvm-builder-ref?)
+      (#:builder (builder llvm:builder?)
        #:name (name string?))
       #:pre (left right)
        (equal? (value->llvm-type left) (value->llvm-type right))
-      (_ llvm-value-ref?)))
+      (_ llvm:value?)))
 
 
 (define llvm-binop/c
  (->i ((left (or/c llvm-integer/c llvm-float/c))
        (right (or/c llvm-integer/c llvm-float/c)))
-      (#:builder (builder llvm-builder-ref?)
+      (#:builder (builder llvm:builder?)
        #:name (name string?))
       #:pre (left right)
        (equal? (value->llvm-type left) (value->llvm-type right))
-      (_ llvm-value-ref?)))
+      (_ llvm:value?)))
 
 
 

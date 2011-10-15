@@ -1,8 +1,15 @@
 #lang racket/base
 
-(require "../ffi/safe.rkt" "../safe/structs.rkt" "util.rkt" "types.rkt"
- "parameters.rkt"  "convertible.rkt" "values.rkt")
-(require (for-syntax racket/base) racket/contract unstable/contract)
+(require
+  (for-syntax racket/base)
+  racket/contract
+  unstable/contract
+  "../ffi/safe.rkt"
+  "util.rkt" "types.rkt"
+  "parameters.rkt"
+  "predicates.rkt"
+  "convertible.rkt"
+  "values.rkt")
 
 
 (provide
@@ -12,12 +19,12 @@
   (llvm:global? predicate/c)
 
 
-  (llvm-get-named-global (->* (string?) (#:module llvm-module-ref?) llvm-value-ref?))
+  (llvm-get-named-global (->* (string?) (#:module llvm:module?) llvm:value?))
   (llvm-add-global
-   (->* (llvm-type-ref? string?) (#:module llvm-module-ref?) llvm-value-ref?))
+   (->* (llvm:type? string?) (#:module llvm:module?) llvm:value?))
   ;TODO look into changing the name of this
   (llvm-global-string-ptr
-    (->* (string?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
+    (->* (string?) (#:builder llvm:builder? #:name string?) llvm:value?))
 
 
 
@@ -33,7 +40,7 @@
   (llvm:get-section  (-> llvm:global? string?))
   (llvm:set-section! (-> llvm:global? string? void?))
   
-  (llvm:get-initializer  (-> llvm:global-variable? llvm-value-ref?))
+  (llvm:get-initializer  (-> llvm:global-variable? llvm:value?))
   (llvm:set-initializer! set-initializer/c)
 
   (llvm:is-thread-local? (-> llvm:global-variable? boolean?))

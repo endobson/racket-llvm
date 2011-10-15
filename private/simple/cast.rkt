@@ -2,18 +2,18 @@
 
 (require
   racket/contract
-  "../safe/structs.rkt"
   "../ffi/safe.rkt"
   "convertible.rkt"
+  "predicates.rkt"
   "parameters.rkt")
 
 (provide/contract
- (llvm-bit-cast (->* (llvm-value-ref? llvm-type-ref?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
- (llvm-int-to-ptr (->* (llvm-integer/c llvm-type-ref?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
- (llvm-ptr-to-int (->* (llvm-value-ref?) (llvm-type-ref? #:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
- (llvm-sext (->* (llvm-integer/c llvm-type-ref?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
- (llvm-zext (->* (llvm-integer/c llvm-type-ref?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?))
- (llvm-trunc (->* (llvm-integer/c llvm-type-ref?) (#:builder llvm-builder-ref? #:name string?) llvm-value-ref?)))
+ (llvm-bit-cast (->* (llvm:value? llvm:type?) (#:builder llvm:builder? #:name string?) llvm:value?))
+ (llvm-int-to-ptr (->* (llvm-integer/c llvm:type?) (#:builder llvm:builder? #:name string?) llvm:value?))
+ (llvm-ptr-to-int (->* (llvm:value?) (llvm:type? #:builder llvm:builder? #:name string?) llvm:value?))
+ (llvm-sext (->* (llvm-integer/c llvm:type?) (#:builder llvm:builder? #:name string?) llvm:value?))
+ (llvm-zext (->* (llvm-integer/c llvm:type?) (#:builder llvm:builder? #:name string?) llvm:value?))
+ (llvm-trunc (->* (llvm-integer/c llvm:type?) (#:builder llvm:builder? #:name string?) llvm:value?)))
 
 
 (define (llvm-bit-cast pointer type #:builder (builder (current-builder)) #:name (name ""))

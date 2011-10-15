@@ -2,9 +2,9 @@
 
 (require racket/contract racket/match)
 (require
-  "../safe/structs.rkt"
   "../ffi/safe.rkt"
   "convertible.rkt"
+  "predicates.rkt"
   "parameters.rkt")
 
 
@@ -22,7 +22,7 @@
  (->i ((symbol comparison-symbol/c)
        (left llvm-integer/c)
        (right llvm-integer/c))
-      (#:builder (builder llvm-builder-ref?)
+      (#:builder (builder llvm:builder?)
        #:signed (signed boolean?)
        #:name (name string?))
       #:pre/name (left right)
@@ -30,13 +30,13 @@
        (equal?
         (value->llvm-type left)
         (value->llvm-type left))
-      (_ llvm-value-ref?)))
+      (_ llvm:value?)))
 
 (define fcmp/c
  (->i ((symbol float-comparison-symbol/c)
        (left llvm-float/c)
        (right llvm-float/c))
-      (#:builder (builder llvm-builder-ref?)
+      (#:builder (builder llvm:builder?)
        #:ordered (ordered boolean?)
        #:name (name string?))
       #:pre/name (left right)
@@ -44,14 +44,14 @@
        (equal?
         (value->llvm-type left)
         (value->llvm-type left))
-      (_ llvm-value-ref?)))
+      (_ llvm:value?)))
 
 
 
 (define int-comparison/c
  (->i ((left llvm-integer-or-pointer/c)
        (right llvm-integer-or-pointer/c))
-      (#:builder (builder llvm-builder-ref?)
+      (#:builder (builder llvm:builder?)
        #:signed (signed boolean?)
        #:name (name string?))
       #:pre/name (left right)
@@ -59,13 +59,13 @@
        (equal?
         (value->llvm-type left)
         (value->llvm-type left))
-      (_ llvm-value-ref?)))
+      (_ llvm:value?)))
 
 
 (define comparison/c
  (->i ((left (or/c llvm-float/c llvm-integer-or-pointer/c))
        (right (or/c llvm-float/c llvm-integer-or-pointer/c)))
-      (#:builder (builder llvm-builder-ref?)
+      (#:builder (builder llvm:builder?)
        #:signed (signed boolean?)
        #:ordered (ordered boolean?)
        #:name (name string?))
@@ -82,7 +82,7 @@
        "Signed only used with integer types"
        (or (unsupplied-arg? signed)
            (llvm-integer-or-pointer/c left))
-      (_ llvm-value-ref?)))
+      (_ llvm:value?)))
 
 
 
@@ -91,7 +91,7 @@
 (define float-comparison/c
  (->i ((left llvm-float/c)
        (right llvm-float/c))
-      (#:builder (builder llvm-builder-ref?)
+      (#:builder (builder llvm:builder?)
        #:ordered (ordered boolean?)
        #:name (name string?))
       #:pre/name (left right)
@@ -99,7 +99,7 @@
        (equal?
         (value->llvm-type left)
         (value->llvm-type left))
-      (_ llvm-value-ref?)))
+      (_ llvm:value?)))
 
 
 

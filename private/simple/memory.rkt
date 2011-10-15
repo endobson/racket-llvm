@@ -3,9 +3,9 @@
 (require racket/contract)
 
 (require
-  "../safe/structs.rkt"
   "../ffi/safe.rkt"
   "parameters.rkt"
+  "predicates.rkt"
   "convertible.rkt"
   "indexed-types.rkt"
   "values.rkt"
@@ -13,42 +13,42 @@
 
 (define load/c
  (->* (llvm-any-pointer/c)
-      (#:builder llvm-builder-ref?
+      (#:builder llvm:builder?
        #:name string?)
-      llvm-value-ref?))
+      llvm:value?))
 
 
 (define store/c
  (->i ((value llvm-value/c)
        (pointer llvm-any-pointer/c))
-      (#:builder (builder llvm-builder-ref?))
+      (#:builder (builder llvm:builder?))
       #:pre (value pointer)
        (equal?
         (llvm-get-element-type (llvm-type-of pointer))
         (value->llvm-type value))
-      (_ llvm-value-ref?)))
+      (_ llvm:value?)))
 
 (define gep/c
- (->i ((pointer llvm-value-ref?))
-      (#:builder (builder llvm-builder-ref?)
+ (->i ((pointer llvm:value?))
+      (#:builder (builder llvm:builder?)
        #:name (name string?))
       #:rest (args (listof llvm-integer/c))
       #:pre (pointer args)
        (llvm-valid-gep-indices? (llvm-type-of pointer) (map integer->llvm args))
-      (_ llvm-value-ref?)))
+      (_ llvm:value?)))
  
 (define alloc/c
-  (->* (llvm-type-ref?)
-       (#:builder llvm-builder-ref?
+  (->* (llvm:type?)
+       (#:builder llvm:builder?
         #:name string?)
-       llvm-value-ref?))
+       llvm:value?))
 
 (define array-alloc/c
-  (->* (llvm-type-ref?
+  (->* (llvm:type?
         llvm-integer/c)
-       (#:builder llvm-builder-ref?
+       (#:builder llvm:builder?
         #:name string?)
-       llvm-value-ref?))
+       llvm:value?))
 
 
 (provide/contract

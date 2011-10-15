@@ -12,6 +12,7 @@
   (llvm:type? predicate/c)
   (llvm:module? predicate/c)
   (llvm:context? predicate/c)
+  (llvm:basic-block? predicate/c)
   (llvm:builder? predicate/c)))
 
 (define (llvm:value? v)
@@ -26,6 +27,9 @@
 (define (llvm:context? m)
   (llvm-context-ref? m))
 
-(define (llvm:builder? m)
-  (llvm-builder-ref? m))
+(define (llvm:builder? b)
+  (llvm-builder-ref? b))
+
+(define (llvm:basic-block? b)
+  (llvm-basic-block-ref? b))
 
