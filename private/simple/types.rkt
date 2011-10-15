@@ -22,12 +22,15 @@
  (contract-out
 
 
+
   ;Deconstructors
   (llvm-get-type-kind (-> llvm:type? symbol?))
   (llvm-get-element-type (-> llvm:sequential-type? llvm:type?))
   (llvm-get-return-type (-> llvm:function-type? llvm:type?))
 
   ;Constructors
+  (llvm-type-of (-> llvm:value? llvm:type?))
+
   (llvm-int-type  (-> llvm:integer-type?))
   (llvm-int1-type  (->* () (#:context llvm:context?) llvm:integer-type?))
   (llvm-int8-type  (->* () (#:context llvm:context?) llvm:integer-type?))
@@ -119,6 +122,9 @@
 
 
 ;Constructors
+(define (llvm-type-of value)
+ (LLVMTypeOf value))
+
 (define (llvm-array-type type (size 0))
  (LLVMArrayType type size))
 

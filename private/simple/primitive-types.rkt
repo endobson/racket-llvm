@@ -9,14 +9,14 @@
   llvm:float-type?
   llvm-get-type-kind)
 
-(define (llvm:integer-type? ref)
- (and (llvm:type? ref)
-  (let ((type-kind (llvm-get-type-kind ref)))
+(define (llvm:integer-type? type)
+ (and (llvm:type? type)
+  (let ((type-kind (llvm-get-type-kind type)))
    (equal? type-kind 'LLVMIntegerTypeKind))))
 
-(define (llvm:float-type? ref)
- (and (llvm:type? ref)
-  (let ((type-kind (llvm-get-type-kind ref)))
+(define (llvm:float-type? type)
+ (and (llvm:type? type)
+  (let ((type-kind (llvm-get-type-kind type)))
    (member type-kind
            '(LLVMFloatTypeKind
              LLVMDoubleTypeKind

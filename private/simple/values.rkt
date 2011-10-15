@@ -8,7 +8,6 @@
 
 (provide
  (contract-out
-  (llvm-type-of (-> llvm:value? llvm:type?))
   (llvm-terminator-instruction? (-> llvm:value? boolean?))
   (llvm-get-undef (-> llvm:type? llvm:value?))
   (llvm-null (-> llvm:type? llvm:value?))
@@ -36,6 +35,4 @@
  (LLVMSetValueName value name))
 
 
-(define (llvm-type-of value)
- (LLVMTypeOf value))
 

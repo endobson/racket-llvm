@@ -2,8 +2,10 @@
 
 
 
-(require "../ffi/safe.rkt"
-  "convertible.rkt" "values.rkt"
+(require
+  "../ffi/safe.rkt"
+  "convertible.rkt"
+  "types.rkt"
   "builder.rkt"
   "misc-instructions.rkt"
   "predicates.rkt"
