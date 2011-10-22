@@ -16,7 +16,7 @@
 
 
 (provide llvm-if llvm-for llvm-when llvm-unless
-         llvm-define-mutable llvm-define-reference llvm-declare-function
+         llvm-declare-function
          llvm-define-global llvm-loop
          llvm-define-function llvm-define-module
          llvm-implement-function 
@@ -128,27 +128,6 @@
   (llvm-store v ptr)
   ptr)
 
-(define-syntax (llvm-define-mutable stx)
- (syntax-parse stx
-  ((_ var:id init:expr)
-   #'(begin
-      (define initial-value init)
-      (define ptr (llvm-alloca (value->llvm-type initial-value)))
-      (llvm-store initial-value ptr)
-      (llvm-define-reference var ptr)))))
-
-(define-syntax (llvm-define-reference stx)
- (syntax-parse stx
-  ((_ var:id init:expr)
-   #'(begin
-      (define inner init)
-      (define-syntax var
-       (make-set!-transformer (lambda (stx)
-        (syntax-parse stx #:literals (set!)
-         ((set! _ body:expr) 
-          #'(llvm-store body inner))
-         ((_ args (... ...)) (datum->syntax stx (cons #'(llvm-load inner) #'(args (... ...)))))
-         (_:id #'(llvm-load inner))))))))))
 
 
 (define-syntax (llvm-declare-function stx)

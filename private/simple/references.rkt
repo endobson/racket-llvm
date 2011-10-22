@@ -13,6 +13,9 @@
   (llvm:set set/c)
   (llvm:read read/c)))
 
+;TODO add contract
+(provide
+  llvm:set-multiple)
 
 (struct llvm:reference (pointer)
         #:property prop:llvm-value
@@ -38,6 +41,10 @@
       (#:builder llvm:builder?
        #:name string?)
       llvm:value?))
+
+(define (llvm:set-multiple references #:builder (builder (current-builder)) . values)
+  (for ((ref references) (v values))
+       (llvm:set ref v #:builder builder)))
 
 (define (llvm:set reference value #:builder (builder (current-builder)))
   (llvm-store value (llvm:reference-pointer reference) #:builder builder))

@@ -121,19 +121,16 @@ Correct output N = 1000 is
     (+ (llvm-extract-element v2 0)
      (+ (llvm-extract-element v2 1)
         (llvm-extract-element v2 2)))))
-  (define-syntax (+= stx)
-    (syntax-case stx ()
-      ((_ id expr)
-       #'(set! id (+ id expr)))))
-  (define-syntax (-= stx)
-    (syntax-case stx ()
-      ((_ id expr)
-       #'(set! id (- id expr)))))
+  (define (+= ref value)
+    (llvm:set ref (+ ref value)))
+  (define (-= ref value)
+    (llvm:set ref (- ref value)))
+
 
 
   (llvm-define-function offset-momentum
    (-> void)
-   (llvm-define-mutable center (vector3 0.0))
+   (define center (llvm:reference (llvm:box (vector3 0.0))))
 
    (for index 0 (< index size-of-system) (+ 1 index)
     (let ((planet (gep0 system index)))
@@ -148,7 +145,7 @@ Correct output N = 1000 is
 
   (llvm-define-function energy
    (-> float)
-   (llvm-define-mutable e 0.0)
+   (define e (llvm:reference (llvm:box 0.0)))
 
    (for index 0 (< index size-of-system) (+ 1 index)
     (let ((planet (gep0 system index)))
@@ -181,7 +178,7 @@ Correct output N = 1000 is
     (let* ((outer-planet (gep0 system index))
            (outer-pos (body-position outer-planet))
            (outer-mass (body-mass index)))
-      (llvm-define-mutable vel (body-velocity outer-planet))
+      (define vel (llvm:reference (llvm:box (body-velocity outer-planet))))
       (for inner-index (+ 1 index) (< inner-index size-of-system) (+ 1 inner-index)
         (let* ((inner-planet (gep0 system inner-index))
                (dpos (- outer-pos (body-position inner-planet)))

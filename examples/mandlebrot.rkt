@@ -64,8 +64,8 @@
 
   (define LIMIT (mandel-vector 4.0))
 
-  (llvm-define-mutable zr (mandel-vector 0.0))
-  (llvm-define-mutable zi (mandel-vector 0.0))
+  (define zr (llvm:reference (llvm:box (mandel-vector 0.0))))
+  (define zi (llvm:reference (llvm:box (mandel-vector 0.0))))
 
   (define (compute-magnitude)
     (+ (* zr zr) (* zi zi)))
@@ -73,10 +73,9 @@
   (for i 0 (< i ITERATIONS) (+ i 1)
     (when (llvm-and-vector (> (compute-magnitude)  LIMIT)) 
         (return (mandel-vector #f)))
-    (set!-values (zr zi)
-      (values
-        (+ (- (* zr zr) (* zi zi)) cr)
-        (+ (* (mandel-vector 2.0) (* zr zi)) ci))))
+    (llvm:set-multiple (list zr zi)
+      (+ (- (* zr zr) (* zi zi)) cr)
+      (+ (* (mandel-vector 2.0) (* zr zi)) ci)))
 
   (return (< (compute-magnitude) LIMIT)))))
  
