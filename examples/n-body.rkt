@@ -125,6 +125,10 @@ Correct output N = 1000 is
     (syntax-case stx ()
       ((_ id expr)
        #'(set! id (+ id expr)))))
+  (define-syntax (-= stx)
+    (syntax-case stx ()
+      ((_ id expr)
+       #'(set! id (- id expr)))))
 
 
   (llvm-define-function offset-momentum
@@ -133,8 +137,8 @@ Correct output N = 1000 is
 
    (for index 0 (< index size-of-system) (+ 1 index)
     (let ((planet (gep0 system index)))
-      (set! center (+ center (* (body-velocity planet)
-                                (vector3 (body-mass index)))))))
+      (+= center (* (body-velocity planet)
+                    (vector3 (body-mass index))))))
 
    (set-body-velocity! (load sun)
                         (/ (- (vector3 0.0) center)
@@ -148,17 +152,16 @@ Correct output N = 1000 is
 
    (for index 0 (< index size-of-system) (+ 1 index)
     (let ((planet (gep0 system index)))
-     (set! e
-      (+ e (* 0.5 
+     (+= e(* 0.5
             (* (body-mass index)
-               (size (body-velocity planet))))))
+               (size (body-velocity planet)))))
      (for other-index (+ 1 index) (< other-index size-of-system) (+ 1 other-index)
       (let* ((other-planet (gep0 system other-index))
              (dpos (- (body-position planet) (body-position other-planet)))
              (dist (sqrt (size dpos))))
-        (set! e (- e (/ (* (body-mass index)
-                           (body-mass other-index))
-                        dist)))))))
+        (-= e (/ (* (body-mass index)
+                    (body-mass other-index))
+                 dist))))))
    (return e))
 
 
@@ -186,7 +189,7 @@ Correct output N = 1000 is
                (mag   (/ +dt+ (* dist2 (sqrt dist2))))
                (dpos-mag (* dpos (vector3 mag)))
                (inner-mass  (body-mass inner-index)))
-          (set! vel (- vel (* dpos-mag (vector3 inner-mass))))
+          (-= vel (* dpos-mag (vector3 inner-mass)))
           (set-body-velocity! inner-planet
             (+ (body-velocity inner-planet)
              (* dpos-mag (vector3 outer-mass))))))
