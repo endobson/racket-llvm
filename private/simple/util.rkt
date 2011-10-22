@@ -4,9 +4,16 @@
 (provide list*/c non-empty-list*/c power-of-two?)
 
 (define (list*/c ctc)
- (flat-rec-contract rec
-  (cons/c ctc rec)
-  (list/c (listof ctc))))
+ (if (flat-contract? ctc)
+     (flat-rec-contract rec
+      (cons/c ctc rec)
+      (list/c (listof ctc)))
+     (let ()
+      (define rec
+        (recursive-contract
+          (or/c (cons/c ctc rec)
+                (list/c (listof ctc)))))
+      rec)))
 
 
 (define (non-empty-list*/c ctc)

@@ -65,6 +65,7 @@
 
 
   ;Predicates
+  (llvm:type/c (-> llvm:type? predicate/c))
   (llvm:integer-type? predicate/c)
   (llvm:float-type? predicate/c)
   (llvm:function-type? predicate/c)
@@ -83,6 +84,8 @@
     (-> llvm:array-type? exact-nonnegative-integer?))
   (llvm-get-vector-type-size
     (-> llvm:vector-type? exact-positive-integer?))
+
+
 
 
   ))
@@ -204,6 +207,10 @@
 
 
 ;Predicates
+
+(define ((llvm:type/c type) value)
+ (and (llvm:value? value)
+  (equal? (llvm-type-of value) type)))
 
 
 (define (llvm:function-type? type)

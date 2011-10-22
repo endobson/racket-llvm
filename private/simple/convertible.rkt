@@ -1,6 +1,9 @@
-#lang racket
+#lang racket/base
 
 (require
+  racket/contract/base
+  racket/contract/combinator
+  unstable/prop-contract
   "../ffi/safe.rkt"
   "types.rkt"
   "values.rkt"
@@ -21,7 +24,12 @@
     (->* (integer?)
          (llvm:integer-type?
           #:signed? boolean?)
-         llvm:value?))))
+         llvm:value?))
+  (prop:llvm-value
+    (struct-type-property/c
+      (->i ((extended llvm-extended-value?))
+           (values (value (type) (llvm:type/c type))
+                   (type llvm:type?)))))))
 
  
 ;TODO enhance contract
@@ -33,6 +41,17 @@
   value->llvm
   value->llvm-type)
 
+
+
+(define-values (prop:llvm-value llvm-extended-value? llvm-extended-value-acc)
+  (make-struct-type-property 'llvm-value))
+
+(define (llvm-extended-value-value v)
+  (let-values (((value type) ((llvm-extended-value-acc v) v)))
+    value))
+(define (llvm-extended-value-type v)
+  (let-values (((value type) ((llvm-extended-value-acc v) v)))
+    type))
 
 
 ;Constructors
@@ -72,16 +91,18 @@
 
 (define (value->llvm n)
  (cond
+  ((llvm-extended-value? n) (value->llvm (llvm-extended-value-value n)))
   ((boolean? n) (LLVMConstInt (current-boolean-type) (if n 1 0) #t))
   ((exact-integer? n) (LLVMConstInt (current-integer-type) n #t))
   ((real? n) (LLVMConstReal (current-float-type) n))
   ((string? n) (LLVMConstStringInContext (current-context) n #t))
   ((llvm:value? n) n)
-  (else (error 'value->llvm "Unknown input value ~a" n))))
+  (else (error 'base-value->llvm "Unknown input value ~a" n))))
 
 ;Type Level
 (define (value->llvm-type v)
  (cond
+  ((llvm-extended-value? v) (llvm-extended-value-type v))
   ((exact-integer? v) (current-integer-type))
   ((real? v) (current-float-type))
   ((boolean? v) (current-boolean-type))
@@ -147,10 +168,9 @@
 
 
 
-;TODO make tighter
 (define llvm-boolean/c
  (flat-named-contract 'llvm-boolean/c
-  (lambda (n) (or (boolean? n) (llvm:value? n)))))
+  (lambda (n) (or (boolean? n) ((llvm:type/c (current-boolean-type)) n)))))
 
 
 (define llvm-value/c
@@ -159,18 +179,31 @@
                   (boolean? v)
                   (exact-integer? v)
                   (real? v)
+                  (llvm-extended-value? v)
                   (llvm:value? v)))))
 
+(define llvm-constant-extended-value/c
+  (make-chaperone-contract
+    #:name 'llvm-constant-exteneded-value/c
+    #:first-order llvm-extended-value?
+    #:projection
+     (lambda (blame)
+       (lambda (v)
+         (chaperone-struct v
+           llvm-extended-value-acc
+           (lambda (v f)
+             (define proj (contract-projection (-> llvm-extended-value? (values llvm-constant-value/c any/c))))
+             ((proj blame) f)))))))
 
 (define llvm-constant-value/c
- (flat-named-contract 'llvm-constant-value
-  (lambda (v) (or (string? v)
-                  (boolean? v)
-                  (exact-integer? v)
-                  (real? v)
-                  (and (llvm:value? v)
-                       (llvm:constant? v))))))
+ (or/c
+  (flat-named-contract 'llvm-constant-base-value
+   (lambda (v) (or (string? v)
+                   (boolean? v)
+                   (exact-integer? v)
+                   (real? v)
+                   (and (llvm:value? v)
+                        (llvm:constant? v)))))
+  llvm-constant-extended-value/c))
                        
-
-
 
