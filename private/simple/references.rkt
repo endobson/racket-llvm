@@ -34,7 +34,7 @@
       (_ llvm:value?)))
 
 (define read/c
- (->* (llvm-any-pointer/c)
+ (->* (llvm:reference?)
       (#:builder llvm:builder?
        #:name string?)
       llvm:value?))
