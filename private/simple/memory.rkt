@@ -1,14 +1,24 @@
 #lang racket/base
 
-(require racket/contract)
-
 (require
+  racket/contract
   "../ffi/safe.rkt"
   "parameters.rkt"
   "predicates.rkt"
   "convertible.rkt"
   "indexed-types.rkt"
   "types.rkt")
+
+(provide
+ (contract-out
+  (llvm-alloca alloc/c)
+  (llvm-array-alloca array-alloc/c)
+  (llvm-malloc alloc/c)
+  (llvm-array-malloc array-alloc/c)
+  (llvm-load load/c)
+  (llvm-store store/c)
+  (llvm-gep gep/c)))
+
 
 (define load/c
  (->* (llvm-any-pointer/c)
@@ -50,14 +60,6 @@
        llvm:value?))
 
 
-(provide/contract
- (llvm-alloca alloc/c)
- (llvm-array-alloca array-alloc/c)
- (llvm-malloc alloc/c)
- (llvm-array-malloc array-alloc/c)
- (llvm-load load/c)
- (llvm-store store/c)
- (llvm-gep gep/c))
 
 
 

@@ -1,13 +1,37 @@
 #lang racket/base
 
 (require
-  racket/contract
+  racket/contract/base
   racket/match
   "../ffi/safe.rkt"
   "convertible.rkt"
   "predicates.rkt"
   "parameters.rkt")
 
+(provide
+ (contract-out
+  (llvm-icmp icmp/c)
+  (llvm-fcmp fcmp/c)
+  (llvm-i=  int-comparison/c)
+  (llvm-i/= int-comparison/c)
+  (llvm-i>  int-comparison/c)
+  (llvm-i>= int-comparison/c)
+  (llvm-i<  int-comparison/c)
+  (llvm-i<= int-comparison/c)
+ 
+  (llvm-fl=  float-comparison/c)
+  (llvm-fl/= float-comparison/c)
+  (llvm-fl>  float-comparison/c)
+  (llvm-fl>= float-comparison/c)
+  (llvm-fl<  float-comparison/c)
+  (llvm-fl<= float-comparison/c)
+ 
+  (llvm-=  comparison/c)
+  (llvm-/= comparison/c)
+  (llvm->  comparison/c)
+  (llvm->= comparison/c)
+  (llvm-<  comparison/c)
+  (llvm-<= comparison/c)))
 
 (define llvm-integer-or-pointer/c
  (or/c llvm-any-pointer/c llvm-integer/c))
@@ -102,33 +126,6 @@
         (value->llvm-type left))
       (_ llvm:value?)))
 
-
-
-(provide/contract
- (llvm-icmp icmp/c)
- (llvm-fcmp fcmp/c)
- (llvm-i=  int-comparison/c)
- (llvm-i/= int-comparison/c)
- (llvm-i>  int-comparison/c)
- (llvm-i>= int-comparison/c)
- (llvm-i<  int-comparison/c)
- (llvm-i<= int-comparison/c)
-
- (llvm-fl=  float-comparison/c)
- (llvm-fl/= float-comparison/c)
- (llvm-fl>  float-comparison/c)
- (llvm-fl>= float-comparison/c)
- (llvm-fl<  float-comparison/c)
- (llvm-fl<= float-comparison/c)
-
- (llvm-=  comparison/c)
- (llvm-/= comparison/c)
- (llvm->  comparison/c)
- (llvm->= comparison/c)
- (llvm-<  comparison/c)
- (llvm-<= comparison/c)
-
-)
 
 (define (llvm-icmp type lhv rhv #:signed (signed #t)  #:builder (builder (current-builder)) #:name (name ""))
   (LLVMBuildICmp builder

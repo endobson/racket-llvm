@@ -3,8 +3,7 @@
 (require
   racket/contract
   unstable/contract
-  racket/list)
-(require 
+  racket/list
   "parameters.rkt"
   "types.rkt"
   "indexed-types.rkt"

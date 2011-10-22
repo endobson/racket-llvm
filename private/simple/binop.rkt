@@ -1,14 +1,35 @@
 #lang racket/base
 
-
-
 (require
+  racket/contract/base
   "../ffi/safe.rkt"
   "convertible.rkt"
   "predicates.rkt"
   "parameters.rkt")
 
-(require racket/contract)
+(provide
+ (contract-out
+  (llvm-+ llvm-binop/c)
+  (llvm-* llvm-binop/c)
+  (llvm-- llvm-binop/c)
+  (llvm-/ llvm-binop/c)
+ 
+  (llvm-i+ llvm-int-binop/c)
+  (llvm-i* llvm-int-binop/c)
+  (llvm-i- llvm-int-binop/c)
+  (llvm-i/ llvm-int-binop/c)
+  (llvm-i% llvm-int-binop/c)
+  (llvm-and llvm-int-binop/c)
+  (llvm-or llvm-int-binop/c)
+  (llvm-xor llvm-int-binop/c)
+  (llvm-lshr llvm-int-binop/c)
+  (llvm-ashr llvm-int-binop/c)
+  (llvm-shl llvm-int-binop/c)
+  
+  (llvm-fl+ llvm-float-binop/c)
+  (llvm-fl- llvm-float-binop/c)
+  (llvm-fl* llvm-float-binop/c)
+  (llvm-fl/ llvm-float-binop/c)))
 
 
 (define llvm-float-binop/c
@@ -16,60 +37,30 @@
        (right llvm-float/c))
       (#:builder (builder llvm:builder?)
        #:name (name string?))
-      #:pre (left right)
+      #:pre/name (left right)
+       "Types do not match"
        (equal? (value->llvm-type left) (value->llvm-type right))
       (_ llvm:value?)))
-
-
 
 (define llvm-int-binop/c
  (->i ((left llvm-integer/c)
        (right llvm-integer/c))
       (#:builder (builder llvm:builder?)
        #:name (name string?))
-      #:pre (left right)
+      #:pre/name (left right)
+       "Types do not match"
        (equal? (value->llvm-type left) (value->llvm-type right))
       (_ llvm:value?)))
-
 
 (define llvm-binop/c
  (->i ((left (or/c llvm-integer/c llvm-float/c))
        (right (or/c llvm-integer/c llvm-float/c)))
       (#:builder (builder llvm:builder?)
        #:name (name string?))
-      #:pre (left right)
+      #:pre/name (left right)
+       "Types do not match"
        (equal? (value->llvm-type left) (value->llvm-type right))
       (_ llvm:value?)))
-
-
-
-(provide/contract
-
- (llvm-+ llvm-binop/c)
- (llvm-* llvm-binop/c)
- (llvm-- llvm-binop/c)
- (llvm-/ llvm-binop/c)
-
-
- (llvm-i+ llvm-int-binop/c)
- (llvm-i* llvm-int-binop/c)
- (llvm-i- llvm-int-binop/c)
- (llvm-i/ llvm-int-binop/c)
- (llvm-i% llvm-int-binop/c)
- (llvm-and llvm-int-binop/c)
- (llvm-or llvm-int-binop/c)
- (llvm-xor llvm-int-binop/c)
- (llvm-lshr llvm-int-binop/c)
- (llvm-ashr llvm-int-binop/c)
- (llvm-shl llvm-int-binop/c)
- 
- (llvm-fl+ llvm-float-binop/c)
- (llvm-fl- llvm-float-binop/c)
- (llvm-fl* llvm-float-binop/c)
- (llvm-fl/ llvm-float-binop/c)
- 
- )
-
 
 
 
