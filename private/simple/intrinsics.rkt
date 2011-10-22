@@ -26,7 +26,7 @@
 
 (define (llvm:sqrt v #:builder (builder (current-builder)) #:name (name ""))
   (let* ((v (value->llvm v))
-         (ty (llvm-type-of v)))
+         (ty (value->llvm-type v)))
     (llvm-call (sqrt-intrinsic (builder->module builder) ty)
                v #:builder builder #:name name)))
 

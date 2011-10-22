@@ -4,6 +4,7 @@
   racket/contract/base
   racket/contract/combinator
   unstable/prop-contract
+  unstable/contract
   "../ffi/safe.rkt"
   "types.rkt"
   "values.rkt"
@@ -12,7 +13,9 @@
 
 (provide
  (contract-out
+  ;TODO get rid of duplicate bindings
   (llvm-value/c contract?)
+  (llvm:value/c contract?)
   (llvm-constant-value/c contract?)
   (llvm-any-pointer/c contract?)
   (llvm-current-integer/c contract?)
@@ -29,7 +32,8 @@
     (struct-type-property/c
       (->i ((extended llvm-extended-value?))
            (values (value (type) (llvm:type/c type))
-                   (type llvm:type?)))))))
+                   (type llvm:type?)))))
+  (llvm:type/c (-> llvm:type? predicate/c))))
 
  
 ;TODO enhance contract
@@ -63,41 +67,33 @@
 
 ;Coercions
 (define (integer->llvm n)
- (cond
-  ((exact-integer? n) (LLVMConstInt (current-integer-type) n #t))
-  ((llvm:value? n) n)
-  (else (error 'integer->llvm "Unknown input value ~a" n))))
+  (value->llvm n))
 
 
 (define (float->llvm n)
- (cond
-  ((real? n) (LLVMConstReal (current-float-type) n))
-  ((llvm:value? n) n)
-  (else (error 'float->llvm "Unknown input value ~a" n))))
+  (value->llvm n))
 
 
 (define (boolean->llvm n)
- (cond
-  ((boolean? n) (LLVMConstInt (current-boolean-type) (if n 1 0) #t))
-  ((llvm:value? n) n)
-  (else (error 'boolean->llvm "Unknown input value ~a" n))))
+  (value->llvm n))
 
 (define (string->llvm v #:null-terminate (null-terminate #f))
  (cond
   ((string? v) (LLVMConstStringInContext (current-context) v (not null-terminate)))
+  ((llvm-extended-value? v) (string->llvm (llvm-extended-value-value v) #:null-terminate null-terminate))
   ((llvm:value? v) v)
   (else (error 'string->llvm "Unknown input value ~a" v))))
 
 
-(define (value->llvm n)
+(define (value->llvm v)
  (cond
-  ((llvm-extended-value? n) (value->llvm (llvm-extended-value-value n)))
-  ((boolean? n) (LLVMConstInt (current-boolean-type) (if n 1 0) #t))
-  ((exact-integer? n) (LLVMConstInt (current-integer-type) n #t))
-  ((real? n) (LLVMConstReal (current-float-type) n))
-  ((string? n) (LLVMConstStringInContext (current-context) n #t))
-  ((llvm:value? n) n)
-  (else (error 'base-value->llvm "Unknown input value ~a" n))))
+  ((llvm-extended-value? v) (value->llvm (llvm-extended-value-value v)))
+  ((boolean? v) (LLVMConstInt (current-boolean-type) (if v 1 0) #t))
+  ((exact-integer? v) (LLVMConstInt (current-integer-type) v #t))
+  ((real? v) (LLVMConstReal (current-float-type) v))
+  ((string? v) (LLVMConstStringInContext (current-context) v #t))
+  ((llvm:value? v) v)
+  (else (error 'base-value->llvm "Unknown input value ~a" v))))
 
 ;Type Level
 (define (value->llvm-type v)
@@ -106,7 +102,7 @@
   ((exact-integer? v) (current-integer-type))
   ((real? v) (current-float-type))
   ((boolean? v) (current-boolean-type))
-  ((llvm:value? v) (llvm-type-of v))
+  ((llvm:value? v) (LLVMTypeOf v))
   (else (error 'value->llvm-type "Unknown input value ~a" v))))
 
 
@@ -116,10 +112,10 @@
 (define llvm-current-integer/c
  (flat-named-contract 'llvm-current-integer/c
   (lambda (n) (or (exact-integer? n)
-    (and (llvm:value? n)
+    (and (llvm:value/c n)
          (equal?
            (current-integer-type)
-           (llvm-type-of n)))))))
+           (value->llvm-type n)))))))
 
 
 
@@ -127,9 +123,9 @@
 (define llvm-integer/c
  (flat-named-contract 'llvm-integer/c
   (lambda (n) (or (exact-integer? n)
-    (and (llvm:value? n)
+    (and (llvm:value/c n)
          (llvm:integer-type?
-           (llvm-type-of n)))))))
+           (value->llvm-type n)))))))
 
 (define llvm-integer32/c
  (flat-named-contract 'llvm-integer32/c
@@ -140,8 +136,8 @@
     (cond
       ((exact-integer? n)
        (check-type (current-integer-type)))
-      ((llvm:value? n)
-       (let ((ty (llvm-type-of n)))
+      ((llvm:value/c n)
+       (let ((ty (value->llvm-type n)))
          (and (llvm:integer-type? ty)
               (check-type ty))))
       (else #f)))))
@@ -151,15 +147,15 @@
 (define llvm-float/c
  (flat-named-contract 'llvm-float/c
   (lambda (n) (or (real? n)
-    (and (llvm:value? n)
+    (and (llvm:value/c n)
          (llvm:float-type?
-           (llvm-type-of n)))))))
+           (value->llvm-type n)))))))
 
 (define llvm-any-pointer/c
  (flat-named-contract 'llvm-any-pointer/c
   (lambda (v) 
-    (and (llvm:value? v)
-     (let ((t (llvm-type-of v)))
+    (and (llvm:value/c v)
+     (let ((t (value->llvm-type v)))
       (and (eq? (llvm-get-type-kind t)
                 'LLVMPointerTypeKind)))))))
 
@@ -181,6 +177,8 @@
                   (real? v)
                   (llvm-extended-value? v)
                   (llvm:value? v)))))
+
+(define llvm:value/c llvm-value/c)
 
 (define llvm-constant-extended-value/c
   (make-chaperone-contract
@@ -205,5 +203,9 @@
                    (and (llvm:value? v)
                         (llvm:constant? v)))))
   llvm-constant-extended-value/c))
-                       
+
+(define ((llvm:type/c type) value)
+ (and (llvm:value/c value)
+  (equal? (value->llvm-type value) type)))
+
 

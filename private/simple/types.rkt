@@ -29,8 +29,6 @@
   (llvm-get-return-type (-> llvm:function-type? llvm:type?))
 
   ;Constructors
-  (llvm-type-of (-> llvm:value? llvm:type?))
-
   (llvm-int-type  (-> llvm:integer-type?))
   (llvm-int1-type  (->* () (#:context llvm:context?) llvm:integer-type?))
   (llvm-int8-type  (->* () (#:context llvm:context?) llvm:integer-type?))
@@ -65,7 +63,6 @@
 
 
   ;Predicates
-  (llvm:type/c (-> llvm:type? predicate/c))
   (llvm:integer-type? predicate/c)
   (llvm:float-type? predicate/c)
   (llvm:function-type? predicate/c)
@@ -125,9 +122,6 @@
 
 
 ;Constructors
-(define (llvm-type-of value)
- (LLVMTypeOf value))
-
 (define (llvm-array-type type (size 0))
  (LLVMArrayType type size))
 
@@ -207,10 +201,6 @@
 
 
 ;Predicates
-
-(define ((llvm:type/c type) value)
- (and (llvm:value? value)
-  (equal? (llvm-type-of value) type)))
 
 
 (define (llvm:function-type? type)

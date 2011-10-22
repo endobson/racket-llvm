@@ -46,13 +46,11 @@
 
 
 (provide
-  llvm:value?
   llvm-value/c
   llvm-int
   value->llvm-type
   enter-module/32
   define-basic-block
-  llvm-type-of
   llvm-get-type-kind
   llvm-get-return-type
   llvm-gep-type

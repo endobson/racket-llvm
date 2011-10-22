@@ -73,8 +73,8 @@
   (->i ((global-var llvm:global-variable?)
         (value llvm-value/c))
        #:pre/name (global-var value)
-        "Matching types"
-        (equal? (llvm-get-element-type (llvm-type-of global-var))
+        "Initializer type does not match global type"
+        (equal? (llvm-get-element-type (value->llvm-type global-var))
                 (value->llvm-type value))
         (result void?)))
 (define alignment/c

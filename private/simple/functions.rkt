@@ -6,6 +6,7 @@
   "../ffi/safe.rkt"
   "parameters.rkt"
   "predicates.rkt"
+  "convertible.rkt"
   "types.rkt")
 
 (provide
@@ -22,7 +23,7 @@
 
 (define (llvm:function-pointer? v)
  (and (llvm:value? v)
-  (let ((type (llvm-type-of v)))
+  (let ((type (value->llvm-type v)))
     (and (llvm:pointer-type? type)
          (llvm:function-type? (llvm-get-element-type type))))))
 

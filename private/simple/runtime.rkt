@@ -5,6 +5,7 @@
   "parameters.rkt"
   "globals.rkt"
   "predicates.rkt"
+  "convertible.rkt"
   racket/contract
   unstable/contract)
 (require (only-in ffi/unsafe cpointer?) "types.rkt")
@@ -38,7 +39,7 @@
   (let ((runner (if (equal? (llvm-get-type-kind
                               (llvm-get-return-type
                                (llvm-get-element-type
-                                (llvm-type-of function))))
+                                (value->llvm-type function))))
                             'LLVMVoidTypeKind)
                     LLVMRunVoidFunction LLVMRunFunction)))
    (lambda args 

@@ -40,19 +40,19 @@
 
 ;Predicates
 (define (llvm:array? v)
-  (and (llvm:value? v)
+  (and (llvm:value/c v)
     (llvm:array-type?
-      (llvm-type-of v))))
+      (value->llvm-type v))))
 
 (define (llvm:struct? v)
- (and (llvm:value? v)
+ (and (llvm:value/c v)
    (llvm:struct-type?
-     (llvm-type-of v))))
+     (value->llvm-type v))))
 
 (define (llvm:vector? v)
-  (and (llvm:value? v)
+  (and (llvm:value/c v)
    (llvm:vector-type?
-     (llvm-type-of v))))
+     (value->llvm-type v))))
 
 
 ;Contracts
@@ -71,7 +71,7 @@
         #:name (name string?))
        #:pre/name (vector arg)
         "Element and vector types don't match"
-        (equal? (llvm-get-element-type (llvm-type-of vector))
+        (equal? (llvm-get-element-type (value->llvm-type vector))
                 (value->llvm-type arg))
        (_ llvm:value?)))
 
@@ -84,13 +84,13 @@
        #:pre/name (aggregate index)
         "Invalid array index"
         (or (not (llvm:array? aggregate))
-            (let ((size (llvm-get-array-type-length (llvm-type-of aggregate))))
+            (let ((size (llvm-get-array-type-length (value->llvm-type aggregate))))
               (or (zero? size)
                   (< index size))))
        #:pre/name (aggregate index)
         "Invalid struct index"
         (or (not (llvm:struct? aggregate))
-            (llvm-is-valid-type-index (llvm-type-of aggregate) index))
+            (llvm-is-valid-type-index (value->llvm-type aggregate) index))
        (_ llvm:value?)))
 
 (define llvm-insert-value/c
@@ -102,16 +102,16 @@
        #:pre/name (aggregate index)
         "Invalid array index"
         (or (not (llvm:array? aggregate))
-            (let ((size (llvm-get-array-type-length (llvm-type-of aggregate))))
+            (let ((size (llvm-get-array-type-length (value->llvm-type aggregate))))
               (or (zero? size)
                   (< index size))))
        #:pre/name (aggregate index)
         "Invalid struct index"
         (or (not (llvm:struct? aggregate))
-            (llvm-is-valid-type-index (llvm-type-of aggregate) index))
+            (llvm-is-valid-type-index (value->llvm-type aggregate) index))
        #:pre/name (aggregate index arg)
         "Element and aggregate types don't match"
-        (equal? (llvm-get-type-at-index (llvm-type-of aggregate) index)
+        (equal? (llvm-get-type-at-index (value->llvm-type aggregate) index)
                 (value->llvm-type arg))
        (_ llvm:value?)))
 

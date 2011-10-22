@@ -33,7 +33,7 @@
       (#:builder (builder llvm:builder?))
       #:pre (value pointer)
        (equal?
-        (llvm-get-element-type (llvm-type-of pointer))
+        (llvm-get-element-type (value->llvm-type pointer))
         (value->llvm-type value))
       (_ llvm:value?)))
 
@@ -43,7 +43,7 @@
        #:name (name string?))
       #:rest (args (listof llvm-integer/c))
       #:pre (pointer args)
-       (llvm-valid-gep-indices? (llvm-type-of pointer) (map integer->llvm args))
+       (llvm-valid-gep-indices? (value->llvm-type pointer) (map integer->llvm args))
       (_ llvm:value?)))
  
 (define alloc/c
