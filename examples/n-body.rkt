@@ -45,8 +45,6 @@ Correct output N = 1000 is
   #:exports (offset-momentum energy advance advance-n system)
 
 
-  (define (gep0 ptr . args)
-    (apply gep ptr 0 args))
 
   (define (make-body x y z vx vy vz mass)
     (llvm-struct (llvm-vector x y z) (llvm-vector vx vy vz) mass))

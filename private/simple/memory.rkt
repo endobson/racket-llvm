@@ -17,7 +17,8 @@
   (llvm-array-malloc array-alloc/c)
   (llvm-load load/c)
   (llvm-store store/c)
-  (llvm-gep gep/c)))
+  (llvm-gep gep/c)
+  (llvm-gep0 gep/c)))
 
 
 (define load/c
@@ -31,7 +32,8 @@
  (->i ((value llvm-value/c)
        (pointer llvm-any-pointer/c))
       (#:builder (builder llvm:builder?))
-      #:pre (value pointer)
+      #:pre/name (value pointer)
+       "Pointer and value Types do not match"
        (equal?
         (llvm-get-element-type (value->llvm-type pointer))
         (value->llvm-type value))
@@ -42,9 +44,22 @@
       (#:builder (builder llvm:builder?)
        #:name (name string?))
       #:rest (args (listof llvm-integer/c))
-      #:pre (pointer args)
+      #:pre/name (pointer args)
+       "Invalid indies"
        (llvm-valid-gep-indices? (value->llvm-type pointer) (map integer->llvm args))
       (_ llvm:value?)))
+
+
+(define gep0/c
+ (->i ((pointer llvm:value?))
+      (#:builder (builder llvm:builder?)
+       #:name (name string?))
+      #:rest (args (listof llvm-integer/c))
+      #:pre/name (pointer args)
+       "Invalid indices"
+       (llvm-valid-gep-indices? (value->llvm-type pointer) (map integer->llvm (cons 0 args)))
+      (_ llvm:value?)))
+
  
 (define alloc/c
   (->* (llvm:type?)
@@ -86,4 +101,7 @@
 
 (define (llvm-gep pointer #:builder (builder (current-builder)) #:name (name "") . indicies)
  (LLVMBuildGEP builder pointer (map integer->llvm indicies) name))
+
+(define (llvm-gep0 pointer #:builder (builder (current-builder)) #:name (name "") . indicies)
+ (LLVMBuildGEP builder pointer (map integer->llvm (cons 0 indicies)) name))
 

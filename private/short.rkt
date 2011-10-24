@@ -63,7 +63,7 @@
          #'(with-syntax ((args (datum->syntax ctx (syntax-e #'args))) ...) body))))
      (local-introduce ctx
         (-> > >= < <= = /= return store load alloca + - * / 
-         for when gep >> << >>> zext sext call
+         for when gep gep0 >> << >>> zext sext call
          or and xor sqrt loop
          bool i8 int float vec arr ptr void unsyntax)
      #'(local-rename
@@ -80,6 +80,7 @@
           (loop llvm-loop)
           (when llvm-when)
           (gep llvm-gep)
+          (gep0 llvm-gep0)
           (call llvm-call)
           (sqrt llvm:sqrt)
           (zext llvm-zext)
