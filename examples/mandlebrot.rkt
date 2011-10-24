@@ -1,15 +1,13 @@
 #lang racket/base
 
-(require "../simple.rkt")
-(require "../private/simple/parameters.rkt")
-(require "../private/short.rkt")
-(require ffi/unsafe)
-(require racket/flonum)
-(require racket/cmdline)
-(require racket/fixnum)
-(require racket/list)
-
-
+(require
+  ffi/unsafe
+  racket/flonum
+  racket/cmdline
+  racket/fixnum
+  racket/list
+  "../simple.rkt"
+  "../private/short.rkt")
 
 
 (define mandel-size 8)

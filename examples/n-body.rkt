@@ -18,14 +18,17 @@ Correct output N = 1000 is
 -0.169087605
 |#
 
-(require racket/cmdline
-         racket/flonum)
-(require (for-syntax racket/base))
-(require "../simple.rkt")
-(require "../private/ffi/safe.rkt")
-(require "../private/simple/parameters.rkt")
-(require "../private/short.rkt")
-(require (only-in ffi/unsafe _double cblock->vector))
+(require
+  racket/cmdline
+  racket/flonum
+  (for-syntax racket/base)
+  "../simple.rkt"
+  "../private/ffi/safe.rkt"
+  "../private/simple/parameters.rkt"
+  "../private/short.rkt"
+  (only-in ffi/unsafe
+    _double
+    cblock->vector))
 
 ;; ------------------------------
 ;; define planetary masses, initial positions & velocity
