@@ -1,19 +1,34 @@
 #lang racket/base
 
-(require racket/contract)
-(provide list*/c non-empty-list*/c power-of-two?)
+(require
+  racket/contract
+  unstable/contract)
+(provide
+ (contract-out
+  (list*/c (-> contract? contract?))
+  (non-empty-list*/c (-> contract? contract?))
+  (power-of-two? predicate/c)))
 
 (define (list*/c ctc)
- (if (flat-contract? ctc)
-     (flat-rec-contract rec
-      (cons/c ctc rec)
-      (list/c (listof ctc)))
-     (let ()
-      (define rec
-        (recursive-contract
-          (or/c (cons/c ctc rec)
-                (list/c (listof ctc)))))
-      rec)))
+ (cond
+  ((flat-contract? ctc)
+   (flat-rec-contract rec
+    (cons/c ctc rec)
+    (list/c (listof ctc))))
+  ((chaperone-contract? ctc)
+   (define rec
+     (recursive-contract
+       (or/c (cons/c ctc rec)
+             (cons/c (listof ctc) null))
+       #:chaperone))
+   rec)
+  (else
+   (define rec
+     (recursive-contract
+       (or/c (cons/c ctc rec)
+             (cons/c (listof ctc) null))))
+   rec)))
+
 
 
 (define (non-empty-list*/c ctc)
