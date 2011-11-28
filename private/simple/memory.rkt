@@ -40,18 +40,18 @@
       (_ llvm:value?)))
 
 (define gep/c
- (->i ((pointer llvm:value?))
+ (->i ((pointer llvm:value/c))
       (#:builder (builder llvm:builder?)
        #:name (name string?))
       #:rest (args (listof llvm-integer/c))
       #:pre/name (pointer args)
-       "Invalid indies"
+       "Invalid indices"
        (llvm-valid-gep-indices? (value->llvm-type pointer) (map integer->llvm args))
       (_ llvm:value?)))
 
 
 (define gep0/c
- (->i ((pointer llvm:value?))
+ (->i ((pointer llvm:value/c))
       (#:builder (builder llvm:builder?)
        #:name (name string?))
       #:rest (args (listof llvm-integer/c))

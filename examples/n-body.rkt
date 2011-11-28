@@ -42,19 +42,15 @@ Correct output N = 1000 is
 
 (ll
  (llvm-define-module module
-  #:exports (offset-momentum energy advance advance-n system)
+  #:exports (offset-momentum energy advance advance-n)
 
-
+  (llvm-define-struct body ((position (vec float 3))
+                            (velocity (vec float 3))
+                            (mass float)) #:omit-constructor)
 
   (define (make-body x y z vx vy vz mass)
     (llvm-struct (llvm-vector x y z) (llvm-vector vx vy vz) mass))
 
-  (define (body-position planet)
-    (load (gep0 planet 0)))
-  (define (body-velocity planet)
-    (load (gep0 planet 1)))
-  (define (body-mass planet)
-    (load (gep0 system planet 2)))
 
   (define (set-body-position! planet val)
     (store val (gep0 planet 0)))
@@ -103,17 +99,15 @@ Correct output N = 1000 is
 
   (define size-of-system 5)
 
-  (llvm-define-global system 
+  (llvm-define-global system-global
     (llvm-constant-array
       sun-initial
       jupiter-initial
       saturn-initial
       uranus-initial
       neptune-initial))
-
-  ;TODO llvm-define-global-contstant
-  (define sun-index 0)
-  (llvm-define-global sun (gep0 system sun-index))
+  (define system (llvm:reference system-global))
+  (define sun (ger0 system 0))
  
   (define (vector3 x)
     (llvm-vector x x x))
@@ -123,9 +117,9 @@ Correct output N = 1000 is
      (+ (llvm-extract-element v2 1)
         (llvm-extract-element v2 2)))))
   (define (+= ref value)
-    (llvm:set ref (+ ref value)))
+    (set ref (+ ref value)))
   (define (-= ref value)
-    (llvm:set ref (- ref value)))
+    (set ref (- ref value)))
 
 
 
@@ -134,13 +128,13 @@ Correct output N = 1000 is
    (define center (llvm:reference (llvm:box (vector3 0.0))))
 
    (for index 0 (< index size-of-system) (+ 1 index)
-    (let ((planet (gep0 system index)))
+    (let ((planet (ger0 system index)))
       (+= center (* (body-velocity planet)
-                    (vector3 (body-mass index))))))
+                    (vector3 (body-mass planet))))))
 
-   (set-body-velocity! (load sun)
-                        (/ (- (vector3 0.0) center)
-                           (vector3 +solar-mass+)))
+   (set (body&-velocity sun)
+        (/ (- (vector3 0.0) center)
+           (vector3 +solar-mass+)))
    (return))
   
 
@@ -149,16 +143,16 @@ Correct output N = 1000 is
    (define e (llvm:reference (llvm:box 0.0)))
 
    (for index 0 (< index size-of-system) (+ 1 index)
-    (let ((planet (gep0 system index)))
-     (+= e(* 0.5
-            (* (body-mass index)
-               (size (body-velocity planet)))))
+    (let ((planet (ger0 system index)))
+     (+= e (* 0.5
+             (* (body-mass planet)
+                (size (body-velocity planet)))))
      (for other-index (+ 1 index) (< other-index size-of-system) (+ 1 other-index)
-      (let* ((other-planet (gep0 system other-index))
+      (let* ((other-planet (ger0 system other-index))
              (dpos (- (body-position planet) (body-position other-planet)))
              (dist (sqrt (size dpos))))
-        (-= e (/ (* (body-mass index)
-                    (body-mass other-index))
+        (-= e (/ (* (body-mass planet)
+                    (body-mass other-planet))
                  dist))))))
    (return e))
 
@@ -176,24 +170,24 @@ Correct output N = 1000 is
 
 
    (for* ((index size-of-system))
-    (let* ((outer-planet (gep0 system index))
-           (outer-pos (body-position outer-planet))
-           (outer-mass (body-mass index)))
-      (define vel (llvm:reference (llvm:box (body-velocity outer-planet))))
+    (let* ((outer-planet (ger0 system index))
+           (outer-pos (body&-position outer-planet))
+           (outer-mass (body&-mass outer-planet)))
+      (define vel (llvm:reference (llvm:box (body&-velocity outer-planet))))
       (for inner-index (+ 1 index) (< inner-index size-of-system) (+ 1 inner-index)
-        (let* ((inner-planet (gep0 system inner-index))
-               (dpos (- outer-pos (body-position inner-planet)))
+        (let* ((inner-planet (ger0 system inner-index))
+               (dpos (- outer-pos (body&-position inner-planet)))
                (dist2 (size dpos))
                (mag   (/ +dt+ (* dist2 (sqrt dist2))))
                (dpos-mag (* dpos (vector3 mag)))
-               (inner-mass  (body-mass inner-index)))
+               (inner-mass  (body&-mass inner-planet)))
           (-= vel (* dpos-mag (vector3 inner-mass)))
-          (set-body-velocity! inner-planet
-            (+ (body-velocity inner-planet)
+          (set (body&-velocity inner-planet)
+            (+ (body&-velocity inner-planet)
              (* dpos-mag (vector3 outer-mass))))))
        ;End of inner loop
-       (set-body-velocity! outer-planet vel) 
-       (set-body-position! outer-planet (+ outer-pos (* (vector3 +dt+) vel)))))
+       (set (body&-velocity outer-planet) vel) 
+       (set (body&-position outer-planet) (+ outer-pos (* (vector3 +dt+) vel)))))
    (return))
      
        
@@ -209,7 +203,6 @@ Correct output N = 1000 is
 (define new-offset-momentum (llvm:extract-function jit offset-momentum))
 (define new-energy (llvm:extract-function jit energy))
 (define new-advance-n (llvm:extract-function jit advance-n))
-(define new-system (llvm:extract-global jit system))
 
 (let ([n (command-line #:args (n) (string->number n))])
   (new-offset-momentum)

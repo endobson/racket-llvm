@@ -1,24 +1,30 @@
 #lang racket/base
 
 (require
+ racket/contract
+ "aggregate.rkt"
  "parameters.rkt"
  "memory.rkt"
  "globals.rkt"
  "convertible.rkt"
  "modules.rkt"
+ "memory.rkt"
+ "predicates.rkt"
+ "references.rkt"
  "types.rkt"
  "builder.rkt"
  "functions.rkt"
  "misc-instructions.rkt"
  "../ffi/safe.rkt"
  (only-in "../ffi/ctypes.rkt" set-safe:llvm-builder-ref-module!)
- (for-syntax racket/base syntax/parse racket/syntax racket/list))
+ (for-syntax racket/base syntax/parse racket/syntax racket/list racket/function))
 
 
-(provide llvm-if llvm-for llvm-when llvm-unless
+(provide llvm-if llvm-for llvm-when llvm-unless llvm-loop
          llvm-declare-function
-         llvm-define-global llvm-loop
+         llvm-define-global 
          llvm-define-function llvm-define-module
+         llvm-define-struct
          llvm-implement-function 
          enter-module/32 define-basic-block
          llvm:box)
@@ -128,7 +134,53 @@
   (llvm-store v ptr)
   ptr)
 
+(define-syntax (llvm-define-struct stx)
+ (define-splicing-syntax-class packed
+  (pattern (~seq) #:attr val #'#f)
+  (pattern (~seq #:packed) #:attr val #'#t))
+ (define-splicing-syntax-class omit-constructor
+  (pattern (~seq) #:attr val #f)
+  (pattern (~seq #:omit-constructor) #:attr val #t))
+ (syntax-parse stx
+  ((_ name:id ((field:id type:expr) ...) packed:packed omit-constructor:omit-constructor)
+   (define (merge . args)
+     (datum->syntax #'name (string->symbol (apply string-append (map ->string args))) #'name #'name))
+   (define (->string v)
+     (cond
+       ((identifier? v) (symbol->string (syntax-e v)))
+       ((symbol? v) (symbol->string v))))
+   (define/with-syntax constructor (merge 'make- #'name))
+   (define/with-syntax (type-val ...) (generate-temporaries #'(type ...)))
+   (define/with-syntax (pointer-acc ...) (map (curry merge #'name '*-) (syntax->list #'(field ...))))
+   (define/with-syntax (reference-acc ...) (map (curry merge #'name '&-) (syntax->list #'(field ...))))
+   (define/with-syntax (struct-acc ...) (map (curry merge #'name '-) (syntax->list #'(field ...))))
+   (define/with-syntax (struct-mut ...) (map (curry merge 'set- #'name '-) (syntax->list #'(field ...))))
+   (define/with-syntax (index ...) (build-list (length (syntax->list #'(field ...))) identity))
+   (define/with-syntax define-constructor
+      (if (attribute omit-constructor.val)
+          #'(begin)
+          #'(define/contract (constructor field ...)
+              (-> (llvm:type/c type-val) ... llvm:value?)
+              (llvm-struct field ...))))
 
+
+   #'(begin
+       (define type-val type) ...
+       (define name (llvm-struct-type type-val ... #:packed packed.val))
+       define-constructor
+       (define/contract (struct-acc s)
+         (-> (llvm:type/c name) llvm:value?)
+         (llvm-extract-value s index)) ...
+       (define/contract (struct-mut s val)
+         (-> (llvm:type/c name) (llvm:type/c type-val) llvm:value?)
+         (llvm-insert-value s val index)) ...
+       (define/contract (pointer-acc p)
+         (-> (llvm:type/c (llvm-pointer-type name)) llvm:reference?)
+         (llvm:reference (llvm-gep0 p index))) ...
+       (define/contract (reference-acc p)
+         (-> (llvm:reference/c name) llvm:reference?)
+         (llvm:reference (llvm-gep0 (llvm:reference-pointer p) index))) ...
+       ))))
 
 (define-syntax (llvm-declare-function stx)
  (define-splicing-syntax-class visibility

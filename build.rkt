@@ -1,70 +1,64 @@
 #lang racket
 (require srfi/13)
-(require (planet endobson/smk/target))
-(provide main clean)
 
-(define (build-llvm-racket)
+(define (build)
+  (define launcher "/usr/bin/env")
+  (define compiler '("g++"))
+  (define os (system-type 'os))
+  (define shared-library-flags
+    (case os
+     ((unix) '("-shared"))
+     ((macosx) '("-dynamiclib" "-undefined" "suppress" "-flat_namespace"))))
+  (define architecture-flags
+    (case os
+      ((unix) '("-m32"))
+      ((macosx) empty)))
+  (define output-redirection-flags
+    `("-o" 
+      ,(case os
+        ((unix) "llvm-racket.so")
+        ((macosx) "llvm-racket.dylib"))))
+  (define cxx-flags (llvm-config "--cxxflags"))
+  (define ld-flags (llvm-config "--ldflags"))
+
+  (define source-file '("llvm-racket.cpp"))
+  (define arguments
+    (append
+      compiler
+      shared-library-flags
+      architecture-flags
+      output-redirection-flags
+      cxx-flags
+      ld-flags
+      source-file))
+
+  (let-values (((process out in err)
+               (apply subprocess #f #f (current-error-port) launcher arguments)))
+    (close-output-port in)
+    (close-input-port out)
+    (subprocess-wait process)
+   (unless (= (subprocess-status process) 0) (error 'g++ "Returned non zero exit code"))))
+
+(define (llvm-config flags)
  (define (remove-blanks lst)
   (filter (lambda (x) (not (equal? x ""))) lst))
- (define program "/usr/bin/env")
- (define flags0 (list "g++"))
- (define flags1
-  (let ((os (system-type 'os))) 
-   (case os
-    ((unix) (list "-shared" "-m32" "-o" "llvm-racket.so"))
-    ((macosx) (list "-dynamiclib" "-o" "llvm-racket.dylib")))))
- (define flags2 
-  (remove-blanks
-   (regexp-split " "
-    (let-values (((process out in err) (subprocess #f #f #f "/usr/bin/env" "llvm-config" "--cxxflags")))
-     (begin0
-      (string-trim-both (port->string out))
-      (close-output-port in)
-      (close-input-port err)
-      (close-input-port out)
-      (subprocess-wait process)
-      (unless (= (subprocess-status process) 0) (error 'llvm-config "Returned non zero exit code")))))))
- (define flags3 
-  (remove-blanks 
-   (regexp-split " "
-    (let-values (((process out in err) (subprocess #f #f #f "/usr/bin/env" "llvm-config" "--ldflags")))
-     (begin0
-      (string-trim-both (port->string out))
-      (close-output-port in)
-      (close-input-port err)
-      (close-input-port out)
-      (subprocess-wait process)
-      (unless (= (subprocess-status process) 0) (error 'llvm-config "Returned non zero exit code")))))))
- (define flags4 
-  (remove-blanks
-   (filter (lambda (flag) (equal? (substring flag 0 2) "-l"))
-    (regexp-split " "
-     (let-values (((process out in err) (subprocess #f #f #f "/usr/bin/env" "llvm-config" "--libs")))
-      (begin0
-       (string-trim-both (port->string out))
-       (close-output-port in)
-       (close-input-port err)
-       (close-input-port out)
-       (subprocess-wait process)
-       (unless (= (subprocess-status process) 0) (error 'llvm-config "Returned non zero exit code"))))))))
- (define flags5 (list "-undefined" "suppress" "-flat_namespace" "llvm-racket.cpp"))
- (let-values (((process out in err)
-               (apply subprocess #f #f (current-error-port) program (append flags0 flags1 flags2 flags3 #;flags4 flags5))))
-  (close-output-port in)
-  (close-input-port out)
-  (subprocess-wait process)
-  (unless (= (subprocess-status process) 0) (error 'g++ "Returned non zero exit code"))
-  empty))
+ (remove-blanks
+  (regexp-split " "
+   (let-values (((process out in err) (subprocess #f #f #f "/usr/bin/env" "llvm-config" flags)))
+    (begin0
+     (string-trim-both (port->string out))
+     (close-output-port in)
+     (close-input-port err)
+     (close-input-port out)
+     (subprocess-wait process)
+     (unless (= (subprocess-status process) 0) (error 'llvm-config "Returned non zero exit code for flags: ~a" flags)))))))
 
-(define (c++-clean)
- (void))
+
+
  
 
-
+(build)
 ;rsync -r . ~/proj/racket/planet/llvm/1.0
 
 
-
-(define clean (new target% (build c++-clean)))
-(define main (new target% (build build-llvm-racket)))
 

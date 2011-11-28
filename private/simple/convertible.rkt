@@ -204,8 +204,10 @@
                         (llvm:constant? v)))))
   llvm-constant-extended-value/c))
 
-(define ((llvm:type/c type) value)
- (and (llvm:value/c value)
-  (equal? (value->llvm-type value) type)))
+(define (llvm:type/c type)
+ (flat-named-contract `(type/c ,type)
+  (lambda (value)
+   (and (llvm:value/c value)
+        (equal? (value->llvm-type value) type)))))
 
 

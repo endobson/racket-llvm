@@ -64,7 +64,7 @@
      (local-introduce ctx
         (-> > >= < <= = /= return store load alloca + - * / 
          for when gep gep0 >> << >>> zext sext call
-         or and xor sqrt loop
+         or and xor sqrt loop set ger ger0
          bool i8 int float vec arr ptr void unsyntax)
      #'(local-rename
          ((-> reversed-llvm-function-type)
@@ -81,6 +81,9 @@
           (when llvm-when)
           (gep llvm-gep)
           (gep0 llvm-gep0)
+          (ger llvm:ger)
+          (ger0 llvm:ger0)
+          (set llvm:set)
           (call llvm-call)
           (sqrt llvm:sqrt)
           (zext llvm-zext)
