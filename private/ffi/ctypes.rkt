@@ -1,7 +1,7 @@
 #lang racket/base
 
 (require (for-syntax "../llvm-util-exptime.rkt" racket/base syntax/parse))
-(require ffi/unsafe)
+(require ffi/unsafe racket/stxparam)
 (require (prefix-in c: racket/contract))
 
 (require "define.rkt")
@@ -9,7 +9,6 @@
 (provide
   LLVMBool
   LLVMContextRef
-  unsafe:LLVMContextRef
   LLVMModuleRef
   LLVMTypeRef
   LLVMValueRef
@@ -72,14 +71,6 @@
   safe:llvm-basic-block-ref?
   safe:llvm-builder-ref?)
 
-
-
-
-(define llvm-will-executor (make-will-executor))
-(void (thread (lambda ()
-                (let loop ()
-                  (will-execute llvm-will-executor)
-                  (loop)))))
 
 
 
@@ -205,13 +196,6 @@
         ...))))
 
 
-(define-syntax (make-types stx)
-  (syntax-parse stx
-   ((_ name:id ...)
-    (with-syntax (((unsafe-id ...) (map (lambda (id) (id-prefix 'unsafe: id))
-                                        (syntax->list #'(name ...)))))
-     #'(begin
-        (define name unsafe-id) ...)))))
 
 
 
@@ -232,23 +216,6 @@
   (unsafe:LLVMGenericValueRef    unsafe:llvm-generic-value-ref    unsafe:llvm-generic-value-ref-pointer)
   (safe:LLVMContextRef   safe:llvm-context-ref    safe:llvm-context-ref-pointer))
 
-(make-types
-  LLVMContextRef
-  LLVMModuleRef
-  LLVMTypeRef
-  LLVMValueRef
-  LLVMBasicBlockRef
-  LLVMBuilderRef
-  LLVMModuleProviderRef
-  LLVMMemoryBufferRef
-  LLVMPassManagerRef
-  LLVMPassRegistryRef
-  LLVMUseRef
-  LLVMTargetDataRef
-  LLVMGenericValueRef
-  LLVMExecutionEngineRef)
-
-
 
 (make-safe-llvm-types
   (safe:LLVMModuleRef          safe:llvm-module-ref           safe:llvm-module-ref-pointer)
@@ -259,6 +226,34 @@
   (safe:LLVMBuilderRef         safe:llvm-builder-ref          safe:llvm-builder-ref-pointer)
   (safe:LLVMExecutionEngineRef safe:llvm-execution-engine-ref safe:llvm-execution-engine-ref-pointer))
 
+(define-syntax (make-types stx)
+  (syntax-parse stx
+   ((_ name:id ...)
+    (with-syntax (((unsafe-id ...) (map (lambda (id) (id-prefix 'unsafe: id))
+                                        (syntax->list #'(name ...)))))
+     #'(begin
+        (define name unsafe-id) ...)))))
+
+(define-syntax define-simple-llvm-safety-parameters
+  (syntax-parser
+   ((_ name:id ...)
+    (with-syntax (((unsafe-id ...) (map (lambda (id) (id-prefix 'unsafe: id))
+                                        (syntax->list #'(name ...))))
+                  ((safe-id ...) (map (lambda (id) (id-prefix 'safe: id))
+                                        (syntax->list #'(name ...)))))
+      #'(begin
+         (define-llvm-safety-parameter name #:safe safe-id #:unsafe unsafe-id) ...)))))
+
+
+;TODO Remove old uses, and switch to new unsafe: prefixed versions
+(make-types
+  LLVMModuleProviderRef
+  LLVMPassManagerRef
+  LLVMPassRegistryRef
+  LLVMUseRef
+  LLVMTargetDataRef)
+
+
 (define safe:LLVMGenericValueRef
  (let ()
   (define-llvm-safe LLVMDisposeGenericValue (_fun _pointer -> _void))
@@ -266,9 +261,20 @@
           safe:llvm-generic-value-ref-pointer
           (lambda (ptr)
             (let ((v (safe:llvm-generic-value-ref ptr)))
-              (will-register llvm-will-executor v 
-                             (lambda (v) (safe:LLVMDisposeGenericValue (safe:llvm-generic-value-ref-pointer v))))
+              (register-finalizer v (lambda (v) (safe:LLVMDisposeGenericValue (safe:llvm-generic-value-ref-pointer v))))
               v)))))
+
+(define-simple-llvm-safety-parameters
+  LLVMContextRef
+  LLVMModuleRef
+  LLVMTypeRef
+  LLVMValueRef
+  LLVMBasicBlockRef
+  LLVMBuilderRef
+  LLVMMemoryBufferRef
+  LLVMGenericValueRef
+  LLVMExecutionEngineRef)
+
 
 
 (define (make-byte-string ptr)
@@ -325,7 +331,7 @@
      (_fun _string (context : safe:LLVMContextRef)
        -> (ptr : _pointer)
        -> (let ((mod (safe:llvm-module-ref ptr context)))
-            (will-register llvm-will-executor mod safe:LLVMDisposeModule)
+            (register-finalizer mod safe:LLVMDisposeModule)
             mod))
      (_fun (context buffer) ::
            (context : safe:LLVMContextRef)
@@ -337,7 +343,7 @@
            ->
            (if err message
             (let ((mod (safe:llvm-module-ref module-ptr context)))
-                        (will-register llvm-will-executor mod safe:LLVMDisposeModule)
+                        (register-finalizer mod safe:LLVMDisposeModule)
                         mod))))))
              
 
@@ -347,7 +353,7 @@
    (define-llvm-safe LLVMContextDispose (_fun safe:LLVMContextRef -> _void))
    (_fun -> (v : safe:LLVMContextRef)
          -> (begin
-             (will-register llvm-will-executor v safe:LLVMContextDispose)
+             (register-finalizer v safe:LLVMContextDispose)
              v))))
 
 (define safe:LLVMBuilderCreator
@@ -356,7 +362,7 @@
    (_fun (context : safe:LLVMContextRef)
      -> (ptr : _pointer)
      -> (let ((build (safe:llvm-builder-ref ptr context #f)))
-          (will-register llvm-will-executor build safe:LLVMDisposeBuilder)
+          (register-finalizer build safe:LLVMDisposeBuilder)
           build))))
 
 (define safe:LLVMMemoryBufferCreatorFromFile
@@ -372,7 +378,7 @@
           ->
           (if ans message
             (let ((buffer (safe:llvm-memory-buffer-ref buffer-ptr)))
-              (will-register llvm-will-executor buffer safe:LLVMDisposeMemoryBuffer)
+              (register-finalizer buffer safe:LLVMDisposeMemoryBuffer)
               buffer)))))
 
 (define safe:LLVMExecutionEngineCreator
@@ -407,7 +413,7 @@
         ->
          (if err message 
            (let ((execution-engine (safe:llvm-execution-engine-ref execution-ptr (list module))))
-             (will-register llvm-will-executor execution-engine engine-disposer)
+             (register-finalizer execution-engine engine-disposer)
              execution-engine)))))
          
 (define safe:LLVMJITCreator
@@ -443,7 +449,7 @@
         ->
          (if err message 
            (let ((execution-engine (safe:llvm-execution-engine-ref execution-ptr (list module))))
-             (will-register llvm-will-executor execution-engine engine-disposer)
+             (register-finalizer execution-engine engine-disposer)
              execution-engine)))))
 
 

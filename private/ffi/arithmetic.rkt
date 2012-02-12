@@ -3,15 +3,11 @@
 (require
   "enums.rkt"
   "define.rkt"
+  "misc-operations.rkt"
   "ctypes.rkt")
 
 (require ffi/unsafe)
 
-(provide
- (except-out (all-defined-out)
-   safe:binop
-   safe:uniop
-   safe:icmp))
 
 ;TODO differentiate types and ensure that types match,
 ;and contexts match
@@ -22,6 +18,27 @@
         _non-null-string ->
         (ptr : _pointer) ->
         (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
+
+(define (safe:llvm-value-for-builder/c builder)
+  (and/c
+    safe:llvm-value-ref?
+    (lambda (v)
+      (let ((owner (safe:llvm-value-ref-owner v)))
+        (if (safe:llvm-module-ref? owner)
+          (equal? owner (safe:llvm-builder-ref-module builder))
+          (equal? owner (safe:llvm-module-ref-context
+                          (safe:llvm-builder-ref-module builder))))))))
+
+
+(define safe:binop/c
+  (->i  ((builder safe:llvm-builder-ref?)
+         (left-value (builder) (safe:llvm-value-for-builder/c builder))
+         (right-value (builder) (safe:llvm-value-for-builder/c builder))
+         (name string?))
+        #:pre/name (left-value right-value) "Values of different types"
+        (equal? (safe:LLVMTypeOf left-value)
+                (safe:LLVMTypeOf right-value))
+        (result safe:llvm-value-ref?)))
 
 (define safe:uniop
   (_fun (builder : safe:LLVMBuilderRef)
@@ -39,6 +56,18 @@
         (ptr : _pointer) ->
         (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
 
+(define safe:icmp/c
+  (->i  ((builder safe:llvm-builder-ref?)
+         (predicate LLVMIntPredicate?)
+         (left-value (builder) (safe:llvm-value-for-builder/c builder))
+         (right-value (builder) (safe:llvm-value-for-builder/c builder))
+         (name string?))
+        #:pre/name (left-value right-value) "Values of different types"
+        (equal? (safe:LLVMTypeOf left-value)
+                (safe:LLVMTypeOf right-value))
+        (result safe:llvm-value-ref?)))
+
+
 (define safe:fcmp
   (_fun (builder : safe:LLVMBuilderRef)
         LLVMRealPredicate
@@ -48,6 +77,18 @@
         (ptr : _pointer) ->
         (safe:llvm-value-ref ptr (safe:llvm-builder-ref-module builder))))
 
+(define safe:fcmp/c
+  (->i  ((builder safe:llvm-builder-ref?)
+         (predicate LLVMRealPredicate?)
+         (left-value (builder) (safe:llvm-value-for-builder/c builder))
+         (right-value (builder) (safe:llvm-value-for-builder/c builder))
+         (name string?))
+        #:pre/name (left-value right-value) "Values of different types"
+        (equal? (safe:LLVMTypeOf left-value)
+                (safe:LLVMTypeOf right-value))
+        (result safe:llvm-value-ref?)))
+
+
 
 
 
@@ -55,7 +96,7 @@
 
 
 ;/* Arithmetic */
-(define-llvm-multiple-unsafe
+(define-llvm-multiple
   (LLVMBuildAdd
    LLVMBuildNSWAdd
    LLVMBuildNUWAdd
@@ -81,76 +122,46 @@
    LLVMBuildAnd
    LLVMBuildOr
    LLVMBuildXor)
-  (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
+  #:unsafe (_fun LLVMBuilderRef LLVMValueRef LLVMValueRef _string -> LLVMValueRef)
+  #:safe safe:binop
+  (#:provide (#:safe safe:binop/c)))
 
-
-(define-llvm-multiple-safe
-  (LLVMBuildAdd
-   LLVMBuildNSWAdd
-   LLVMBuildNUWAdd
-   LLVMBuildFAdd
-   LLVMBuildSub
-   LLVMBuildNSWSub
-   LLVMBuildNUWSub
-   LLVMBuildFSub
-   LLVMBuildMul
-   LLVMBuildNSWMul
-   LLVMBuildNUWMul
-   LLVMBuildFMul
-   LLVMBuildUDiv
-   LLVMBuildSDiv
-   LLVMBuildExactSDiv
-   LLVMBuildFDiv
-   LLVMBuildURem
-   LLVMBuildSRem
-   LLVMBuildFRem
-   LLVMBuildShl
-   LLVMBuildLShr
-   LLVMBuildAShr
-   LLVMBuildAnd
-   LLVMBuildOr
-   LLVMBuildXor)
-  safe:binop)
 
 
 (define-llvm-unsafe LLVMBuildBinOp
  (_fun LLVMBuilderRef LLVMOpcode LLVMValueRef LLVMValueRef _string -> LLVMValueRef))
 
-(define-llvm-multiple-unsafe
+(define-llvm-multiple
  (LLVMBuildNeg
   LLVMBuildNSWNeg
   LLVMBuildNUWNeg
   LLVMBuildFNeg
   LLVMBuildNot)
- (_fun LLVMBuilderRef LLVMValueRef _string -> LLVMValueRef))
+ #:unsafe (_fun LLVMBuilderRef LLVMValueRef _string -> LLVMValueRef)
+ #:safe safe:uniop)
 
-
-(define-llvm-multiple-safe
- (LLVMBuildNeg
-  LLVMBuildNSWNeg
-  LLVMBuildNUWNeg
-  LLVMBuildFNeg
-  LLVMBuildNot)
- safe:uniop)
 
 
 
 ;/* Comparisons */
-(define-llvm-unsafe LLVMBuildICmp
+(define-llvm LLVMBuildICmp
+  #:unsafe 
   (_fun LLVMBuilderRef
         LLVMIntPredicate
         LLVMValueRef
         LLVMValueRef
-        _string -> LLVMValueRef))
+        _string -> LLVMValueRef)
+  #:safe safe:icmp
+  (#:provide (#:safe safe:icmp/c)))
 
 
-(define-llvm-safe LLVMBuildICmp safe:icmp)
 
-(define-llvm-unsafe LLVMBuildFCmp
+(define-llvm LLVMBuildFCmp
+  #:unsafe
   (_fun LLVMBuilderRef
         LLVMRealPredicate
         LLVMValueRef
         LLVMValueRef
-        _string -> LLVMValueRef))
-
-(define-llvm-safe LLVMBuildFCmp safe:fcmp)
+        _string -> LLVMValueRef)
+  #:safe safe:fcmp
+  (#:provide (#:safe safe:fcmp/c)))

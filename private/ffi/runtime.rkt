@@ -23,8 +23,9 @@
  (_fun _pointer -> LLVMGenericValueRef))
 
 (define (unsafe:LLVMCreateGenericValueOfFunctionType fun-type)
- (get-ffi-obj 'LLVMCreateGenericValueOfPointer llvm-lib 
-  (_fun fun-type -> LLVMGenericValueRef)))
+ (with-llvm-safety #:unsafe
+  (get-ffi-obj 'LLVMCreateGenericValueOfPointer llvm-lib 
+   (_fun fun-type -> LLVMGenericValueRef))))
 
 (define-llvm-unsafe LLVMCreateGenericValueOfFloat
  (_fun LLVMTypeRef _double* -> LLVMGenericValueRef))

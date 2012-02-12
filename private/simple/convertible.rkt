@@ -3,7 +3,6 @@
 (require
   racket/contract/base
   racket/contract/combinator
-  unstable/prop-contract
   unstable/contract
   "../ffi/safe.rkt"
   "types.rkt"

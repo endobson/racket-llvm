@@ -10,8 +10,12 @@
  LLVMVisibility
  LLVMCallConv
  LLVMIntPredicate
+ LLVMIntPredicate?
  LLVMRealPredicate
+ LLVMRealPredicate?
  LLVMLandingPadClauseTy)
+
+;;TODO write define-enum that makes a predicate aswell
 
 (define << arithmetic-shift)
 (define LLVMAttribute (_enum `(
@@ -166,6 +170,8 @@
   LLVMX86StdcallCallConv  = 64
   LLVMX86FastcallCallConv = 65)))
 
+;; TODO make this not such a hack
+(define LLVMIntPredicate? symbol?)
 (define LLVMIntPredicate (_enum '(
   LLVMIntEQ = 32  ;/**< equal */
   LLVMIntNE        ;/**< not equal */
@@ -178,6 +184,8 @@
   LLVMIntSLT       ;/**< signed less than */
   LLVMIntSLE)))     ;/**< signed less or equal */
 
+;; TODO make this not such a hack
+(define LLVMRealPredicate? symbol?)
 (define LLVMRealPredicate (_enum '(
   LLVMRealPredicateFalse ;/**< Always false (always folded) */
   LLVMRealOEQ            ;/**< True if ordered and equal */
