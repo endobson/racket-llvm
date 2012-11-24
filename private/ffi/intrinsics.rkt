@@ -4,7 +4,6 @@
 
 (define intrinsic-list (quote (
     adjust-trampoline
-    alpha-umulh
     annotation
     arm-cdp
     arm-cdp2
@@ -128,18 +127,6 @@
     arm-usat
     arm-vcvtr
     arm-vcvtru
-    atomic-cmp-swap
-    atomic-load-add
-    atomic-load-and
-    atomic-load-max
-    atomic-load-min
-    atomic-load-nand
-    atomic-load-or
-    atomic-load-sub
-    atomic-load-umax
-    atomic-load-umin
-    atomic-load-xor
-    atomic-swap
     bswap
     convert-from-fp16
     convert-to-fp16
@@ -159,13 +146,10 @@
     dbg-declare
     dbg-value
     eh-dwarf-cfa
-    eh-exception
-    eh-resume
     eh-return-i32
     eh-return-i64
-    eh-selector
     eh-sjlj-callsite
-    eh-sjlj-dispatch-setup
+    eh-sjlj-functioncontext
     eh-sjlj-longjmp
     eh-sjlj-lsda
     eh-sjlj-setjmp
@@ -180,6 +164,669 @@
     gcread
     gcroot
     gcwrite
+    hexagon-A2-abs
+    hexagon-A2-absp
+    hexagon-A2-abssat
+    hexagon-A2-add
+    hexagon-A2-addh-h16-hh
+    hexagon-A2-addh-h16-hl
+    hexagon-A2-addh-h16-lh
+    hexagon-A2-addh-h16-ll
+    hexagon-A2-addh-h16-sat-hh
+    hexagon-A2-addh-h16-sat-hl
+    hexagon-A2-addh-h16-sat-lh
+    hexagon-A2-addh-h16-sat-ll
+    hexagon-A2-addh-l16-hh
+    hexagon-A2-addh-l16-hl
+    hexagon-A2-addh-l16-lh
+    hexagon-A2-addh-l16-ll
+    hexagon-A2-addh-l16-sat-hh
+    hexagon-A2-addh-l16-sat-hl
+    hexagon-A2-addh-l16-sat-lh
+    hexagon-A2-addh-l16-sat-ll
+    hexagon-A2-addi
+    hexagon-A2-addp
+    hexagon-A2-addpsat
+    hexagon-A2-addsat
+    hexagon-A2-addsp
+    hexagon-A2-and
+    hexagon-A2-andir
+    hexagon-A2-andp
+    hexagon-A2-aslh
+    hexagon-A2-asrh
+    hexagon-A2-combine-hh
+    hexagon-A2-combine-hl
+    hexagon-A2-combine-lh
+    hexagon-A2-combine-ll
+    hexagon-A2-combineii
+    hexagon-A2-combinew
+    hexagon-A2-max
+    hexagon-A2-maxp
+    hexagon-A2-maxu
+    hexagon-A2-maxup
+    hexagon-A2-min
+    hexagon-A2-minp
+    hexagon-A2-minu
+    hexagon-A2-minup
+    hexagon-A2-neg
+    hexagon-A2-negp
+    hexagon-A2-negsat
+    hexagon-A2-not
+    hexagon-A2-notp
+    hexagon-A2-or
+    hexagon-A2-orir
+    hexagon-A2-orp
+    hexagon-A2-sat
+    hexagon-A2-satb
+    hexagon-A2-sath
+    hexagon-A2-satub
+    hexagon-A2-satuh
+    hexagon-A2-sub
+    hexagon-A2-subh-h16-hh
+    hexagon-A2-subh-h16-hl
+    hexagon-A2-subh-h16-lh
+    hexagon-A2-subh-h16-ll
+    hexagon-A2-subh-h16-sat-hh
+    hexagon-A2-subh-h16-sat-hl
+    hexagon-A2-subh-h16-sat-lh
+    hexagon-A2-subh-h16-sat-ll
+    hexagon-A2-subh-l16-hl
+    hexagon-A2-subh-l16-ll
+    hexagon-A2-subh-l16-sat-hl
+    hexagon-A2-subh-l16-sat-ll
+    hexagon-A2-subp
+    hexagon-A2-subri
+    hexagon-A2-subsat
+    hexagon-A2-svaddh
+    hexagon-A2-svaddhs
+    hexagon-A2-svadduhs
+    hexagon-A2-svavgh
+    hexagon-A2-svavghs
+    hexagon-A2-svnavgh
+    hexagon-A2-svsubh
+    hexagon-A2-svsubhs
+    hexagon-A2-svsubuhs
+    hexagon-A2-swiz
+    hexagon-A2-sxtb
+    hexagon-A2-sxth
+    hexagon-A2-sxtw
+    hexagon-A2-tfr
+    hexagon-A2-tfrih
+    hexagon-A2-tfril
+    hexagon-A2-tfrp
+    hexagon-A2-tfrpi
+    hexagon-A2-tfrsi
+    hexagon-A2-vabsh
+    hexagon-A2-vabshsat
+    hexagon-A2-vabsw
+    hexagon-A2-vabswsat
+    hexagon-A2-vaddh
+    hexagon-A2-vaddhs
+    hexagon-A2-vaddub
+    hexagon-A2-vaddubs
+    hexagon-A2-vadduhs
+    hexagon-A2-vaddw
+    hexagon-A2-vaddws
+    hexagon-A2-vavgh
+    hexagon-A2-vavghcr
+    hexagon-A2-vavghr
+    hexagon-A2-vavgub
+    hexagon-A2-vavgubr
+    hexagon-A2-vavguh
+    hexagon-A2-vavguhr
+    hexagon-A2-vavguw
+    hexagon-A2-vavguwr
+    hexagon-A2-vavgw
+    hexagon-A2-vavgwcr
+    hexagon-A2-vavgwr
+    hexagon-A2-vcmpbeq
+    hexagon-A2-vcmpbgtu
+    hexagon-A2-vcmpheq
+    hexagon-A2-vcmphgt
+    hexagon-A2-vcmphgtu
+    hexagon-A2-vcmpweq
+    hexagon-A2-vcmpwgt
+    hexagon-A2-vcmpwgtu
+    hexagon-A2-vconj
+    hexagon-A2-vmaxh
+    hexagon-A2-vmaxub
+    hexagon-A2-vmaxuh
+    hexagon-A2-vmaxuw
+    hexagon-A2-vmaxw
+    hexagon-A2-vminh
+    hexagon-A2-vminub
+    hexagon-A2-vminuh
+    hexagon-A2-vminuw
+    hexagon-A2-vminw
+    hexagon-A2-vnavgh
+    hexagon-A2-vnavghcr
+    hexagon-A2-vnavghr
+    hexagon-A2-vnavgw
+    hexagon-A2-vnavgwcr
+    hexagon-A2-vnavgwr
+    hexagon-A2-vraddub
+    hexagon-A2-vraddub-acc
+    hexagon-A2-vrsadub
+    hexagon-A2-vrsadub-acc
+    hexagon-A2-vsubh
+    hexagon-A2-vsubhs
+    hexagon-A2-vsubub
+    hexagon-A2-vsububs
+    hexagon-A2-vsubuhs
+    hexagon-A2-vsubw
+    hexagon-A2-vsubws
+    hexagon-A2-xor
+    hexagon-A2-xorp
+    hexagon-A2-zxtb
+    hexagon-A2-zxth
+    hexagon-A4-andn
+    hexagon-A4-andnp
+    hexagon-A4-combineir
+    hexagon-A4-combineri
+    hexagon-A4-cround-ri
+    hexagon-A4-cround-rr
+    hexagon-A4-modwrapu
+    hexagon-A4-orn
+    hexagon-A4-ornp
+    hexagon-A4-rcmpeq
+    hexagon-A4-rcmpeqi
+    hexagon-A4-rcmpneq
+    hexagon-A4-rcmpneqi
+    hexagon-A4-round-ri
+    hexagon-A4-round-ri-sat
+    hexagon-A4-round-rr
+    hexagon-A4-round-rr-sat
+    hexagon-C2-all8
+    hexagon-C2-and
+    hexagon-C2-andn
+    hexagon-C2-any8
+    hexagon-C2-bitsclr
+    hexagon-C2-bitsclri
+    hexagon-C2-bitsset
+    hexagon-C2-cmpeq
+    hexagon-C2-cmpeqi
+    hexagon-C2-cmpeqp
+    hexagon-C2-cmpgei
+    hexagon-C2-cmpgeui
+    hexagon-C2-cmpgt
+    hexagon-C2-cmpgti
+    hexagon-C2-cmpgtp
+    hexagon-C2-cmpgtu
+    hexagon-C2-cmpgtui
+    hexagon-C2-cmpgtup
+    hexagon-C2-cmplt
+    hexagon-C2-cmpltu
+    hexagon-C2-mask
+    hexagon-C2-mux
+    hexagon-C2-muxii
+    hexagon-C2-muxir
+    hexagon-C2-muxri
+    hexagon-C2-not
+    hexagon-C2-or
+    hexagon-C2-orn
+    hexagon-C2-pxfer-map
+    hexagon-C2-tfrpr
+    hexagon-C2-tfrrp
+    hexagon-C2-vitpack
+    hexagon-C2-vmux
+    hexagon-C2-xor
+    hexagon-C4-and-and
+    hexagon-C4-and-andn
+    hexagon-C4-and-or
+    hexagon-C4-and-orn
+    hexagon-C4-cmplte
+    hexagon-C4-cmpltei
+    hexagon-C4-cmplteu
+    hexagon-C4-cmplteui
+    hexagon-C4-cmpneq
+    hexagon-C4-cmpneqi
+    hexagon-C4-fastcorner9
+    hexagon-C4-fastcorner9-not
+    hexagon-C4-or-and
+    hexagon-C4-or-andn
+    hexagon-C4-or-or
+    hexagon-C4-or-orn
+    hexagon-M2-acci
+    hexagon-M2-accii
+    hexagon-M2-cmaci-s0
+    hexagon-M2-cmacr-s0
+    hexagon-M2-cmacs-s0
+    hexagon-M2-cmacs-s1
+    hexagon-M2-cmacsc-s0
+    hexagon-M2-cmacsc-s1
+    hexagon-M2-cmpyi-s0
+    hexagon-M2-cmpyr-s0
+    hexagon-M2-cmpyrs-s0
+    hexagon-M2-cmpyrs-s1
+    hexagon-M2-cmpyrsc-s0
+    hexagon-M2-cmpyrsc-s1
+    hexagon-M2-cmpys-s0
+    hexagon-M2-cmpys-s1
+    hexagon-M2-cmpysc-s0
+    hexagon-M2-cmpysc-s1
+    hexagon-M2-cnacs-s0
+    hexagon-M2-cnacs-s1
+    hexagon-M2-cnacsc-s0
+    hexagon-M2-cnacsc-s1
+    hexagon-M2-dpmpyss-acc-s0
+    hexagon-M2-dpmpyss-nac-s0
+    hexagon-M2-dpmpyss-rnd-s0
+    hexagon-M2-dpmpyss-s0
+    hexagon-M2-dpmpyuu-acc-s0
+    hexagon-M2-dpmpyuu-nac-s0
+    hexagon-M2-dpmpyuu-s0
+    hexagon-M2-hmmpyh-rs1
+    hexagon-M2-hmmpyl-rs1
+    hexagon-M2-maci
+    hexagon-M2-macsin
+    hexagon-M2-macsip
+    hexagon-M2-mmachs-rs0
+    hexagon-M2-mmachs-rs1
+    hexagon-M2-mmachs-s0
+    hexagon-M2-mmachs-s1
+    hexagon-M2-mmacls-rs0
+    hexagon-M2-mmacls-rs1
+    hexagon-M2-mmacls-s0
+    hexagon-M2-mmacls-s1
+    hexagon-M2-mmacuhs-rs0
+    hexagon-M2-mmacuhs-rs1
+    hexagon-M2-mmacuhs-s0
+    hexagon-M2-mmacuhs-s1
+    hexagon-M2-mmaculs-rs0
+    hexagon-M2-mmaculs-rs1
+    hexagon-M2-mmaculs-s0
+    hexagon-M2-mmaculs-s1
+    hexagon-M2-mmpyh-rs0
+    hexagon-M2-mmpyh-rs1
+    hexagon-M2-mmpyh-s0
+    hexagon-M2-mmpyh-s1
+    hexagon-M2-mmpyl-rs0
+    hexagon-M2-mmpyl-rs1
+    hexagon-M2-mmpyl-s0
+    hexagon-M2-mmpyl-s1
+    hexagon-M2-mmpyuh-rs0
+    hexagon-M2-mmpyuh-rs1
+    hexagon-M2-mmpyuh-s0
+    hexagon-M2-mmpyuh-s1
+    hexagon-M2-mmpyul-rs0
+    hexagon-M2-mmpyul-rs1
+    hexagon-M2-mmpyul-s0
+    hexagon-M2-mmpyul-s1
+    hexagon-M2-mpy-acc-hh-s0
+    hexagon-M2-mpy-acc-hh-s1
+    hexagon-M2-mpy-acc-hl-s0
+    hexagon-M2-mpy-acc-hl-s1
+    hexagon-M2-mpy-acc-lh-s0
+    hexagon-M2-mpy-acc-lh-s1
+    hexagon-M2-mpy-acc-ll-s0
+    hexagon-M2-mpy-acc-ll-s1
+    hexagon-M2-mpy-acc-sat-hh-s0
+    hexagon-M2-mpy-acc-sat-hh-s1
+    hexagon-M2-mpy-acc-sat-hl-s0
+    hexagon-M2-mpy-acc-sat-hl-s1
+    hexagon-M2-mpy-acc-sat-lh-s0
+    hexagon-M2-mpy-acc-sat-lh-s1
+    hexagon-M2-mpy-acc-sat-ll-s0
+    hexagon-M2-mpy-acc-sat-ll-s1
+    hexagon-M2-mpy-hh-s0
+    hexagon-M2-mpy-hh-s1
+    hexagon-M2-mpy-hl-s0
+    hexagon-M2-mpy-hl-s1
+    hexagon-M2-mpy-lh-s0
+    hexagon-M2-mpy-lh-s1
+    hexagon-M2-mpy-ll-s0
+    hexagon-M2-mpy-ll-s1
+    hexagon-M2-mpy-nac-hh-s0
+    hexagon-M2-mpy-nac-hh-s1
+    hexagon-M2-mpy-nac-hl-s0
+    hexagon-M2-mpy-nac-hl-s1
+    hexagon-M2-mpy-nac-lh-s0
+    hexagon-M2-mpy-nac-lh-s1
+    hexagon-M2-mpy-nac-ll-s0
+    hexagon-M2-mpy-nac-ll-s1
+    hexagon-M2-mpy-nac-sat-hh-s0
+    hexagon-M2-mpy-nac-sat-hh-s1
+    hexagon-M2-mpy-nac-sat-hl-s0
+    hexagon-M2-mpy-nac-sat-hl-s1
+    hexagon-M2-mpy-nac-sat-lh-s0
+    hexagon-M2-mpy-nac-sat-lh-s1
+    hexagon-M2-mpy-nac-sat-ll-s0
+    hexagon-M2-mpy-nac-sat-ll-s1
+    hexagon-M2-mpy-rnd-hh-s0
+    hexagon-M2-mpy-rnd-hh-s1
+    hexagon-M2-mpy-rnd-hl-s0
+    hexagon-M2-mpy-rnd-hl-s1
+    hexagon-M2-mpy-rnd-lh-s0
+    hexagon-M2-mpy-rnd-lh-s1
+    hexagon-M2-mpy-rnd-ll-s0
+    hexagon-M2-mpy-rnd-ll-s1
+    hexagon-M2-mpy-sat-hh-s0
+    hexagon-M2-mpy-sat-hh-s1
+    hexagon-M2-mpy-sat-hl-s0
+    hexagon-M2-mpy-sat-hl-s1
+    hexagon-M2-mpy-sat-lh-s0
+    hexagon-M2-mpy-sat-lh-s1
+    hexagon-M2-mpy-sat-ll-s0
+    hexagon-M2-mpy-sat-ll-s1
+    hexagon-M2-mpy-sat-rnd-hh-s0
+    hexagon-M2-mpy-sat-rnd-hh-s1
+    hexagon-M2-mpy-sat-rnd-hl-s0
+    hexagon-M2-mpy-sat-rnd-hl-s1
+    hexagon-M2-mpy-sat-rnd-lh-s0
+    hexagon-M2-mpy-sat-rnd-lh-s1
+    hexagon-M2-mpy-sat-rnd-ll-s0
+    hexagon-M2-mpy-sat-rnd-ll-s1
+    hexagon-M2-mpy-up
+    hexagon-M2-mpyd-acc-hh-s0
+    hexagon-M2-mpyd-acc-hh-s1
+    hexagon-M2-mpyd-acc-hl-s0
+    hexagon-M2-mpyd-acc-hl-s1
+    hexagon-M2-mpyd-acc-lh-s0
+    hexagon-M2-mpyd-acc-lh-s1
+    hexagon-M2-mpyd-acc-ll-s0
+    hexagon-M2-mpyd-acc-ll-s1
+    hexagon-M2-mpyd-hh-s0
+    hexagon-M2-mpyd-hh-s1
+    hexagon-M2-mpyd-hl-s0
+    hexagon-M2-mpyd-hl-s1
+    hexagon-M2-mpyd-lh-s0
+    hexagon-M2-mpyd-lh-s1
+    hexagon-M2-mpyd-ll-s0
+    hexagon-M2-mpyd-ll-s1
+    hexagon-M2-mpyd-nac-hh-s0
+    hexagon-M2-mpyd-nac-hh-s1
+    hexagon-M2-mpyd-nac-hl-s0
+    hexagon-M2-mpyd-nac-hl-s1
+    hexagon-M2-mpyd-nac-lh-s0
+    hexagon-M2-mpyd-nac-lh-s1
+    hexagon-M2-mpyd-nac-ll-s0
+    hexagon-M2-mpyd-nac-ll-s1
+    hexagon-M2-mpyd-rnd-hh-s0
+    hexagon-M2-mpyd-rnd-hh-s1
+    hexagon-M2-mpyd-rnd-hl-s0
+    hexagon-M2-mpyd-rnd-hl-s1
+    hexagon-M2-mpyd-rnd-lh-s0
+    hexagon-M2-mpyd-rnd-lh-s1
+    hexagon-M2-mpyd-rnd-ll-s0
+    hexagon-M2-mpyd-rnd-ll-s1
+    hexagon-M2-mpyi
+    hexagon-M2-mpysmi
+    hexagon-M2-mpyu-acc-hh-s0
+    hexagon-M2-mpyu-acc-hh-s1
+    hexagon-M2-mpyu-acc-hl-s0
+    hexagon-M2-mpyu-acc-hl-s1
+    hexagon-M2-mpyu-acc-lh-s0
+    hexagon-M2-mpyu-acc-lh-s1
+    hexagon-M2-mpyu-acc-ll-s0
+    hexagon-M2-mpyu-acc-ll-s1
+    hexagon-M2-mpyu-hh-s0
+    hexagon-M2-mpyu-hh-s1
+    hexagon-M2-mpyu-hl-s0
+    hexagon-M2-mpyu-hl-s1
+    hexagon-M2-mpyu-lh-s0
+    hexagon-M2-mpyu-lh-s1
+    hexagon-M2-mpyu-ll-s0
+    hexagon-M2-mpyu-ll-s1
+    hexagon-M2-mpyu-nac-hh-s0
+    hexagon-M2-mpyu-nac-hh-s1
+    hexagon-M2-mpyu-nac-hl-s0
+    hexagon-M2-mpyu-nac-hl-s1
+    hexagon-M2-mpyu-nac-lh-s0
+    hexagon-M2-mpyu-nac-lh-s1
+    hexagon-M2-mpyu-nac-ll-s0
+    hexagon-M2-mpyu-nac-ll-s1
+    hexagon-M2-mpyu-up
+    hexagon-M2-mpyud-acc-hh-s0
+    hexagon-M2-mpyud-acc-hh-s1
+    hexagon-M2-mpyud-acc-hl-s0
+    hexagon-M2-mpyud-acc-hl-s1
+    hexagon-M2-mpyud-acc-lh-s0
+    hexagon-M2-mpyud-acc-lh-s1
+    hexagon-M2-mpyud-acc-ll-s0
+    hexagon-M2-mpyud-acc-ll-s1
+    hexagon-M2-mpyud-hh-s0
+    hexagon-M2-mpyud-hh-s1
+    hexagon-M2-mpyud-hl-s0
+    hexagon-M2-mpyud-hl-s1
+    hexagon-M2-mpyud-lh-s0
+    hexagon-M2-mpyud-lh-s1
+    hexagon-M2-mpyud-ll-s0
+    hexagon-M2-mpyud-ll-s1
+    hexagon-M2-mpyud-nac-hh-s0
+    hexagon-M2-mpyud-nac-hh-s1
+    hexagon-M2-mpyud-nac-hl-s0
+    hexagon-M2-mpyud-nac-hl-s1
+    hexagon-M2-mpyud-nac-lh-s0
+    hexagon-M2-mpyud-nac-lh-s1
+    hexagon-M2-mpyud-nac-ll-s0
+    hexagon-M2-mpyud-nac-ll-s1
+    hexagon-M2-mpyui
+    hexagon-M2-nacci
+    hexagon-M2-naccii
+    hexagon-M2-subacc
+    hexagon-M2-vabsdiffh
+    hexagon-M2-vabsdiffw
+    hexagon-M2-vcmac-s0-sat-i
+    hexagon-M2-vcmac-s0-sat-r
+    hexagon-M2-vcmpy-s0-sat-i
+    hexagon-M2-vcmpy-s0-sat-r
+    hexagon-M2-vcmpy-s1-sat-i
+    hexagon-M2-vcmpy-s1-sat-r
+    hexagon-M2-vdmacs-s0
+    hexagon-M2-vdmacs-s1
+    hexagon-M2-vdmpyrs-s0
+    hexagon-M2-vdmpyrs-s1
+    hexagon-M2-vdmpys-s0
+    hexagon-M2-vdmpys-s1
+    hexagon-M2-vmac2
+    hexagon-M2-vmac2es
+    hexagon-M2-vmac2es-s0
+    hexagon-M2-vmac2es-s1
+    hexagon-M2-vmac2s-s0
+    hexagon-M2-vmac2s-s1
+    hexagon-M2-vmpy2es-s0
+    hexagon-M2-vmpy2es-s1
+    hexagon-M2-vmpy2s-s0
+    hexagon-M2-vmpy2s-s0pack
+    hexagon-M2-vmpy2s-s1
+    hexagon-M2-vmpy2s-s1pack
+    hexagon-M2-vradduh
+    hexagon-M2-vrcmaci-s0
+    hexagon-M2-vrcmaci-s0c
+    hexagon-M2-vrcmacr-s0
+    hexagon-M2-vrcmacr-s0c
+    hexagon-M2-vrcmpyi-s0
+    hexagon-M2-vrcmpyi-s0c
+    hexagon-M2-vrcmpyr-s0
+    hexagon-M2-vrcmpyr-s0c
+    hexagon-M2-vrcmpys-acc-s1
+    hexagon-M2-vrcmpys-s1
+    hexagon-M2-vrcmpys-s1rp
+    hexagon-M2-vrmac-s0
+    hexagon-M2-vrmpy-s0
+    hexagon-M2-xor-xacc
+    hexagon-M4-and-and
+    hexagon-M4-and-andn
+    hexagon-M4-and-or
+    hexagon-M4-and-xor
+    hexagon-M4-or-and
+    hexagon-M4-or-andn
+    hexagon-M4-or-or
+    hexagon-M4-or-xor
+    hexagon-M4-xor-and
+    hexagon-M4-xor-andn
+    hexagon-M4-xor-or
+    hexagon-M4-xor-xacc
+    hexagon-S2-addasl-rrri
+    hexagon-S2-asl-i-p
+    hexagon-S2-asl-i-p-acc
+    hexagon-S2-asl-i-p-and
+    hexagon-S2-asl-i-p-nac
+    hexagon-S2-asl-i-p-or
+    hexagon-S2-asl-i-p-xacc
+    hexagon-S2-asl-i-r
+    hexagon-S2-asl-i-r-acc
+    hexagon-S2-asl-i-r-and
+    hexagon-S2-asl-i-r-nac
+    hexagon-S2-asl-i-r-or
+    hexagon-S2-asl-i-r-sat
+    hexagon-S2-asl-i-r-xacc
+    hexagon-S2-asl-i-vh
+    hexagon-S2-asl-i-vw
+    hexagon-S2-asl-r-p
+    hexagon-S2-asl-r-p-acc
+    hexagon-S2-asl-r-p-and
+    hexagon-S2-asl-r-p-nac
+    hexagon-S2-asl-r-p-or
+    hexagon-S2-asl-r-r
+    hexagon-S2-asl-r-r-acc
+    hexagon-S2-asl-r-r-and
+    hexagon-S2-asl-r-r-nac
+    hexagon-S2-asl-r-r-or
+    hexagon-S2-asl-r-r-sat
+    hexagon-S2-asl-r-vh
+    hexagon-S2-asl-r-vw
+    hexagon-S2-asr-i-p
+    hexagon-S2-asr-i-p-acc
+    hexagon-S2-asr-i-p-and
+    hexagon-S2-asr-i-p-nac
+    hexagon-S2-asr-i-p-or
+    hexagon-S2-asr-i-r
+    hexagon-S2-asr-i-r-acc
+    hexagon-S2-asr-i-r-and
+    hexagon-S2-asr-i-r-nac
+    hexagon-S2-asr-i-r-or
+    hexagon-S2-asr-i-r-rnd
+    hexagon-S2-asr-i-r-rnd-goodsyntax
+    hexagon-S2-asr-i-svw-trun
+    hexagon-S2-asr-i-vh
+    hexagon-S2-asr-i-vw
+    hexagon-S2-asr-r-p
+    hexagon-S2-asr-r-p-acc
+    hexagon-S2-asr-r-p-and
+    hexagon-S2-asr-r-p-nac
+    hexagon-S2-asr-r-p-or
+    hexagon-S2-asr-r-r
+    hexagon-S2-asr-r-r-acc
+    hexagon-S2-asr-r-r-and
+    hexagon-S2-asr-r-r-nac
+    hexagon-S2-asr-r-r-or
+    hexagon-S2-asr-r-r-sat
+    hexagon-S2-asr-r-svw-trun
+    hexagon-S2-asr-r-vh
+    hexagon-S2-asr-r-vw
+    hexagon-S2-brev
+    hexagon-S2-cl0
+    hexagon-S2-cl0p
+    hexagon-S2-cl1
+    hexagon-S2-cl1p
+    hexagon-S2-clb
+    hexagon-S2-clbnorm
+    hexagon-S2-clbp
+    hexagon-S2-clrbit-i
+    hexagon-S2-clrbit-r
+    hexagon-S2-ct0
+    hexagon-S2-ct1
+    hexagon-S2-deinterleave
+    hexagon-S2-extractu
+    hexagon-S2-extractu-rp
+    hexagon-S2-extractup
+    hexagon-S2-extractup-rp
+    hexagon-S2-insert
+    hexagon-S2-insert-rp
+    hexagon-S2-insertp
+    hexagon-S2-insertp-rp
+    hexagon-S2-interleave
+    hexagon-S2-lfsp
+    hexagon-S2-lsl-r-p
+    hexagon-S2-lsl-r-p-acc
+    hexagon-S2-lsl-r-p-and
+    hexagon-S2-lsl-r-p-nac
+    hexagon-S2-lsl-r-p-or
+    hexagon-S2-lsl-r-r
+    hexagon-S2-lsl-r-r-acc
+    hexagon-S2-lsl-r-r-and
+    hexagon-S2-lsl-r-r-nac
+    hexagon-S2-lsl-r-r-or
+    hexagon-S2-lsl-r-vh
+    hexagon-S2-lsl-r-vw
+    hexagon-S2-lsr-i-p
+    hexagon-S2-lsr-i-p-acc
+    hexagon-S2-lsr-i-p-and
+    hexagon-S2-lsr-i-p-nac
+    hexagon-S2-lsr-i-p-or
+    hexagon-S2-lsr-i-p-xacc
+    hexagon-S2-lsr-i-r
+    hexagon-S2-lsr-i-r-acc
+    hexagon-S2-lsr-i-r-and
+    hexagon-S2-lsr-i-r-nac
+    hexagon-S2-lsr-i-r-or
+    hexagon-S2-lsr-i-r-xacc
+    hexagon-S2-lsr-i-vh
+    hexagon-S2-lsr-i-vw
+    hexagon-S2-lsr-r-p
+    hexagon-S2-lsr-r-p-acc
+    hexagon-S2-lsr-r-p-and
+    hexagon-S2-lsr-r-p-nac
+    hexagon-S2-lsr-r-p-or
+    hexagon-S2-lsr-r-r
+    hexagon-S2-lsr-r-r-acc
+    hexagon-S2-lsr-r-r-and
+    hexagon-S2-lsr-r-r-nac
+    hexagon-S2-lsr-r-r-or
+    hexagon-S2-lsr-r-vh
+    hexagon-S2-lsr-r-vw
+    hexagon-S2-packhl
+    hexagon-S2-parityp
+    hexagon-S2-setbit-i
+    hexagon-S2-setbit-r
+    hexagon-S2-shuffeb
+    hexagon-S2-shuffeh
+    hexagon-S2-shuffob
+    hexagon-S2-shuffoh
+    hexagon-S2-svsathb
+    hexagon-S2-svsathub
+    hexagon-S2-tableidxb-goodsyntax
+    hexagon-S2-tableidxd-goodsyntax
+    hexagon-S2-tableidxh-goodsyntax
+    hexagon-S2-tableidxw-goodsyntax
+    hexagon-S2-togglebit-i
+    hexagon-S2-togglebit-r
+    hexagon-S2-tstbit-i
+    hexagon-S2-tstbit-r
+    hexagon-S2-valignib
+    hexagon-S2-valignrb
+    hexagon-S2-vcrotate
+    hexagon-S2-vrndpackwh
+    hexagon-S2-vrndpackwhs
+    hexagon-S2-vsathb
+    hexagon-S2-vsathb-nopack
+    hexagon-S2-vsathub
+    hexagon-S2-vsathub-nopack
+    hexagon-S2-vsatwh
+    hexagon-S2-vsatwh-nopack
+    hexagon-S2-vsatwuh
+    hexagon-S2-vsatwuh-nopack
+    hexagon-S2-vsplatrb
+    hexagon-S2-vsplatrh
+    hexagon-S2-vspliceib
+    hexagon-S2-vsplicerb
+    hexagon-S2-vsxtbh
+    hexagon-S2-vsxthw
+    hexagon-S2-vtrunehb
+    hexagon-S2-vtrunewh
+    hexagon-S2-vtrunohb
+    hexagon-S2-vtrunowh
+    hexagon-S2-vzxtbh
+    hexagon-S2-vzxthw
+    hexagon-S4-addaddi
+    hexagon-S4-andnp
+    hexagon-S4-or-andi
+    hexagon-S4-or-andix
+    hexagon-S4-or-ori
+    hexagon-S4-ornp
+    hexagon-S4-subaddi
+    hexagon-SI-to-SXTHI-asrh
     init-trampoline
     invariant-end
     invariant-start
@@ -191,7 +838,6 @@
     longjmp
     memcpy
     memmove
-    memory-barrier
     memset
     objectsize
     pcmarker
@@ -522,6 +1168,127 @@
     x86-aesni-aesenclast
     x86-aesni-aesimc
     x86-aesni-aeskeygenassist
+    x86-avx2-maskload-d
+    x86-avx2-maskload-d-256
+    x86-avx2-maskload-q
+    x86-avx2-maskload-q-256
+    x86-avx2-maskstore-d
+    x86-avx2-maskstore-d-256
+    x86-avx2-maskstore-q
+    x86-avx2-maskstore-q-256
+    x86-avx2-movntdqa
+    x86-avx2-mpsadbw
+    x86-avx2-pabs-b
+    x86-avx2-pabs-d
+    x86-avx2-pabs-w
+    x86-avx2-packssdw
+    x86-avx2-packsswb
+    x86-avx2-packusdw
+    x86-avx2-packuswb
+    x86-avx2-padds-b
+    x86-avx2-padds-w
+    x86-avx2-paddus-b
+    x86-avx2-paddus-w
+    x86-avx2-pavg-b
+    x86-avx2-pavg-w
+    x86-avx2-pblendd-128
+    x86-avx2-pblendd-256
+    x86-avx2-pblendvb
+    x86-avx2-pblendw
+    x86-avx2-pbroadcastb-128
+    x86-avx2-pbroadcastb-256
+    x86-avx2-pbroadcastd-128
+    x86-avx2-pbroadcastd-256
+    x86-avx2-pbroadcastq-128
+    x86-avx2-pbroadcastq-256
+    x86-avx2-pbroadcastw-128
+    x86-avx2-pbroadcastw-256
+    x86-avx2-permd
+    x86-avx2-permps
+    x86-avx2-phadd-d
+    x86-avx2-phadd-sw
+    x86-avx2-phadd-w
+    x86-avx2-phsub-d
+    x86-avx2-phsub-sw
+    x86-avx2-phsub-w
+    x86-avx2-pmadd-ub-sw
+    x86-avx2-pmadd-wd
+    x86-avx2-pmaxs-b
+    x86-avx2-pmaxs-d
+    x86-avx2-pmaxs-w
+    x86-avx2-pmaxu-b
+    x86-avx2-pmaxu-d
+    x86-avx2-pmaxu-w
+    x86-avx2-pmins-b
+    x86-avx2-pmins-d
+    x86-avx2-pmins-w
+    x86-avx2-pminu-b
+    x86-avx2-pminu-d
+    x86-avx2-pminu-w
+    x86-avx2-pmovmskb
+    x86-avx2-pmovsxbd
+    x86-avx2-pmovsxbq
+    x86-avx2-pmovsxbw
+    x86-avx2-pmovsxdq
+    x86-avx2-pmovsxwd
+    x86-avx2-pmovsxwq
+    x86-avx2-pmovzxbd
+    x86-avx2-pmovzxbq
+    x86-avx2-pmovzxbw
+    x86-avx2-pmovzxdq
+    x86-avx2-pmovzxwd
+    x86-avx2-pmovzxwq
+    x86-avx2-pmul-dq
+    x86-avx2-pmul-hr-sw
+    x86-avx2-pmulh-w
+    x86-avx2-pmulhu-w
+    x86-avx2-pmulu-dq
+    x86-avx2-psad-bw
+    x86-avx2-pshuf-b
+    x86-avx2-psign-b
+    x86-avx2-psign-d
+    x86-avx2-psign-w
+    x86-avx2-psll-d
+    x86-avx2-psll-dq
+    x86-avx2-psll-dq-bs
+    x86-avx2-psll-q
+    x86-avx2-psll-w
+    x86-avx2-pslli-d
+    x86-avx2-pslli-q
+    x86-avx2-pslli-w
+    x86-avx2-psllv-d
+    x86-avx2-psllv-d-256
+    x86-avx2-psllv-q
+    x86-avx2-psllv-q-256
+    x86-avx2-psra-d
+    x86-avx2-psra-w
+    x86-avx2-psrai-d
+    x86-avx2-psrai-w
+    x86-avx2-psrav-d
+    x86-avx2-psrav-d-256
+    x86-avx2-psrl-d
+    x86-avx2-psrl-dq
+    x86-avx2-psrl-dq-bs
+    x86-avx2-psrl-q
+    x86-avx2-psrl-w
+    x86-avx2-psrli-d
+    x86-avx2-psrli-q
+    x86-avx2-psrli-w
+    x86-avx2-psrlv-d
+    x86-avx2-psrlv-d-256
+    x86-avx2-psrlv-q
+    x86-avx2-psrlv-q-256
+    x86-avx2-psubs-b
+    x86-avx2-psubs-w
+    x86-avx2-psubus-b
+    x86-avx2-psubus-w
+    x86-avx2-vbroadcast-sd-pd-256
+    x86-avx2-vbroadcast-ss-ps
+    x86-avx2-vbroadcast-ss-ps-256
+    x86-avx2-vbroadcasti128
+    x86-avx2-vextracti128
+    x86-avx2-vinserti128
+    x86-avx2-vperm2i128
     x86-avx-addsub-pd-256
     x86-avx-addsub-ps-256
     x86-avx-blend-pd-256
@@ -544,9 +1311,6 @@
     x86-avx-hsub-pd-256
     x86-avx-hsub-ps-256
     x86-avx-ldu-dq-256
-    x86-avx-loadu-dq-256
-    x86-avx-loadu-pd-256
-    x86-avx-loadu-ps-256
     x86-avx-maskload-pd
     x86-avx-maskload-pd-256
     x86-avx-maskload-ps
@@ -577,10 +1341,10 @@
     x86-avx-storeu-pd-256
     x86-avx-storeu-ps-256
     x86-avx-vbroadcast-sd-256
+    x86-avx-vbroadcast-ss
+    x86-avx-vbroadcast-ss-256
     x86-avx-vbroadcastf128-pd-256
     x86-avx-vbroadcastf128-ps-256
-    x86-avx-vbroadcastss
-    x86-avx-vbroadcastss-256
     x86-avx-vextractf128-pd-256
     x86-avx-vextractf128-ps-256
     x86-avx-vextractf128-si-256
@@ -590,10 +1354,6 @@
     x86-avx-vperm2f128-pd-256
     x86-avx-vperm2f128-ps-256
     x86-avx-vperm2f128-si-256
-    x86-avx-vpermil-pd
-    x86-avx-vpermil-pd-256
-    x86-avx-vpermil-ps
-    x86-avx-vpermil-ps-256
     x86-avx-vpermilvar-pd
     x86-avx-vpermilvar-pd-256
     x86-avx-vpermilvar-ps
@@ -612,6 +1372,46 @@
     x86-avx-vtestz-ps-256
     x86-avx-vzeroall
     x86-avx-vzeroupper
+    x86-bmi-bextr-32
+    x86-bmi-bextr-64
+    x86-bmi-bzhi-32
+    x86-bmi-bzhi-64
+    x86-bmi-pdep-32
+    x86-bmi-pdep-64
+    x86-bmi-pext-32
+    x86-bmi-pext-64
+    x86-fma4-vfmadd-pd
+    x86-fma4-vfmadd-pd-256
+    x86-fma4-vfmadd-ps
+    x86-fma4-vfmadd-ps-256
+    x86-fma4-vfmadd-sd
+    x86-fma4-vfmadd-ss
+    x86-fma4-vfmaddsub-pd
+    x86-fma4-vfmaddsub-pd-256
+    x86-fma4-vfmaddsub-ps
+    x86-fma4-vfmaddsub-ps-256
+    x86-fma4-vfmsub-pd
+    x86-fma4-vfmsub-pd-256
+    x86-fma4-vfmsub-ps
+    x86-fma4-vfmsub-ps-256
+    x86-fma4-vfmsub-sd
+    x86-fma4-vfmsub-ss
+    x86-fma4-vfmsubadd-pd
+    x86-fma4-vfmsubadd-pd-256
+    x86-fma4-vfmsubadd-ps
+    x86-fma4-vfmsubadd-ps-256
+    x86-fma4-vfnmadd-pd
+    x86-fma4-vfnmadd-pd-256
+    x86-fma4-vfnmadd-ps
+    x86-fma4-vfnmadd-ps-256
+    x86-fma4-vfnmadd-sd
+    x86-fma4-vfnmadd-ss
+    x86-fma4-vfnmsub-pd
+    x86-fma4-vfnmsub-pd-256
+    x86-fma4-vfnmsub-ps
+    x86-fma4-vfnmsub-ps-256
+    x86-fma4-vfnmsub-sd
+    x86-fma4-vfnmsub-ss
     x86-int
     x86-mmx-emms
     x86-mmx-femms
@@ -684,6 +1484,10 @@
     x86-mmx-punpckldq
     x86-mmx-punpcklwd
     x86-mmx-pxor
+    x86-rdfsbase-32
+    x86-rdfsbase-64
+    x86-rdgsbase-32
+    x86-rdgsbase-64
     x86-sse2-add-sd
     x86-sse2-clflush
     x86-sse2-cmp-pd
@@ -729,12 +1533,6 @@
     x86-sse2-paddus-w
     x86-sse2-pavg-b
     x86-sse2-pavg-w
-    x86-sse2-pcmpeq-b
-    x86-sse2-pcmpeq-d
-    x86-sse2-pcmpeq-w
-    x86-sse2-pcmpgt-b
-    x86-sse2-pcmpgt-d
-    x86-sse2-pcmpgt-w
     x86-sse2-pmadd-wd
     x86-sse2-pmaxs-w
     x86-sse2-pmaxu-b
@@ -803,7 +1601,6 @@
     x86-sse41-packusdw
     x86-sse41-pblendvb
     x86-sse41-pblendw
-    x86-sse41-pcmpeqq
     x86-sse41-pextrb
     x86-sse41-pextrd
     x86-sse41-pextrq
@@ -848,7 +1645,6 @@
     x86-sse42-pcmpestris128
     x86-sse42-pcmpestriz128
     x86-sse42-pcmpestrm128
-    x86-sse42-pcmpgtq
     x86-sse42-pcmpistri128
     x86-sse42-pcmpistria128
     x86-sse42-pcmpistric128
@@ -932,6 +1728,130 @@
     x86-ssse3-psign-d-128
     x86-ssse3-psign-w
     x86-ssse3-psign-w-128
+    x86-vcvtph2ps-128
+    x86-vcvtph2ps-256
+    x86-vcvtps2ph-128
+    x86-vcvtps2ph-256
+    x86-wrfsbase-32
+    x86-wrfsbase-64
+    x86-wrgsbase-32
+    x86-wrgsbase-64
+    x86-xop-vfrcz-pd
+    x86-xop-vfrcz-pd-256
+    x86-xop-vfrcz-ps
+    x86-xop-vfrcz-ps-256
+    x86-xop-vfrcz-sd
+    x86-xop-vfrcz-ss
+    x86-xop-vpcmov
+    x86-xop-vpcmov-256
+    x86-xop-vpcomeqb
+    x86-xop-vpcomeqd
+    x86-xop-vpcomeqq
+    x86-xop-vpcomequb
+    x86-xop-vpcomequd
+    x86-xop-vpcomequq
+    x86-xop-vpcomequw
+    x86-xop-vpcomeqw
+    x86-xop-vpcomfalseb
+    x86-xop-vpcomfalsed
+    x86-xop-vpcomfalseq
+    x86-xop-vpcomfalseub
+    x86-xop-vpcomfalseud
+    x86-xop-vpcomfalseuq
+    x86-xop-vpcomfalseuw
+    x86-xop-vpcomfalsew
+    x86-xop-vpcomgeb
+    x86-xop-vpcomged
+    x86-xop-vpcomgeq
+    x86-xop-vpcomgeub
+    x86-xop-vpcomgeud
+    x86-xop-vpcomgeuq
+    x86-xop-vpcomgeuw
+    x86-xop-vpcomgew
+    x86-xop-vpcomgtb
+    x86-xop-vpcomgtd
+    x86-xop-vpcomgtq
+    x86-xop-vpcomgtub
+    x86-xop-vpcomgtud
+    x86-xop-vpcomgtuq
+    x86-xop-vpcomgtuw
+    x86-xop-vpcomgtw
+    x86-xop-vpcomleb
+    x86-xop-vpcomled
+    x86-xop-vpcomleq
+    x86-xop-vpcomleub
+    x86-xop-vpcomleud
+    x86-xop-vpcomleuq
+    x86-xop-vpcomleuw
+    x86-xop-vpcomlew
+    x86-xop-vpcomltb
+    x86-xop-vpcomltd
+    x86-xop-vpcomltq
+    x86-xop-vpcomltub
+    x86-xop-vpcomltud
+    x86-xop-vpcomltuq
+    x86-xop-vpcomltuw
+    x86-xop-vpcomltw
+    x86-xop-vpcomneb
+    x86-xop-vpcomned
+    x86-xop-vpcomneq
+    x86-xop-vpcomneub
+    x86-xop-vpcomneud
+    x86-xop-vpcomneuq
+    x86-xop-vpcomneuw
+    x86-xop-vpcomnew
+    x86-xop-vpcomtrueb
+    x86-xop-vpcomtrued
+    x86-xop-vpcomtrueq
+    x86-xop-vpcomtrueub
+    x86-xop-vpcomtrueud
+    x86-xop-vpcomtrueuq
+    x86-xop-vpcomtrueuw
+    x86-xop-vpcomtruew
+    x86-xop-vpermil2pd
+    x86-xop-vpermil2pd-256
+    x86-xop-vpermil2ps
+    x86-xop-vpermil2ps-256
+    x86-xop-vphaddbd
+    x86-xop-vphaddbq
+    x86-xop-vphaddbw
+    x86-xop-vphadddq
+    x86-xop-vphaddubd
+    x86-xop-vphaddubq
+    x86-xop-vphaddubw
+    x86-xop-vphaddudq
+    x86-xop-vphadduwd
+    x86-xop-vphadduwq
+    x86-xop-vphaddwd
+    x86-xop-vphaddwq
+    x86-xop-vphsubbw
+    x86-xop-vphsubdq
+    x86-xop-vphsubwd
+    x86-xop-vpmacsdd
+    x86-xop-vpmacsdqh
+    x86-xop-vpmacsdql
+    x86-xop-vpmacssdd
+    x86-xop-vpmacssdqh
+    x86-xop-vpmacssdql
+    x86-xop-vpmacsswd
+    x86-xop-vpmacssww
+    x86-xop-vpmacswd
+    x86-xop-vpmacsww
+    x86-xop-vpmadcsswd
+    x86-xop-vpmadcswd
+    x86-xop-vpperm
+    x86-xop-vprotb
+    x86-xop-vprotd
+    x86-xop-vprotq
+    x86-xop-vprotw
+    x86-xop-vpshab
+    x86-xop-vpshad
+    x86-xop-vpshaq
+    x86-xop-vpshaw
+    x86-xop-vpshlb
+    x86-xop-vpshld
+    x86-xop-vpshlq
+    x86-xop-vpshlw
     xcore-bitrev
     xcore-checkevent
     xcore-chkct

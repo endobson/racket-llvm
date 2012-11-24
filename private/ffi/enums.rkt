@@ -41,7 +41,10 @@
     LLVMNoImplicitFloatAttribute = ,(<< 1 23)
     LLVMNakedAttribute           = ,(<< 1 24)
     LLVMInlineHintAttribute      = ,(<< 1 25)
-    LLVMStackAlignment           = ,(<< 7 26))))
+    LLVMStackAlignment           = ,(<< 7 26)
+    LLVMReturnsTwice             = ,(<< 1 29)
+    LLVMUWTable                  = ,(<< 1 30)
+    LLVMNonLazyBind              = ,(<< 1 31))))
 
 
 (define LLVMOpcode (_enum '(
@@ -123,6 +126,7 @@
 
 (define LLVMTypeKind (_enum '(
   LLVMVoidTypeKind        ;/**< type with no size */
+  LLVMHalfTypeKind        ;/**< 16 bit floating point type */
   LLVMFloatTypeKind       ;/**< 32 bit floating point type */
   LLVMDoubleTypeKind      ;/**< 64 bit floating point type */
   LLVMX86_FP80TypeKind    ;/**< 80 bit floating point type (X87) */
@@ -144,6 +148,8 @@
   LLVMAvailableExternallyLinkage
   LLVMLinkOnceAnyLinkage ;/**< Keep one copy of function when linking (inline)*/
   LLVMLinkOnceODRLinkage ;/**< Same, but only replaced by something equivalent. */
+  ;; To be added in newer llvm
+  ;;LLVMLinkOnceODRAutoHideLinkage ;/**< Like LinkOnceODR, but possibly hidden. */
   LLVMWeakAnyLinkage     ;/**< Keep one copy of function when linking (weak) */
   LLVMWeakODRLinkage     ;/**< Same, but only replaced by something equivalent. */
   LLVMAppendingLinkage   ;/**< Special purpose, only applies to global arrays */
@@ -156,6 +162,7 @@
   LLVMCommonLinkage      ;/**< Tentative definitions */
   LLVMLinkerPrivateLinkage ;/**< Like Private, but linker removes. */
   LLVMLinkerPrivateWeakLinkage ;/**< Like LinkerPrivate, but is weak. */
+  ;; To be removed in newer llvm
   LLVMLinkerPrivateWeakDefAutoLinkage))) ;/**< Like LinkerPrivateWeak, but possibly hidden. */
 
 (define LLVMVisibility (_enum '(
