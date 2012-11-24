@@ -3,12 +3,12 @@
 
 (define (build)
   (define launcher "/usr/bin/env")
-  (define compiler '("g++"))
+  (define compiler '("clang"))
   (define os (system-type 'os))
   (define shared-library-flags
     (case os
      ((unix) '("-shared"))
-     ((macosx) '("-dynamiclib" "-undefined" "suppress" "-flat_namespace"))))
+     ((macosx) '("-dynamiclib" "-lLLVM-3.1" "-lstdc++"))))
   (define architecture-flags
     (case os
       ((unix) '("-m32"))
@@ -37,7 +37,7 @@
     (close-output-port in)
     (close-input-port out)
     (subprocess-wait process)
-   (unless (= (subprocess-status process) 0) (error 'g++ "Returned non zero exit code"))))
+   (unless (= (subprocess-status process) 0) (error 'c-compiler "Returned non zero exit code"))))
 
 (define (llvm-config flags)
  (define (remove-blanks lst)

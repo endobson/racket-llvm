@@ -5,11 +5,12 @@
 
 
 (require/typed ffi/unsafe
-  (opaque FFI-Lib ffi-lib?)
+  (#:opaque FFI-Lib ffi-lib?)
+  (#:opaque CType ctype?)
   ;very specific type for this use case
-  (get-ffi-obj (Symbol FFI-Lib Any -> (-> Any)))
-  (_cprocedure ((Listof Any) Any -> Any))
-  (_void Any)
+  (get-ffi-obj (Symbol FFI-Lib CType -> (-> Any)))
+  (_cprocedure ((Listof CType) CType -> CType))
+  (_void CType)
   (ffi-lib (Path -> FFI-Lib)))
 
 (require (only-in ffi/unsafe _fun (-> ffi:->)))               
