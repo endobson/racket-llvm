@@ -5,10 +5,12 @@
   (define launcher "/usr/bin/env")
   (define compiler '("clang"))
   (define os (system-type 'os))
+  (match-define (list version) (llvm-config "--version"))
+
   (define shared-library-flags
     (case os
      ((unix) '("-shared"))
-     ((macosx) '("-dynamiclib" "-lLLVM-3.1" "-lstdc++"))))
+     ((macosx) `("-dynamiclib" ,(format "-lLLVM-~a" version) "-lstdc++"))))
   (define architecture-flags
     (case os
       ((unix) '("-m32"))
