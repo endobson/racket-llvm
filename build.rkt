@@ -10,10 +10,14 @@
   (define shared-library-flags
     (case os
      ((unix) '("-shared"))
-     ((macosx) `("-dynamiclib" ,(format "-lLLVM-~a" version) "-lstdc++"))))
+     ((macosx) `("-dynamiclib" "-lstdc++"))))
+
+  (define llvm-library-flags
+    (list (format "-lLLVM-~a" version) ))
+
   (define architecture-flags
     (case os
-      ((unix) '("-m32"))
+      ((unix) empty)
       ((macosx) empty)))
   (define output-redirection-flags
     `("-o" 
@@ -28,6 +32,7 @@
     (append
       compiler
       shared-library-flags
+      llvm-library-flags
       architecture-flags
       output-redirection-flags
       cxx-flags

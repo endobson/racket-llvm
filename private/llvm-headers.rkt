@@ -50,7 +50,11 @@
     (string-join
       (filter
         (lambda (line)
-          (not (regexp-match? "__attribute__" line)))
+          (and
+            (not (regexp-match? "__attribute__" line))
+            (not (regexp-match? "__typeof__" line))
+            (not (regexp-match? "{ {" line))
+            (not (regexp-match? "nan_union" line))))
         (string-split header-string "\n"))
       "\n"))
 

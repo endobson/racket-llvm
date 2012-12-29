@@ -47,7 +47,13 @@
 
 
 
-(define llvm-lib (ffi-lib (build-path llvm-lib-path (string-append "libLLVM-" llvm-version-string))))
+(define llvm-lib
+  (let ((lib-name (string-append "libLLVM-" llvm-version-string)))
+    (ffi-lib
+      (case (system-type 'os)
+        ((macosx) (build-path llvm-lib-path lib-name))
+        ((unix) (string->path lib-name))
+        ((windows) (string->path lib-name))))))
 
 (define llvm-racket-lib (ffi-lib (path-replace-suffix llvm-racket-lib-path "")))
 
