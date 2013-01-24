@@ -21,9 +21,9 @@
       ((macosx) empty)))
   (define output-redirection-flags
     `("-o" 
-      ,(case os
-        ((unix) "llvm-racket.so")
-        ((macosx) "llvm-racket.dylib"))))
+      ,(string-append "llvm-racket"
+                      (bytes->string/utf-8 (system-type 'so-suffix)))))
+
   (define cxx-flags (llvm-config "--cxxflags"))
   (define ld-flags (llvm-config "--ldflags"))
 
