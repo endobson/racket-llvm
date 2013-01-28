@@ -11,7 +11,7 @@
   (get-ffi-obj (Symbol FFI-Lib CType -> (-> Any)))
   (_cprocedure ((Listof CType) CType -> CType))
   (_void CType)
-  (ffi-lib (Path -> FFI-Lib)))
+  (ffi-lib (Path [#:global? Boolean] -> FFI-Lib)))
 
 (require (only-in ffi/unsafe _fun (-> ffi:->)))               
 
@@ -53,7 +53,8 @@
       (case (system-type 'os)
         ((macosx) (build-path llvm-lib-path lib-name))
         ((unix) (string->path lib-name))
-        ((windows) (string->path lib-name))))))
+        ((windows) (string->path lib-name)))
+      #:global? #t)))
 
 (define llvm-racket-lib (ffi-lib (path-replace-suffix llvm-racket-lib-path "")))
 
