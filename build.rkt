@@ -1,5 +1,7 @@
 #lang racket
-(require srfi/13)
+(require srfi/13
+         dynext/compile
+         dynext/link)
 
 (define (build)
   (define launcher "/usr/bin/env")
@@ -27,24 +29,47 @@
   (define cxx-flags (llvm-config "--cxxflags"))
   (define ld-flags (llvm-config "--ldflags"))
 
-  (define source-file '("llvm-racket.cpp"))
-  (define arguments
-    (append
-      compiler
-      shared-library-flags
-      llvm-library-flags
-      architecture-flags
-      output-redirection-flags
-      cxx-flags
-      ld-flags
-      source-file))
+  (define include-dirs (llvm-config "--includedir"))
 
-  (let-values (((process out in err)
-               (apply subprocess #f #f (current-error-port) launcher arguments)))
-    (close-output-port in)
-    (close-input-port out)
-    (subprocess-wait process)
-   (unless (= (subprocess-status process) 0) (error 'c-compiler "Returned non zero exit code"))))
+
+
+  ;; Switch the compiler to clang if we can find it.
+  (current-extension-compiler (cond [(find-executable-path "clang++")
+                                     => values]
+                                    [else
+                                     (current-extension-compiler)]))
+
+  ;; Change the compiler flags:
+  (current-extension-compiler-flags 
+   (append cxx-flags (current-extension-compiler-flags)))
+
+
+  (compile-extension #t 
+                     "llvm-racket.cpp"
+                     "llvm-racket.o"
+                     include-dirs)
+                     
+                     
+
+  ;; (define source-file '("llvm-racket.cpp"))
+  ;; (define arguments
+  ;;   (append
+  ;;     compiler
+  ;;     shared-library-flags
+  ;;     llvm-library-flags
+  ;;     architecture-flags
+  ;;     output-redirection-flags
+  ;;     cxx-flags
+  ;;     ld-flags
+  ;;     source-file))
+  ;; (let-values (((process out in err)
+  ;;              (apply subprocess #f #f (current-error-port) launcher arguments)))
+  ;;   (close-output-port in)
+  ;;   (close-input-port out)
+  ;;   (subprocess-wait process)
+  ;;  (unless (= (subprocess-status process) 0) (error 'c-compiler "Returned non zero exit code")))
+  (void)
+  )
 
 (define (llvm-config flags)
  (define (remove-blanks lst)
