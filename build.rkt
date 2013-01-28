@@ -13,34 +13,35 @@
                    (bytes->string/utf-8 (system-type 'so-suffix))))
 
   ;; Switch the compiler to clang if we can find it.
-  (current-extension-compiler (cond [(find-executable-path "clang")
-                                     => values]
-                                    [else
-                                     (current-extension-compiler)]))
+  (parameterize ([current-extension-compiler 
+                  (cond [(find-executable-path "clang")
+                         => values]
+                        [else
+                         (current-extension-compiler)])]
 
-  ;; Change the compiler flags:
-  (current-extension-compiler-flags 
-   (append cxx-flags (current-extension-compiler-flags)))
+                 ;; Change the compiler flags:
+                 [current-extension-compiler-flags 
+                  (append cxx-flags (current-extension-compiler-flags))]
 
-  ;; As well as the linker flags:
-  (current-extension-linker-flags 
-   (append ld-flags (current-extension-linker-flags)))
+                 ;; As well as the linker flags:
+                 [current-extension-linker-flags 
+                  (append ld-flags (current-extension-linker-flags))])
 
 
-  ;; Finally, build:
-  (compile-extension #t 
-                     "llvm-racket.cpp"
-                     "llvm-racket.o"
-                     include-dirs)
-  ;; ... and link:
-  (link-extension #t
-                  (list "llvm-racket.o")
-                  output-so-name)
-
-  ;; cleanup:
-  (delete-file "llvm-racket.o")
-                     
-  (void))
+    ;; Finally, build:
+    (compile-extension #t 
+                       "llvm-racket.cpp"
+                       "llvm-racket.o"
+                       include-dirs)
+    ;; ... and link:
+    (link-extension #t
+                    (list "llvm-racket.o")
+                    output-so-name)
+    
+    ;; cleanup:
+    (delete-file "llvm-racket.o")
+    
+    (void)))
 
 
 (define (llvm-config flags)
