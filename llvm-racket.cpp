@@ -1,45 +1,18 @@
-
 #include "llvm-c/Core.h"
-#include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/Type.h"
-#include "llvm/Constants.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/GlobalVariable.h"
-#include "llvm/GlobalAlias.h"
-#include "llvm/LLVMContext.h"
-#include "llvm/LLVMContext.h"
 #include "llvm/PassManager.h"
-#include "llvm/InlineAsm.h"
 #include "llvm/IntrinsicInst.h"
-#include "llvm/Support/CallSite.h"
 #include "llvm/Support/TargetSelect.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetLibraryInfo.h"
-#include "llvm/Target/TargetData.h"
-#include "llvm/Analysis/Passes.h"
+#include "llvm/DataLayout.h"
 #include "llvm/Analysis/Verifier.h"
-#include "llvm/Analysis/Dominators.h"
-#include "llvm/Analysis/CallGraph.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
-#include "llvm/Transforms/Scalar.h"
 #include "llvm/ADT/Triple.h"
-#include <cassert>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
 
 
 #ifdef __cplusplus
-
-/* Need these includes to support the LLVM 'cast' template for the C++ 'wrap' 
-   and 'unwrap' conversion functions. */
-#include "llvm/Module.h"
-#include "llvm/PassRegistry.h"
-#include "llvm/Support/IRBuilder.h"
 
 extern "C" {
 #endif
@@ -113,10 +86,10 @@ bool LLVMOptimizeModule(LLVMModuleRef Mod) {
   // Add an appropriate TargetLibraryInfo pass for the module's triple.
   TargetLibraryInfo *TLI = new TargetLibraryInfo(Triple(M->getTargetTriple()));
 
-  // Add an appropriate TargetData instance for this module.
+  // Add an appropriate DataLayout instance for this module.
   const std::string &ModuleDataLayout = M->getDataLayout();
   if (!ModuleDataLayout.empty()) {
-    TargetData *TD = new TargetData(ModuleDataLayout);
+    DataLayout *TD = new DataLayout(ModuleDataLayout);
     Passes.add(TD);
   }
 
