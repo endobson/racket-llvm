@@ -2,3 +2,4 @@
 *.dylib.dSYM
 *.so
 compiled
+doc
