@@ -30,8 +30,8 @@
       "\n"))
 
 
-  (define filename (string-append (include-dir) "/" name))
-  (define command `("/usr/bin/env" "cpp" ,(format "-D~a" def) "-E" "-P" ,@(cpp-flags) ,filename))
+  (define filename (string-append (llvm-include-dir) "/" name))
+  (define command `("/usr/bin/env" "cpp" ,(format "-D~a" def) "-E" "-P" ,@(llvm-cpp-flags) ,filename))
   (let-values (((process out in err) (apply subprocess #f #f #f command)))
    (close-output-port in)
    (begin0
@@ -58,8 +58,8 @@
         (string-split header-string "\n"))
       "\n"))
 
-  (define filename (string-append (include-dir) "/" name))
-  (define command `("/usr/bin/env" "clang" "-U__GNUC__" "-E" "-P" ,@(cpp-flags) ,filename))
+  (define filename (string-append (llvm-include-dir) "/" name))
+  (define command `("/usr/bin/env" "clang" "-U__GNUC__" "-E" "-P" ,@(llvm-cpp-flags) ,filename))
   (let-values (((process out in err) (apply subprocess #f #f #f command)))
    (close-output-port in)
    (begin0

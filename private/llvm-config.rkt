@@ -10,8 +10,10 @@
 
 (provide
   (contract-out
-    (include-dir (-> string?))
-    (cpp-flags (-> (listof string?)))))
+    (llvm-include-dir (-> string?))
+    (llvm-lib-dir (-> string?))
+    (llvm-version (-> string?))
+    (llvm-cpp-flags (-> (listof string?)))))
 
 (define-syntax (define/promise stx)
   (syntax-parse stx
@@ -38,7 +40,9 @@
 
 
 
-(define/promise include-dir (llvm-config "--includedir"))
-(define/promise cpp-flags (llvm-config/list "--cppflags"))
+(define/promise llvm-include-dir (llvm-config "--includedir"))
+(define/promise llvm-lib-dir (llvm-config "--libdir"))
+(define/promise llvm-version (llvm-config "--version"))
+(define/promise llvm-cpp-flags (llvm-config/list "--cppflags"))
 
 
