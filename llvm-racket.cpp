@@ -1,12 +1,15 @@
 #include "llvm-c/Core.h"
-#include "llvm/Type.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Value.h"
 #include "llvm/PassManager.h"
-#include "llvm/IntrinsicInst.h"
+//#include "llvm/IntrinsicInst.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetLibraryInfo.h"
-#include "llvm/DataLayout.h"
-#include "llvm/Analysis/Verifier.h"
+#include "llvm/IR/DataLayout.h"
+#include "llvm/IR/Intrinsics.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Verifier.h"
 #include "llvm/Transforms/IPO.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/ADT/Triple.h"
@@ -87,11 +90,11 @@ bool LLVMOptimizeModule(LLVMModuleRef Mod) {
   TargetLibraryInfo *TLI = new TargetLibraryInfo(Triple(M->getTargetTriple()));
 
   // Add an appropriate DataLayout instance for this module.
-  const std::string &ModuleDataLayout = M->getDataLayout();
-  if (!ModuleDataLayout.empty()) {
-    DataLayout *TD = new DataLayout(ModuleDataLayout);
-    Passes.add(TD);
-  }
+  // const std::string &ModuleDataLayout = M->getDataLayout();
+  // if (!ModuleDataLayout.empty()) {
+  //   DataLayout *TD = NULL; // new DataLayout(ModuleDataLayout);
+  //   Passes.add(TD);
+  // }
 
 
   Passes.add(createVerifierPass());  // Verify that input is correct

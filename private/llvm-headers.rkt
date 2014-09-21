@@ -2,7 +2,7 @@
 
 (require
   (for-syntax racket/base)
-  (planet dherman/c:4:0)
+  (except-in (planet dherman/c:4:0) struct)
   (rename-in racket/contract
     (-> c:->))
   racket/port
@@ -10,13 +10,14 @@
   racket/list
   racket/string
   ffi/unsafe
+  "clang.rkt"
   "llvm-config.rkt")
 
 (provide 
   (contract-out
     (read-genfile (c:-> path-string? string? string?))
-    (read-header (c:-> path-string? (listof decl?)))
-    (extract-enum-list (c:-> symbol? (listof decl?) (listof (or/c symbol? number?))))))
+    (read-header (c:-> path-string? (listof enum-decl?)))
+    (extract-enum-values (c:-> symbol? (listof enum-decl?) (hash/c symbol? integer?)))))
 
 (define (read-genfile name def)
   (define (munge contents)
@@ -31,6 +32,8 @@
 
 
   (define filename (string-append (llvm-include-dir) "/" name))
+
+
   (define command `("/usr/bin/env" "cpp" ,(format "-D~a" def) "-E" "-P" ,@(llvm-cpp-flags) ,filename))
   (let-values (((process out in err) (apply subprocess #f #f #f command)))
    (close-output-port in)
@@ -43,73 +46,45 @@
       (unless (= (subprocess-status process) 0)
         (error 'cpp "Returned non zero exit code for file: ~a\n~a" filename err-string))))))
 
-
+;; Kind is either 'enum or 'typedef
+;; Name is a symbol and the name of the enum
+;; Values is a dict from symbols to integers
+(struct enum-decl [kind name values])
 
 (define (read-header name)
-  (define (munge header-string)
-    (string-join
-      (filter
-        (lambda (line)
-          (and
-            (not (regexp-match? "__attribute__" line))
-            (not (regexp-match? "__typeof__" line))
-            (not (regexp-match? "{ {" line))
-            (not (regexp-match? "nan_union" line))))
-        (string-split header-string "\n"))
-      "\n"))
-
   (define filename (string-append (llvm-include-dir) "/" name))
-  (define command `("/usr/bin/env" "clang" "-U__GNUC__" "-E" "-P" ,@(llvm-cpp-flags) ,filename))
-  (let-values (((process out in err) (apply subprocess #f #f #f command)))
-   (close-output-port in)
-   (begin0
-    (parse-program (munge (string-trim (port->string out)))
-      #:typedef '(uint16_t uint32_t uint64_t))
-    (let ((err-string (string-trim (port->string err))))
-      (close-input-port err)
-      (close-input-port out)
-      (subprocess-wait process)
-      (unless (= (subprocess-status process) 0)
-        (error 'clang "Returned non zero exit code for file: ~a\n~a" filename err-string))))))
+  (define idx (create-index #:display-diagnostics #t))
+  (define tu (create-translation-unit-from-source-file idx filename (llvm-cpp-flags)))
+
+  (define (enum-decl->_enum cursor)
+    (make-immutable-hash
+      (cursor-map cursor
+        (λ (child)
+          (cons (string->symbol (cursor-spelling child)) (enum-constant-decl-value child))))))
+
+  (define result
+    (filter values
+      (cursor-map (translation-unit-cursor tu)
+        (λ (cursor)
+           (cond
+             [(typedef-decl-kind? (CXCursor-kind cursor))
+              (define enum (cursor-find cursor enum-decl->_enum))
+              (and enum (enum-decl 'typedef (string->symbol (cursor-spelling cursor)) enum))]
+             [(enum-decl-kind? (CXCursor-kind cursor))
+              (define name (cursor-spelling cursor))
+              (and (not (equal? "" name))
+                   (enum-decl 'enum (string->symbol name) (enum-decl->_enum cursor)))]
+             [else #f])))))
+  result
+  )
 
 
 (define (find-typedef name declarations)
-  (for/or ((a-typedef (filter decl:typedef? declarations)))
-    (match a-typedef
-      ((decl:typedef _ type (list (decl:declarator _ (id:var _ (== name)) _ _))) type)
-      (_ #f))))
+  (for/first ([decl declarations]
+           #:when (equal? (enum-decl-kind decl) 'typedef)
+           #:when (equal? (enum-decl-name decl) name))
+    decl))
 
 
-(define (eval-expr expr)
- (match expr
-   ((expr:binop _ l (id:op _ op-name) r)
-    (define op
-      (match op-name
-       ('<< arithmetic-shift)))
-    (op (eval-expr l) (eval-expr r)))
-   ((expr:int _ v '()) v)))
-
-
-(define-match-expander bind
-   (λ (stx)
-     (syntax-case stx ()
-       [(_ pat expr) #'(app (λ (x) expr) pat)]
-       [(_ pat) #'(app (λ (x) #f) pat)])))
-
-(define (parse-enum enum)
-  (match enum
-   ((type:enum _ tag (list (or (cons (id:var _ variant-names) vals)
-                               (and (id:var _ variant-names)
-                                    (bind vals))) ...))
-    (append*
-      (for/list ((name variant-names) (val vals))
-        (if val
-            `(,name = ,(eval-expr val))
-            `(,name)))))))
-
-
-(define (extract-enum-list name declarations)
-  (let ((def (find-typedef name declarations)))
-    (if def
-        (parse-enum def)
-        (error 'extract-enum-list "No enum definition found for ~a" name))))
+(define (extract-enum-values name declarations)
+  (enum-decl-values (find-typedef name declarations)))
