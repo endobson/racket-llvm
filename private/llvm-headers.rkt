@@ -67,10 +67,10 @@
       (cursor-map (translation-unit-cursor tu)
         (λ (cursor)
            (cond
-             [(typedef-decl-kind? (CXCursor-kind cursor))
+             [(typedef-decl-cursor? cursor)
               (define enum (cursor-find cursor enum-decl->_enum))
               (and enum (enum-decl 'typedef (string->symbol (cursor-spelling cursor)) enum))]
-             [(enum-decl-kind? (CXCursor-kind cursor))
+             [(enum-decl-cursor? cursor)
               (define name (cursor-spelling cursor))
               (and (not (equal? "" name))
                    (enum-decl 'enum (string->symbol name) (enum-decl->_enum cursor)))]
