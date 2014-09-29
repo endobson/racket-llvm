@@ -12,6 +12,7 @@
 (provide
  (contract-out
   (llvm:int->generic (->* (exact-integer?) (#:type llvm:integer-type? #:signed boolean?) llvm-generic-value?))
+  (llvm:int8->generic (->* (exact-integer?) (#:signed boolean?) llvm-generic-value?))
   (llvm:int32->generic (->* (exact-integer?) (#:signed boolean?) llvm-generic-value?))
                      
 
@@ -41,6 +42,7 @@
 (define context (llvm-create-context))
 (define single (llvm-single-type #:context context))
 (define double (llvm-double-type #:context context))
+(define int8 (llvm-int8-type #:context context))
 (define int32 (llvm-int32-type #:context context))
 
 
@@ -48,6 +50,8 @@
  (LLVMCreateGenericValueOfInt type n signed))
 
 ;TODO clean this up
+(define (llvm:int8->generic n #:signed (signed #t))
+  (LLVMCreateGenericValueOfInt int8 n signed))
 (define (llvm:int32->generic n #:signed (signed #t))
   (LLVMCreateGenericValueOfInt int32 n signed))
 
