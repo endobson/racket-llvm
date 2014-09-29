@@ -99,16 +99,20 @@
        (llvm-set-position then-block)
        (define then-val then-expr)
        (define then-end-block (llvm-get-insert-block))
-       (llvm-maybe
-        (set! then-end-block #f)
-        (llvm-br merge-block))
+       (cond
+         [(llvm-get-terminator)
+          (set! then-end-block #f)]
+         [else
+          (llvm-br merge-block)])
        
        (llvm-set-position else-block)
        (define else-val else-expr)
        (define else-end-block (llvm-get-insert-block))
-       (llvm-maybe
-        (set! else-end-block #f)
-        (llvm-br merge-block))
+       (cond
+         [(llvm-get-terminator)
+          (set! else-end-block #f)]
+         [else
+          (llvm-br merge-block)])
 
        (llvm-set-position merge-block)
        (define merge-val (llvm-phi (value->llvm-type else-val)))

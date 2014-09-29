@@ -22,7 +22,7 @@
       (for/list ([(name value) (in-hash enum-values)])
         `(,name = ,value))))
   (define quoted-enum-symbols
-    (for/list ((symbol (hash-values enum-values)))
+    (for/list ((symbol (hash-keys enum-values)))
       #`'#,symbol))
   #`(begin
      (provide name name?)
