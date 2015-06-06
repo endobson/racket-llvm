@@ -20,6 +20,9 @@
 
 (define lib-clang (ffi-lib (build-path (llvm-lib-dir) "libclang")))
 
+;; Without this clang installs signal handlers that mess up the racket VM
+(void (putenv "LIBCLANG_DISABLE_CRASH_RECOVERY" ""))
+
 ;; Indices
 (struct index (pointer))
 
